@@ -180,7 +180,7 @@ export interface SourceAskResponse {
    * Optional structured output (object) validated against the requested
    * output_schema.
    */
-  structured_output?: unknown;
+  structured_output?: { [key: string]: unknown } | null;
 }
 
 export interface SourceExtractResponse {
@@ -197,7 +197,7 @@ export interface SourceExtractResponse {
   /**
    * Structured output (object) matching the requested output_schema.
    */
-  structured_output?: unknown;
+  structured_output?: { [key: string]: unknown } | null;
 }
 
 export interface SourceLoadElementsResponse {
