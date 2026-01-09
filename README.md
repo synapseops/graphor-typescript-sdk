@@ -27,7 +27,7 @@ import Graphor from 'graphor';
 
 const client = new Graphor();
 
-const publicSource = await client.sources.uploadURL({ url: 'url' });
+const publicSource = await client.sources.upload({ file: fs.createReadStream('path/to/file') });
 
 console.log(publicSource.project_id);
 ```
@@ -42,8 +42,8 @@ import Graphor from 'graphor';
 
 const client = new Graphor();
 
-const params: Graphor.SourceUploadURLParams = { url: 'url' };
-const publicSource: Graphor.PublicSource = await client.sources.uploadURL(params);
+const params: Graphor.SourceUploadParams = { file: fs.createReadStream('path/to/file') };
+const publicSource: Graphor.PublicSource = await client.sources.upload(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -85,15 +85,17 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const publicSource = await client.sources.uploadURL({ url: 'url' }).catch(async (err) => {
-  if (err instanceof Graphor.APIError) {
-    console.log(err.status); // 400
-    console.log(err.name); // BadRequestError
-    console.log(err.headers); // {server: 'nginx', ...}
-  } else {
-    throw err;
-  }
-});
+const publicSource = await client.sources
+  .upload({ file: fs.createReadStream('path/to/file') })
+  .catch(async (err) => {
+    if (err instanceof Graphor.APIError) {
+      console.log(err.status); // 400
+      console.log(err.name); // BadRequestError
+      console.log(err.headers); // {server: 'nginx', ...}
+    } else {
+      throw err;
+    }
+  });
 ```
 
 Error codes are as follows:
@@ -125,7 +127,7 @@ const client = new Graphor({
 });
 
 // Or, configure per-request:
-await client.sources.uploadURL({ url: 'url' }, {
+await client.sources.upload({ file: fs.createReadStream('path/to/file') }, {
   maxRetries: 5,
 });
 ```
@@ -142,7 +144,7 @@ const client = new Graphor({
 });
 
 // Override per-request:
-await client.sources.uploadURL({ url: 'url' }, {
+await client.sources.upload({ file: fs.createReadStream('path/to/file') }, {
   timeout: 5 * 1000,
 });
 ```
@@ -165,12 +167,14 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Graphor();
 
-const response = await client.sources.uploadURL({ url: 'url' }).asResponse();
+const response = await client.sources
+  .upload({ file: fs.createReadStream('path/to/file') })
+  .asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
 const { data: publicSource, response: raw } = await client.sources
-  .uploadURL({ url: 'url' })
+  .upload({ file: fs.createReadStream('path/to/file') })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
 console.log(publicSource.project_id);
@@ -253,7 +257,7 @@ parameter. This library doesn't validate at runtime that the request matches the
 send will be sent as-is.
 
 ```ts
-client.sources.uploadURL({
+client.sources.upload({
   // ...
   // @ts-expect-error baz is not yet public
   baz: 'undocumented option',
