@@ -1,8 +1,8 @@
 {
   "name": "graphor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The official TypeScript library for the Graphor API",
-  "author": "Graphor <>",
+  "author": "Graphor <support@graphorlm.com>",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "type": "commonjs",
