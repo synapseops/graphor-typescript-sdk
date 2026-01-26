@@ -53,6 +53,7 @@ describe('resource sources', () => {
       file_names: ['string'],
       output_schema: { foo: 'bar' },
       reset: true,
+      thinking_level: 'fast',
     });
   });
 
@@ -78,6 +79,7 @@ describe('resource sources', () => {
       user_instruction: 'user_instruction',
       file_ids: ['string'],
       file_names: ['string'],
+      thinking_level: 'fast',
     });
   });
 

@@ -373,6 +373,11 @@ export interface SourceAskParams {
    * When true, starts a new conversation and ignores history
    */
   reset?: boolean | null;
+
+  /**
+   * Controls model and thinking configuration: 'fast', 'balanced', 'accurate'
+   */
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
 export interface SourceExtractParams {
@@ -396,6 +401,11 @@ export interface SourceExtractParams {
    * List of file names to extract from (deprecated, use file_ids)
    */
   file_names?: Array<string> | null;
+
+  /**
+   * Controls model and thinking configuration: 'fast', 'balanced', 'accurate'
+   */
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
 export interface SourceLoadElementsParams {
