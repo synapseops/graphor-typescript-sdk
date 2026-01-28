@@ -471,7 +471,7 @@ export interface SourceParseParams {
   /**
    * The method used to partition the file
    */
-  partition_method?: PartitionMethod;
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm';
 }
 
 export interface SourceRetrieveChunksParams {
@@ -495,6 +495,11 @@ export interface SourceRetrieveChunksParams {
 
 export interface SourceUploadParams {
   file: Uploadable;
+
+  /**
+   * Partition methods available for public API endpoints.
+   */
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm' | null;
 }
 
 export interface SourceUploadGitHubParams {
@@ -514,6 +519,11 @@ export interface SourceUploadURLParams {
    * Whether to crawl urls from the source
    */
   crawlUrls?: boolean;
+
+  /**
+   * Partition methods available for public API endpoints.
+   */
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm' | null;
 }
 
 export interface SourceUploadYoutubeParams {
