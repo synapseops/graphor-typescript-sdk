@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0 (2026-01-26)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **api:** api update ([f11be93](https://github.com/synapseops/graphor-typescript-sdk/commit/f11be9365691e89aad88d54c9fa5d4e11ed9f7cd))
+* **api:** api update ([d32277d](https://github.com/synapseops/graphor-typescript-sdk/commit/d32277ddb7fdaf1eb85ed18780a5bafcc033fd1c))
+
+
+### Chores
+
+* **ci:** upgrade `actions/github-script` ([b77f1ee](https://github.com/synapseops/graphor-typescript-sdk/commit/b77f1ee991cd4a12fc66783f92d80948389d265a))
+* **internal:** update `actions/checkout` version ([39004f9](https://github.com/synapseops/graphor-typescript-sdk/commit/39004f98547edfcba6aeee3f57a731ab4e9d7c19))
+* **internal:** update lock file ([fd16cec](https://github.com/synapseops/graphor-typescript-sdk/commit/fd16cece35d8b7d1acb4c383c4ce8f13deb358fa))
+* **internal:** upgrade babel, qs, js-yaml ([b79e597](https://github.com/synapseops/graphor-typescript-sdk/commit/b79e597c30e17c90b1825189d5d1ece9f924403b))
+* **internal:** upgrade brace-expansion and @babel/helpers ([647d7af](https://github.com/synapseops/graphor-typescript-sdk/commit/647d7af3bdfb9304a08025bf34f2639d38aece54))
+
 ## 0.2.0 (2026-01-09)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.1.0...v0.2.0)

@@ -21,8 +21,8 @@ describe('resource sources', () => {
   });
 
   // Prism tests are disabled
-  test.skip('delete: only required params', async () => {
-    const responsePromise = client.sources.delete({ file_name: 'file_name' });
+  test.skip('delete', async () => {
+    const responsePromise = client.sources.delete({});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -30,11 +30,6 @@ describe('resource sources', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Prism tests are disabled
-  test.skip('delete: required and optional params', async () => {
-    const response = await client.sources.delete({ file_name: 'file_name' });
   });
 
   // Prism tests are disabled
@@ -54,16 +49,17 @@ describe('resource sources', () => {
     const response = await client.sources.ask({
       question: 'question',
       conversation_id: 'conversation_id',
+      file_ids: ['string'],
       file_names: ['string'],
       output_schema: { foo: 'bar' },
       reset: true,
+      thinking_level: 'fast',
     });
   });
 
   // Prism tests are disabled
   test.skip('extract: only required params', async () => {
     const responsePromise = client.sources.extract({
-      file_names: ['string'],
       output_schema: { foo: 'bar' },
       user_instruction: 'user_instruction',
     });
@@ -79,15 +75,17 @@ describe('resource sources', () => {
   // Prism tests are disabled
   test.skip('extract: required and optional params', async () => {
     const response = await client.sources.extract({
-      file_names: ['string'],
       output_schema: { foo: 'bar' },
       user_instruction: 'user_instruction',
+      file_ids: ['string'],
+      file_names: ['string'],
+      thinking_level: 'fast',
     });
   });
 
   // Prism tests are disabled
-  test.skip('loadElements: only required params', async () => {
-    const responsePromise = client.sources.loadElements({ file_name: 'file_name' });
+  test.skip('loadElements', async () => {
+    const responsePromise = client.sources.loadElements({});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -98,22 +96,8 @@ describe('resource sources', () => {
   });
 
   // Prism tests are disabled
-  test.skip('loadElements: required and optional params', async () => {
-    const response = await client.sources.loadElements({
-      file_name: 'file_name',
-      filter: {
-        elementsToRemove: ['string'],
-        page_numbers: [0],
-        type: 'type',
-      },
-      page: 0,
-      page_size: 0,
-    });
-  });
-
-  // Prism tests are disabled
-  test.skip('parse: only required params', async () => {
-    const responsePromise = client.sources.parse({ file_name: 'file_name' });
+  test.skip('parse', async () => {
+    const responsePromise = client.sources.parse({});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -121,11 +105,6 @@ describe('resource sources', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Prism tests are disabled
-  test.skip('parse: required and optional params', async () => {
-    const response = await client.sources.parse({ file_name: 'file_name', partition_method: 'basic' });
   });
 
   // Prism tests are disabled
@@ -142,7 +121,11 @@ describe('resource sources', () => {
 
   // Prism tests are disabled
   test.skip('retrieveChunks: required and optional params', async () => {
-    const response = await client.sources.retrieveChunks({ query: 'query', file_names: ['string'] });
+    const response = await client.sources.retrieveChunks({
+      query: 'query',
+      file_ids: ['string'],
+      file_names: ['string'],
+    });
   });
 
   // Prism tests are disabled

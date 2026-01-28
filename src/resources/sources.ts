@@ -16,6 +16,8 @@ export class Sources extends APIResource {
 
   /**
    * Delete a source from the project for public access.
+   *
+   * Accepts either file_id (preferred) or file_name (deprecated) as identifier.
    */
   delete(body: SourceDeleteParams, options?: RequestOptions): APIPromise<SourceDeleteResponse> {
     return this._client.delete('/sources/delete', { body, ...options });
@@ -37,6 +39,8 @@ export class Sources extends APIResource {
 
   /**
    * Loads elements from a file with optional pagination for public access.
+   *
+   * Accepts either file_id (preferred) or file_name (deprecated) as identifier.
    */
   loadElements(
     body: SourceLoadElementsParams,
@@ -46,7 +50,9 @@ export class Sources extends APIResource {
   }
 
   /**
-   * Parse
+   * Process/parse an existing source.
+   *
+   * Accepts either file_id (preferred) or file_name (deprecated) as identifier.
    */
   parse(body: SourceParseParams, options?: RequestOptions): APIPromise<PublicSource> {
     return this._client.post('/sources/process', { body, ...options });
@@ -55,6 +61,8 @@ export class Sources extends APIResource {
   /**
    * Public endpoint to retrieve relevant chunks from the prebuild RAG store. Uses
    * Google File Search with grounding to find relevant document chunks.
+   *
+   * Accepts either file_ids (preferred) or file_names (deprecated) as identifier.
    */
   retrieveChunks(
     body: SourceRetrieveChunksParams,
@@ -125,6 +133,11 @@ export interface PublicSource {
 
   status: string;
 
+  /**
+   * Unique identifier for the source
+   */
+  file_id?: string | null;
+
   partition_method?: PartitionMethod | null;
 }
 
@@ -155,6 +168,11 @@ export interface SourceDeleteResponse {
    * The status of the deletion
    */
   status: string;
+
+  /**
+   * Unique identifier for the source
+   */
+  file_id?: string | null;
 }
 
 export interface SourceAskResponse {
@@ -188,6 +206,11 @@ export interface SourceExtractResponse {
    * List of file names used for extraction
    */
   file_names: Array<string>;
+
+  /**
+   * List of file IDs used for extraction
+   */
+  file_ids?: Array<string> | null;
 
   /**
    * Raw JSON-text produced by the model before validation/correction.
@@ -278,6 +301,11 @@ export namespace SourceRetrieveChunksResponse {
     text: string;
 
     /**
+     * The unique identifier of the source file
+     */
+    file_id?: string | null;
+
+    /**
      * The source file name
      */
     file_name?: string | null;
@@ -301,9 +329,14 @@ export namespace SourceRetrieveChunksResponse {
 
 export interface SourceDeleteParams {
   /**
-   * The name of the file to delete
+   * Unique identifier for the source (preferred)
    */
-  file_name: string;
+  file_id?: string | null;
+
+  /**
+   * The name of the file to delete (deprecated, use file_id)
+   */
+  file_name?: string | null;
 }
 
 export interface SourceAskParams {
@@ -318,7 +351,14 @@ export interface SourceAskParams {
   conversation_id?: string | null;
 
   /**
+   * Optional list of file IDs to restrict search to one or more documents
+   * (preferred)
+   */
+  file_ids?: Array<string> | null;
+
+  /**
    * Optional list of file display names to restrict search to one or more documents
+   * (deprecated, use file_ids)
    */
   file_names?: Array<string> | null;
 
@@ -333,14 +373,14 @@ export interface SourceAskParams {
    * When true, starts a new conversation and ignores history
    */
   reset?: boolean | null;
+
+  /**
+   * Controls model and thinking configuration: 'fast', 'balanced', 'accurate'
+   */
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
 export interface SourceExtractParams {
-  /**
-   * List of file names to extract from
-   */
-  file_names: Array<string>;
-
   /**
    * JSON Schema used to request a structured output. The system will extract data
    * according to this schema.
@@ -351,13 +391,33 @@ export interface SourceExtractParams {
    * User instruction to guide the extraction
    */
   user_instruction: string;
+
+  /**
+   * List of file IDs to extract from (preferred)
+   */
+  file_ids?: Array<string> | null;
+
+  /**
+   * List of file names to extract from (deprecated, use file_ids)
+   */
+  file_names?: Array<string> | null;
+
+  /**
+   * Controls model and thinking configuration: 'fast', 'balanced', 'accurate'
+   */
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
 export interface SourceLoadElementsParams {
   /**
-   * The name of the file
+   * Unique identifier for the source (preferred)
    */
-  file_name: string;
+  file_id?: string | null;
+
+  /**
+   * The name of the file (deprecated, use file_id)
+   */
+  file_name?: string | null;
 
   /**
    * The filter of the elements
@@ -399,9 +459,14 @@ export namespace SourceLoadElementsParams {
 
 export interface SourceParseParams {
   /**
-   * The name of the file
+   * Unique identifier for the source (preferred)
    */
-  file_name: string;
+  file_id?: string | null;
+
+  /**
+   * The name of the file (deprecated, use file_id)
+   */
+  file_name?: string | null;
 
   /**
    * The method used to partition the file
@@ -416,7 +481,14 @@ export interface SourceRetrieveChunksParams {
   query: string;
 
   /**
+   * Optional list of file IDs to restrict retrieval to one or more documents
+   * (preferred)
+   */
+  file_ids?: Array<string> | null;
+
+  /**
    * Optional list of file names to restrict retrieval to one or more documents
+   * (deprecated, use file_ids)
    */
   file_names?: Array<string> | null;
 }
