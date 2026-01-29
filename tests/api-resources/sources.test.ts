@@ -146,6 +146,7 @@ describe('resource sources', () => {
   test.skip('upload: required and optional params', async () => {
     const response = await client.sources.upload({
       file: await toFile(Buffer.from('# my file contents'), 'README.md'),
+      partition_method: 'basic',
     });
   });
 
@@ -180,7 +181,11 @@ describe('resource sources', () => {
 
   // Prism tests are disabled
   test.skip('uploadURL: required and optional params', async () => {
-    const response = await client.sources.uploadURL({ url: 'url', crawlUrls: true });
+    const response = await client.sources.uploadURL({
+      url: 'url',
+      crawlUrls: true,
+      partition_method: 'basic',
+    });
   });
 
   // Prism tests are disabled
