@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.1 (2026-02-03)
+
+Full Changelog: [v0.4.0...v0.4.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.4.0...v0.4.1)
+
+### Bug Fixes
+
+* **client:** avoid memory leak with abort signals ([15e14bd](https://github.com/synapseops/graphor-typescript-sdk/commit/15e14bd243787944a5fe5421a88b1e2de8403840))
+
+
+### Chores
+
+* **client:** do not parse responses with empty content-length ([b91e45d](https://github.com/synapseops/graphor-typescript-sdk/commit/b91e45de2e60f565abd800aa72d77b1c86317590))
+* configure new SDK language ([da4ce18](https://github.com/synapseops/graphor-typescript-sdk/commit/da4ce1872ff957d203ed135c297d693a28a18309))
+
 ## 0.4.0 (2026-01-29)
 
 Full Changelog: [v0.3.0...v0.4.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.3.0...v0.4.0)
