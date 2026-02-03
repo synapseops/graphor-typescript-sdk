@@ -14,6 +14,11 @@ Full Changelog: [v0.4.0...v0.4.1](https://github.com/synapseops/graphor-typescri
 * **client:** do not parse responses with empty content-length ([b91e45d](https://github.com/synapseops/graphor-typescript-sdk/commit/b91e45de2e60f565abd800aa72d77b1c86317590))
 * configure new SDK language ([da4ce18](https://github.com/synapseops/graphor-typescript-sdk/commit/da4ce1872ff957d203ed135c297d693a28a18309))
 
+
+### Documentation
+
+* **readme:** update ([dded427](https://github.com/synapseops/graphor-typescript-sdk/commit/dded42711e175b45ee3916ec13a8640d82aa93c7))
+
 ## 0.4.0 (2026-01-29)
 
 Full Changelog: [v0.3.0...v0.4.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.3.0...v0.4.0)
