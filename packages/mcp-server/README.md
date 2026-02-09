@@ -1,19 +1,34 @@
-# Graphor TypeScript MCP Server
+# Graphor Typescript Project TypeScript MCP Server
 
 It is generated with [Stainless](https://www.stainless.com/).
 
 ## Installation
 
-### Direct invocation
+### Building
 
-You can run the MCP Server directly via `npx`:
+Because it's not published yet, clone the repo and build it:
 
 ```sh
-export GRAPHOR_API_KEY="My API Key"
-npx -y graphor-mcp@latest
+git clone git@github.com:synapseops/graphor-typescript-sdk.git
+cd graphor-typescript-sdk
+./scripts/bootstrap
+./scripts/build
 ```
 
+### Running
+
+```sh
+# set env vars as needed
+export GRAPHOR_TYPESCRIPT_PROJECT_API_KEY="My API Key"
+node ./packages/mcp-server/dist/index.js
+```
+
+> [!NOTE]
+> Once this package is [published to npm](https://www.stainless.com/docs/guides/publish), this will become: `npx -y graphor-typescript-project-mcp`
+
 ### Via MCP Client
+
+[Build the project](#building) as mentioned above.
 
 There is a partial list of existing clients at [modelcontextprotocol.io](https://modelcontextprotocol.io/clients). If you already
 have a client, consult their documentation to install the MCP server.
@@ -23,38 +38,15 @@ For clients with a configuration JSON, it might look something like this:
 ```json
 {
   "mcpServers": {
-    "graphor_api": {
-      "command": "npx",
-      "args": ["-y", "graphor-mcp"],
+    "graphor_typescript_project_api": {
+      "command": "node",
+      "args": ["/path/to/local/graphor-typescript-sdk/packages/mcp-server"],
       "env": {
-        "GRAPHOR_API_KEY": "My API Key"
+        "GRAPHOR_TYPESCRIPT_PROJECT_API_KEY": "My API Key"
       }
     }
   }
 }
-```
-
-### Cursor
-
-If you use Cursor, you can install the MCP server by using the button below. You will need to set your environment variables
-in Cursor's `mcp.json`, which can be found in Cursor Settings > Tools & MCP > New MCP Server.
-
-[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=graphor-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdyYXBob3ItbWNwIl0sImVudiI6eyJHUkFQSE9SX0FQSV9LRVkiOiJNeSBBUEkgS2V5In19)
-
-### VS Code
-
-If you use MCP, you can install the MCP server by clicking the link below. You will need to set your environment variables
-in VS Code's `mcp.json`, which can be found via Command Palette > MCP: Open User Configuration.
-
-[Open VS Code](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22graphor-mcp%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22graphor-mcp%22%5D%2C%22env%22%3A%7B%22GRAPHOR_API_KEY%22%3A%22My%20API%20Key%22%7D%7D)
-
-### Claude Code
-
-If you use Claude Code, you can install the MCP server by running the command below in your terminal. You will need to set your
-environment variables in Claude Code's `.claude.json`, which can be found in your home directory.
-
-```
-claude mcp add graphor_mcp_api --env GRAPHOR_API_KEY="My API Key" -- npx -y graphor-mcp
 ```
 
 ## Code Mode
@@ -82,15 +74,15 @@ Authorization can be provided via the `Authorization` header using the Bearer sc
 
 Additionally, authorization can be provided via the following headers:
 | Header | Equivalent client option | Security scheme |
-| ------------------- | ------------------------ | --------------- |
-| `x-graphor-api-key` | `apiKey` | bearerAuth |
+| -------------------------------------- | ------------------------ | --------------- |
+| `x-graphor-typescript-project-api-key` | `apiKey` | HTTPBearer |
 
 A configuration JSON for this server might look like this, assuming the server is hosted at `http://localhost:3000`:
 
 ```json
 {
   "mcpServers": {
-    "graphor_api": {
+    "graphor_typescript_project_api": {
       "url": "http://localhost:3000",
       "headers": {
         "Authorization": "Bearer <auth value>"
