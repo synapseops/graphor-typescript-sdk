@@ -8,9 +8,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stainless-sdks/graphor-typescript-project-typescript.git"
+    "url": "git+https://github.com/synapseops/graphor-typescript-sdk.git"
   },
-  "homepage": "https://github.com/stainless-sdks/graphor-typescript-project-typescript/tree/main/packages/mcp-server#readme",
+  "homepage": "https://github.com/synapseops/graphor-typescript-sdk/tree/main/packages/mcp-server#readme",
   "server": {
     "type": "node",
     "entry_point": "index.js",

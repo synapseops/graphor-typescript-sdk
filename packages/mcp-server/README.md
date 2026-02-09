@@ -9,8 +9,8 @@ It is generated with [Stainless](https://www.stainless.com/).
 Because it's not published yet, clone the repo and build it:
 
 ```sh
-git clone git@github.com:stainless-sdks/graphor-typescript-project-typescript.git
-cd graphor-typescript-project-typescript
+git clone git@github.com:synapseops/graphor-typescript-sdk.git
+cd graphor-typescript-sdk
 ./scripts/bootstrap
 ./scripts/build
 ```
@@ -40,7 +40,7 @@ For clients with a configuration JSON, it might look something like this:
   "mcpServers": {
     "graphor_typescript_project_api": {
       "command": "node",
-      "args": ["/path/to/local/graphor-typescript-project-typescript/packages/mcp-server"],
+      "args": ["/path/to/local/graphor-typescript-sdk/packages/mcp-server"],
       "env": {
         "GRAPHOR_TYPESCRIPT_PROJECT_API_KEY": "My API Key"
       }
