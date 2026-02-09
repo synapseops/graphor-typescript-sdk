@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Graphor, { toFile } from 'graphor';
+import GraphorTypescriptProject, { toFile } from 'graphor-typescript-project';
 
-const client = new Graphor({
+const client = new GraphorTypescriptProject({
   apiKey: 'My API Key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });

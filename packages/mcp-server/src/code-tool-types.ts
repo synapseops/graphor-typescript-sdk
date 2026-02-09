@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { ClientOptions } from 'graphor';
+import { ClientOptions } from 'graphor-typescript-project';
 
 export type WorkerInput = {
   project_name: string;

@@ -1,11 +1,11 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { Graphor } from '../client';
+import type { GraphorTypescriptProject } from '../client';
 
 export abstract class APIResource {
-  protected _client: Graphor;
+  protected _client: GraphorTypescriptProject;
 
-  constructor(client: Graphor) {
+  constructor(client: GraphorTypescriptProject) {
     this._client = client;
   }
 }

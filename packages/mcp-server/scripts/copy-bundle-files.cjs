@@ -25,7 +25,7 @@ async function copyFiles() {
 
   // replace package.json reference with local reference
   for (const dep in pkgJson.dependencies) {
-    if (dep === 'graphor') {
+    if (dep === 'graphor-typescript-project') {
       pkgJson.dependencies[dep] = 'file:../../../dist/';
     }
   }
