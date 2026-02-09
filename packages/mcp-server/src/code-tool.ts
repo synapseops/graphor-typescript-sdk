@@ -2,12 +2,11 @@
 
 import { McpTool, Metadata, ToolCallResult, asErrorResult, asTextContentResult } from './types';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { readEnv, requireValue } from './server';
+import { readEnv } from './server';
 import { WorkerInput, WorkerOutput } from './code-tool-types';
-import { SdkMethod } from './methods';
-import { GraphorTypescriptProject } from 'graphor-typescript-project';
+import { Graphor } from 'graphor';
 
-const prompt = `Runs JavaScript code to interact with the Graphor Typescript Project API.
+const prompt = `Runs JavaScript code to interact with the Graphor API.
 
 You are a skilled programmer writing code to interface with the service.
 Define an async function named "run" that takes a single parameter of an initialized SDK client and it will be run.
@@ -36,7 +35,7 @@ Variables will not persist between calls, so make sure to return or log any data
  *
  * @param endpoints - The endpoints to include in the list.
  */
-export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): McpTool {
+export function codeTool(): McpTool {
   const metadata: Metadata = { resource: 'all', operation: 'write', tags: [] };
   const tool: Tool = {
     name: 'execute',
@@ -56,27 +55,9 @@ export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): M
       required: ['code'],
     },
   };
-  const handler = async (client: GraphorTypescriptProject, args: any): Promise<ToolCallResult> => {
+  const handler = async (client: Graphor, args: any): Promise<ToolCallResult> => {
     const code = args.code as string;
     const intent = args.intent as string | undefined;
-
-    // Do very basic blocking of code that includes forbidden method names.
-    //
-    // WARNING: This is not secure against obfuscation and other evasion methods. If
-    // stronger security blocks are required, then these should be enforced in the downstream
-    // API (e.g., by having users call the MCP server with API keys with limited permissions).
-    if (params.blockedMethods) {
-      const blockedMatches = params.blockedMethods.filter((method) =>
-        code.includes(method.fullyQualifiedName),
-      );
-      if (blockedMatches.length > 0) {
-        return asErrorResult(
-          `The following methods have been blocked by the MCP server and cannot be used in code execution: ${blockedMatches
-            .map((m) => m.fullyQualifiedName)
-            .join(', ')}`,
-        );
-      }
-    }
 
     // this is not required, but passing a Stainless API key for the matching project_name
     // will allow you to run code-mode queries against non-published versions of your SDK.
@@ -90,16 +71,12 @@ export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): M
         ...(stainlessAPIKey && { Authorization: stainlessAPIKey }),
         'Content-Type': 'application/json',
         client_envs: JSON.stringify({
-          GRAPHOR_TYPESCRIPT_PROJECT_API_KEY: requireValue(
-            readEnv('GRAPHOR_TYPESCRIPT_PROJECT_API_KEY') ?? client.apiKey,
-            'set GRAPHOR_TYPESCRIPT_PROJECT_API_KEY environment variable or provide apiKey client option',
-          ),
-          GRAPHOR_TYPESCRIPT_PROJECT_BASE_URL:
-            readEnv('GRAPHOR_TYPESCRIPT_PROJECT_BASE_URL') ?? client.baseURL ?? undefined,
+          GRAPHOR_API_KEY: readEnv('GRAPHOR_API_KEY') ?? client.apiKey ?? undefined,
+          GRAPHOR_BASE_URL: readEnv('GRAPHOR_BASE_URL') ?? client.baseURL ?? undefined,
         }),
       },
       body: JSON.stringify({
-        project_name: 'graphor-typescript-project',
+        project_name: 'graphor',
         code,
         intent,
         client_opts: {},

@@ -1,5 +1,5 @@
-import { multipartFormRequestOptions, createForm } from 'graphor-typescript-project/internal/uploads';
-import { toFile } from 'graphor-typescript-project/core/uploads';
+import { multipartFormRequestOptions, createForm } from 'graphor/internal/uploads';
+import { toFile } from 'graphor/core/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {

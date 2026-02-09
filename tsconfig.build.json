@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "graphor-typescript-project/*": ["./dist/src/*"],
-      "graphor-typescript-project": ["./dist/src/index.ts"]
+      "graphor/*": ["./dist/src/*"],
+      "graphor": ["./dist/src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,
