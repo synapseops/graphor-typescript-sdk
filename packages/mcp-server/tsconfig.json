@@ -8,8 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "graphor-typescript-project-mcp/*": ["./src/*"],
-      "graphor-typescript-project-mcp": ["./src/index.ts"]
+      "graphor-mcp/*": ["./src/*"],
+      "graphor-mcp": ["./src/index.ts"]
     },
     "noEmit": true,
 

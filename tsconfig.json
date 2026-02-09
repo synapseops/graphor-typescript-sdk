@@ -8,8 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "graphor-typescript-project/*": ["./src/*"],
-      "graphor-typescript-project": ["./src/index.ts"]
+      "graphor/*": ["./src/*"],
+      "graphor": ["./src/index.ts"]
     },
     "noEmit": true,
 

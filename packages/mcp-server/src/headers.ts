@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { IncomingMessage } from 'node:http';
-import { ClientOptions } from 'graphor-typescript-project';
+import { ClientOptions } from 'graphor';
 
 export const parseAuthHeaders = (req: IncomingMessage, required?: boolean): Partial<ClientOptions> => {
   if (req.headers.authorization) {
@@ -20,8 +20,8 @@ export const parseAuthHeaders = (req: IncomingMessage, required?: boolean): Part
   }
 
   const apiKey =
-    Array.isArray(req.headers['x-graphor-typescript-project-api-key']) ?
-      req.headers['x-graphor-typescript-project-api-key'][0]
-    : req.headers['x-graphor-typescript-project-api-key'];
+    Array.isArray(req.headers['x-graphor-api-key']) ?
+      req.headers['x-graphor-api-key'][0]
+    : req.headers['x-graphor-api-key'];
   return { apiKey };
 };

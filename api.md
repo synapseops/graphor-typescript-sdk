@@ -2,7 +2,7 @@
 
 Types:
 
-- <code><a href="./src/resources/sources.ts">PublicPartitionMethod</a></code>
+- <code><a href="./src/resources/sources.ts">PartitionMethod</a></code>
 - <code><a href="./src/resources/sources.ts">PublicSource</a></code>
 - <code><a href="./src/resources/sources.ts">SourceListResponse</a></code>
 - <code><a href="./src/resources/sources.ts">SourceDeleteResponse</a></code>

@@ -2,7 +2,7 @@
 
 export {
   Sources,
-  type PublicPartitionMethod,
+  type PartitionMethod,
   type PublicSource,
   type SourceListResponse,
   type SourceDeleteResponse,

@@ -1,10 +1,11 @@
 {
   "dxt_version": "0.2",
-  "name": "graphor-typescript-project-mcp",
-  "version": "0.0.1",
-  "description": "The official MCP Server for the Graphor Typescript Project API",
+  "name": "graphor-mcp",
+  "version": "0.4.0",
+  "description": "The official MCP Server for the Graphor API",
   "author": {
-    "name": "Graphor Typescript Project"
+    "name": "Graphor",
+    "email": "support@graphorlm.com"
   },
   "repository": {
     "type": "git",
@@ -18,15 +19,15 @@
       "command": "node",
       "args": ["${__dirname}/index.js"],
       "env": {
-        "GRAPHOR_TYPESCRIPT_PROJECT_API_KEY": "${user_config.GRAPHOR_TYPESCRIPT_PROJECT_API_KEY}"
+        "GRAPHOR_API_KEY": "${user_config.GRAPHOR_API_KEY}"
       }
     }
   },
   "user_config": {
-    "GRAPHOR_TYPESCRIPT_PROJECT_API_KEY": {
+    "GRAPHOR_API_KEY": {
       "title": "api_key",
       "description": "",
-      "required": true,
+      "required": false,
       "type": "string"
     }
   },

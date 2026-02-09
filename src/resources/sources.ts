@@ -106,10 +106,15 @@ export class Sources extends APIResource {
   }
 }
 
-/**
- * Partition methods available for public API endpoints.
- */
-export type PublicPartitionMethod = 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm';
+export type PartitionMethod =
+  | 'basic'
+  | 'hi_res'
+  | 'hi_res_ft'
+  | 'mai'
+  | 'graphorlm'
+  | 'ocr'
+  | 'advanced'
+  | 'yolox';
 
 export interface PublicSource {
   file_name: string;
@@ -133,16 +138,7 @@ export interface PublicSource {
    */
   file_id?: string | null;
 
-  partition_method?:
-    | 'basic'
-    | 'hi_res'
-    | 'hi_res_ft'
-    | 'mai'
-    | 'graphorlm'
-    | 'ocr'
-    | 'advanced'
-    | 'yolox'
-    | null;
+  partition_method?: PartitionMethod | null;
 }
 
 export type SourceListResponse = Array<PublicSource>;
@@ -475,7 +471,7 @@ export interface SourceParseParams {
   /**
    * The method used to partition the file
    */
-  partition_method?: PublicPartitionMethod;
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm';
 }
 
 export interface SourceRetrieveChunksParams {
@@ -503,7 +499,7 @@ export interface SourceUploadParams {
   /**
    * Partition methods available for public API endpoints.
    */
-  partition_method?: PublicPartitionMethod | null;
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm' | null;
 }
 
 export interface SourceUploadGitHubParams {
@@ -527,7 +523,7 @@ export interface SourceUploadURLParams {
   /**
    * Partition methods available for public API endpoints.
    */
-  partition_method?: PublicPartitionMethod | null;
+  partition_method?: 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm' | null;
 }
 
 export interface SourceUploadYoutubeParams {
@@ -539,7 +535,7 @@ export interface SourceUploadYoutubeParams {
 
 export declare namespace Sources {
   export {
-    type PublicPartitionMethod as PublicPartitionMethod,
+    type PartitionMethod as PartitionMethod,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,

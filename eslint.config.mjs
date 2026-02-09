@@ -25,7 +25,7 @@ export default tseslint.config(
         {
           patterns: [
             {
-              regex: '^graphor-typescript-project(/.*)?',
+              regex: '^graphor(/.*)?',
               message: 'Use a relative import, not a package import.',
             },
           ],

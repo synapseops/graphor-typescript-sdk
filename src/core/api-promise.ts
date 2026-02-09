@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { type GraphorTypescriptProject } from '../client';
+import { type Graphor } from '../client';
 
 import { type PromiseOrValue } from '../internal/types';
 import { APIResponseProps, defaultParseResponse } from '../internal/parse';
@@ -11,13 +11,13 @@ import { APIResponseProps, defaultParseResponse } from '../internal/parse';
  */
 export class APIPromise<T> extends Promise<T> {
   private parsedPromise: Promise<T> | undefined;
-  #client: GraphorTypescriptProject;
+  #client: Graphor;
 
   constructor(
-    client: GraphorTypescriptProject,
+    client: Graphor,
     private responsePromise: Promise<APIResponseProps>,
     private parseResponse: (
-      client: GraphorTypescriptProject,
+      client: Graphor,
       props: APIResponseProps,
     ) => PromiseOrValue<T> = defaultParseResponse,
   ) {

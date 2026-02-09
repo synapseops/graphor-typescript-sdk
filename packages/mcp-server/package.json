@@ -1,8 +1,8 @@
 {
-  "name": "graphor-typescript-project-mcp",
-  "version": "0.1.0",
-  "description": "The official MCP Server for the Graphor Typescript Project API",
-  "author": "Graphor Typescript Project <>",
+  "name": "graphor-mcp",
+  "version": "0.4.1",
+  "description": "The official MCP Server for the Graphor API",
+  "author": "Graphor <support@graphorlm.com>",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "type": "commonjs",
@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/synapseops/graphor-typescript-sdk/tree/main/packages/mcp-server#readme",
   "license": "Apache-2.0",
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.24.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -29,7 +29,7 @@
     "fix": "eslint --fix --ext ts,js ."
   },
   "dependencies": {
-    "graphor-typescript-project": "workspace:*",
+    "graphor": "workspace:*",
     "@cloudflare/cabidela": "^0.2.4",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@valtown/deno-http-worker": "^0.0.21",
@@ -39,7 +39,6 @@
     "fuse.js": "^7.1.0",
     "jq-web": "https://github.com/stainless-api/jq-web/releases/download/v0.8.8/jq-web.tar.gz",
     "morgan": "^1.10.0",
-    "morgan-body": "^2.6.9",
     "qs": "^6.14.1",
     "typescript": "5.8.3",
     "yargs": "^17.7.2",
@@ -73,8 +72,8 @@
     "tsconfig-paths": "^4.0.0"
   },
   "imports": {
-    "graphor-typescript-project-mcp": ".",
-    "graphor-typescript-project-mcp/*": "./src/*"
+    "graphor-mcp": ".",
+    "graphor-mcp/*": "./src/*"
   },
   "exports": {
     ".": {

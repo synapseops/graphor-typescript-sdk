@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import GraphorTypescriptProject from 'graphor-typescript-project';
+import Graphor from 'graphor';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 type TextContentBlock = {
@@ -43,7 +43,7 @@ export type ToolCallResult = {
 };
 
 export type HandlerFunction = (
-  client: GraphorTypescriptProject,
+  client: Graphor,
   args: Record<string, unknown> | undefined,
 ) => Promise<ToolCallResult>;
 
