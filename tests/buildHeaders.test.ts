@@ -1,5 +1,9 @@
 import { inspect } from 'node:util';
-import { buildHeaders, type HeadersLike, type NullableHeaders } from 'graphor/internal/headers';
+import {
+  buildHeaders,
+  type HeadersLike,
+  type NullableHeaders,
+} from 'graphor-typescript-project/internal/headers';
 
 function inspectNullableHeaders(headers: NullableHeaders) {
   return `NullableHeaders {${[
