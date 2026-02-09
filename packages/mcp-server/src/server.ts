@@ -59,7 +59,7 @@ export const newMcpServer = async () =>
   new McpServer(
     {
       name: 'graphor_typescript_project_api',
-      version: '0.0.1',
+      version: '0.1.0',
     },
     {
       instructions: await getInstructions(),
