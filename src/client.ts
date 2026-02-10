@@ -59,7 +59,7 @@ export interface ClientOptions {
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
    *
-   * Defaults to process.env['GRAPHOR_PRD_BASE_URL'].
+   * Defaults to process.env['GRAPHOR_BASE_URL'].
    */
   baseURL?: string | null | undefined;
 
@@ -113,7 +113,7 @@ export interface ClientOptions {
   /**
    * Set the log level.
    *
-   * Defaults to process.env['GRAPHOR_PRD_LOG'] or 'warn' if it isn't set.
+   * Defaults to process.env['GRAPHOR_LOG'] or 'warn' if it isn't set.
    */
   logLevel?: LogLevel | undefined;
 
@@ -126,9 +126,9 @@ export interface ClientOptions {
 }
 
 /**
- * API Client for interfacing with the Graphor Prd API.
+ * API Client for interfacing with the Graphor API.
  */
-export class GraphorPrd {
+export class Graphor {
   apiKey: string;
 
   baseURL: string;
@@ -144,10 +144,10 @@ export class GraphorPrd {
   private _options: ClientOptions;
 
   /**
-   * API Client for interfacing with the Graphor Prd API.
+   * API Client for interfacing with the Graphor API.
    *
    * @param {string | undefined} [opts.apiKey=process.env['GRAPHOR_API_KEY'] ?? undefined]
-   * @param {string} [opts.baseURL=process.env['GRAPHOR_PRD_BASE_URL'] ?? https://api.graphorlm.com/api/public/v1] - Override the default base URL for the API.
+   * @param {string} [opts.baseURL=process.env['GRAPHOR_BASE_URL'] ?? https://api.graphorlm.com/api/public/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
@@ -156,13 +156,13 @@ export class GraphorPrd {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
   constructor({
-    baseURL = readEnv('GRAPHOR_PRD_BASE_URL'),
+    baseURL = readEnv('GRAPHOR_BASE_URL'),
     apiKey = readEnv('GRAPHOR_API_KEY'),
     ...opts
   }: ClientOptions = {}) {
     if (apiKey === undefined) {
-      throw new Errors.GraphorPrdError(
-        "The GRAPHOR_API_KEY environment variable is missing or empty; either provide it, or instantiate the GraphorPrd client with an apiKey option, like new GraphorPrd({ apiKey: 'My API Key' }).",
+      throw new Errors.GraphorError(
+        "The GRAPHOR_API_KEY environment variable is missing or empty; either provide it, or instantiate the Graphor client with an apiKey option, like new Graphor({ apiKey: 'My API Key' }).",
       );
     }
 
@@ -173,14 +173,14 @@ export class GraphorPrd {
     };
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? GraphorPrd.DEFAULT_TIMEOUT /* 10 minutes */;
+    this.timeout = options.timeout ?? Graphor.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
     this.logLevel =
       parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('GRAPHOR_PRD_LOG'), "process.env['GRAPHOR_PRD_LOG']", this) ??
+      parseLogLevel(readEnv('GRAPHOR_LOG'), "process.env['GRAPHOR_LOG']", this) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 0;
@@ -243,7 +243,7 @@ export class GraphorPrd {
         if (value === null) {
           return `${encodeURIComponent(key)}=`;
         }
-        throw new Errors.GraphorPrdError(
+        throw new Errors.GraphorError(
           `Cannot stringify type ${typeof value}; Expected string, number, boolean, or null. If you need to pass nested query parameters, you can manually encode them, e.g. { query: { 'foo[key1]': value1, 'foo[key2]': value2 } }, and please open a GitHub issue requesting better support for your use case.`,
         );
       })
@@ -722,10 +722,10 @@ export class GraphorPrd {
     }
   }
 
-  static GraphorPrd = this;
+  static Graphor = this;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
-  static GraphorPrdError = Errors.GraphorPrdError;
+  static GraphorError = Errors.GraphorError;
   static APIError = Errors.APIError;
   static APIConnectionError = Errors.APIConnectionError;
   static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
@@ -744,9 +744,9 @@ export class GraphorPrd {
   sources: API.Sources = new API.Sources(this);
 }
 
-GraphorPrd.Sources = Sources;
+Graphor.Sources = Sources;
 
-export declare namespace GraphorPrd {
+export declare namespace Graphor {
   export type RequestOptions = Opts.RequestOptions;
 
   export {

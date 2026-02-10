@@ -1,4 +1,4 @@
-# Dockerfile for Graphor Prd MCP Server
+# Dockerfile for Graphor MCP Server
 #
 # This Dockerfile builds a Docker image for the MCP Server.
 #
