@@ -1,6 +1,6 @@
 {
   "name": "graphor",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "The official TypeScript library for the Graphor Prd API",
   "author": "Graphor Prd <>",
   "types": "dist/index.d.ts",
