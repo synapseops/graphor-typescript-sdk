@@ -322,13 +322,13 @@ describe('instantiate client', () => {
     test('empty env variable', () => {
       process.env['GRAPHOR_PRD_BASE_URL'] = ''; // empty
       const client = new GraphorPrd({ apiKey: 'My API Key' });
-      expect(client.baseURL).toEqual('https://graphorlm.com/api/public/v1');
+      expect(client.baseURL).toEqual('https://api.graphorlm.com/api/public/v1');
     });
 
     test('blank env variable', () => {
       process.env['GRAPHOR_PRD_BASE_URL'] = '  '; // blank
       const client = new GraphorPrd({ apiKey: 'My API Key' });
-      expect(client.baseURL).toEqual('https://graphorlm.com/api/public/v1');
+      expect(client.baseURL).toEqual('https://api.graphorlm.com/api/public/v1');
     });
 
     test('in request options', () => {

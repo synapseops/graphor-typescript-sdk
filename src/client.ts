@@ -147,7 +147,7 @@ export class GraphorPrd {
    * API Client for interfacing with the Graphor Prd API.
    *
    * @param {string | undefined} [opts.apiKey=process.env['GRAPHOR_API_KEY'] ?? undefined]
-   * @param {string} [opts.baseURL=process.env['GRAPHOR_PRD_BASE_URL'] ?? https://graphorlm.com/api/public/v1] - Override the default base URL for the API.
+   * @param {string} [opts.baseURL=process.env['GRAPHOR_PRD_BASE_URL'] ?? https://api.graphorlm.com/api/public/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
@@ -169,7 +169,7 @@ export class GraphorPrd {
     const options: ClientOptions = {
       apiKey,
       ...opts,
-      baseURL: baseURL || `https://graphorlm.com/api/public/v1`,
+      baseURL: baseURL || `https://api.graphorlm.com/api/public/v1`,
     };
 
     this.baseURL = options.baseURL!;
@@ -215,7 +215,7 @@ export class GraphorPrd {
    * Check whether the base URL is set to its default.
    */
   #baseURLOverridden(): boolean {
-    return this.baseURL !== 'https://graphorlm.com/api/public/v1';
+    return this.baseURL !== 'https://api.graphorlm.com/api/public/v1';
   }
 
   protected defaultQuery(): Record<string, string | undefined> | undefined {
