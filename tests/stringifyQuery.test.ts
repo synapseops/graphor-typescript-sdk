@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { GraphorPrd } from 'graphor-prd';
+import { GraphorPrd } from 'graphor';
 
 const { stringifyQuery } = GraphorPrd.prototype as any;
 

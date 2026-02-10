@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import GraphorPrd, { toFile } from 'graphor-prd';
+import GraphorPrd, { toFile } from 'graphor';
 
 const client = new GraphorPrd({
   apiKey: 'My API Key',
