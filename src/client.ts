@@ -52,7 +52,7 @@ import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
   /**
-   * Defaults to process.env['GRAPHOR_PRD_API_KEY'].
+   * Defaults to process.env['GRAPHOR_API_KEY'].
    */
   apiKey?: string | undefined;
 
@@ -90,7 +90,7 @@ export interface ClientOptions {
    * The maximum number of times that the client will retry a request in case of a
    * temporary failure, like a network error or a 5XX error from the server.
    *
-   * @default 2
+   * @default 0
    */
   maxRetries?: number | undefined;
 
@@ -146,23 +146,23 @@ export class GraphorPrd {
   /**
    * API Client for interfacing with the Graphor Prd API.
    *
-   * @param {string | undefined} [opts.apiKey=process.env['GRAPHOR_PRD_API_KEY'] ?? undefined]
+   * @param {string | undefined} [opts.apiKey=process.env['GRAPHOR_API_KEY'] ?? undefined]
    * @param {string} [opts.baseURL=process.env['GRAPHOR_PRD_BASE_URL'] ?? https://graphorlm.com/api/public/v1] - Override the default base URL for the API.
-   * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
+   * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
-   * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
+   * @param {number} [opts.maxRetries=0] - The maximum number of times the client will retry a request.
    * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
   constructor({
     baseURL = readEnv('GRAPHOR_PRD_BASE_URL'),
-    apiKey = readEnv('GRAPHOR_PRD_API_KEY'),
+    apiKey = readEnv('GRAPHOR_API_KEY'),
     ...opts
   }: ClientOptions = {}) {
     if (apiKey === undefined) {
       throw new Errors.GraphorPrdError(
-        "The GRAPHOR_PRD_API_KEY environment variable is missing or empty; either provide it, or instantiate the GraphorPrd client with an apiKey option, like new GraphorPrd({ apiKey: 'My API Key' }).",
+        "The GRAPHOR_API_KEY environment variable is missing or empty; either provide it, or instantiate the GraphorPrd client with an apiKey option, like new GraphorPrd({ apiKey: 'My API Key' }).",
       );
     }
 
@@ -173,7 +173,7 @@ export class GraphorPrd {
     };
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? GraphorPrd.DEFAULT_TIMEOUT /* 1 minute */;
+    this.timeout = options.timeout ?? GraphorPrd.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
@@ -183,7 +183,7 @@ export class GraphorPrd {
       parseLogLevel(readEnv('GRAPHOR_PRD_LOG'), "process.env['GRAPHOR_PRD_LOG']", this) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
-    this.maxRetries = options.maxRetries ?? 2;
+    this.maxRetries = options.maxRetries ?? 0;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -723,7 +723,7 @@ export class GraphorPrd {
   }
 
   static GraphorPrd = this;
-  static DEFAULT_TIMEOUT = 60000; // 1 minute
+  static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static GraphorPrdError = Errors.GraphorPrdError;
   static APIError = Errors.APIError;

@@ -20,8 +20,8 @@ export const parseAuthHeaders = (req: IncomingMessage, required?: boolean): Part
   }
 
   const apiKey =
-    Array.isArray(req.headers['x-graphor-prd-api-key']) ?
-      req.headers['x-graphor-prd-api-key'][0]
-    : req.headers['x-graphor-prd-api-key'];
+    Array.isArray(req.headers['x-graphor-api-key']) ?
+      req.headers['x-graphor-api-key'][0]
+    : req.headers['x-graphor-api-key'];
   return { apiKey };
 };

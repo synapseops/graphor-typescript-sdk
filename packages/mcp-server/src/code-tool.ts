@@ -90,9 +90,9 @@ export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): M
         ...(stainlessAPIKey && { Authorization: stainlessAPIKey }),
         'Content-Type': 'application/json',
         client_envs: JSON.stringify({
-          GRAPHOR_PRD_API_KEY: requireValue(
-            readEnv('GRAPHOR_PRD_API_KEY') ?? client.apiKey,
-            'set GRAPHOR_PRD_API_KEY environment variable or provide apiKey client option',
+          GRAPHOR_API_KEY: requireValue(
+            readEnv('GRAPHOR_API_KEY') ?? client.apiKey,
+            'set GRAPHOR_API_KEY environment variable or provide apiKey client option',
           ),
           GRAPHOR_PRD_BASE_URL: readEnv('GRAPHOR_PRD_BASE_URL') ?? client.baseURL ?? undefined,
         }),
