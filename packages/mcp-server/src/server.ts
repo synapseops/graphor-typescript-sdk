@@ -8,7 +8,7 @@ import {
   SetLevelRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ClientOptions } from 'graphor';
-import GraphorPrd from 'graphor';
+import Graphor from 'graphor';
 import { codeTool } from './code-tool';
 import docsSearchTool from './docs-search-tool';
 import { McpOptions } from './options';
@@ -58,7 +58,7 @@ export const newMcpServer = async () =>
   new McpServer(
     {
       name: 'graphor_api',
-      version: '0.6.0',
+      version: '0.7.0',
     },
     {
       instructions: await getInstructions(),
@@ -92,7 +92,7 @@ export async function initMcpServer(params: {
     error: logAtLevel('error'),
   };
 
-  let client = new GraphorPrd({
+  let client = new Graphor({
     logger,
     ...params.clientOptions,
     defaultHeaders: {
@@ -164,7 +164,7 @@ export function selectTools(options?: McpOptions): McpTool[] {
  */
 export async function executeHandler(
   handler: HandlerFunction,
-  client: GraphorPrd,
+  client: Graphor,
   args: Record<string, unknown> | undefined,
 ) {
   return await handler(client, args || {});

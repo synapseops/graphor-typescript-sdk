@@ -5,9 +5,9 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { readEnv, requireValue } from './server';
 import { WorkerInput, WorkerOutput } from './code-tool-types';
 import { SdkMethod } from './methods';
-import { GraphorPrd } from 'graphor';
+import { Graphor } from 'graphor';
 
-const prompt = `Runs JavaScript code to interact with the Graphor Prd API.
+const prompt = `Runs JavaScript code to interact with the Graphor API.
 
 You are a skilled programmer writing code to interface with the service.
 Define an async function named "run" that takes a single parameter of an initialized SDK client and it will be run.
@@ -56,7 +56,7 @@ export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): M
       required: ['code'],
     },
   };
-  const handler = async (client: GraphorPrd, args: any): Promise<ToolCallResult> => {
+  const handler = async (client: Graphor, args: any): Promise<ToolCallResult> => {
     const code = args.code as string;
     const intent = args.intent as string | undefined;
 
@@ -94,7 +94,7 @@ export function codeTool(params: { blockedMethods: SdkMethod[] | undefined }): M
             readEnv('GRAPHOR_API_KEY') ?? client.apiKey,
             'set GRAPHOR_API_KEY environment variable or provide apiKey client option',
           ),
-          GRAPHOR_PRD_BASE_URL: readEnv('GRAPHOR_PRD_BASE_URL') ?? client.baseURL ?? undefined,
+          GRAPHOR_BASE_URL: readEnv('GRAPHOR_BASE_URL') ?? client.baseURL ?? undefined,
         }),
       },
       body: JSON.stringify({
