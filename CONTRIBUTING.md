@@ -42,15 +42,15 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-$ npm install git+ssh://git@github.com:stainless-sdks/graphor-prd-typescript.git
+$ npm install git+ssh://git@github.com:synapseops/graphor-typescript-sdk.git
 ```
 
 Alternatively, to link a local copy of the repo:
 
 ```sh
 # Clone
-$ git clone https://www.github.com/stainless-sdks/graphor-prd-typescript
-$ cd graphor-prd-typescript
+$ git clone https://www.github.com/synapseops/graphor-typescript-sdk
+$ cd graphor-typescript-sdk
 
 # With yarn
 $ yarn link
