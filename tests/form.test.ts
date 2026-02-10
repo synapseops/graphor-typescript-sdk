@@ -1,5 +1,5 @@
-import { multipartFormRequestOptions, createForm } from 'graphor/internal/uploads';
-import { toFile } from 'graphor/core/uploads';
+import { multipartFormRequestOptions, createForm } from 'graphor-prd/internal/uploads';
+import { toFile } from 'graphor-prd/core/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {

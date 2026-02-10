@@ -17,7 +17,7 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
-  PartitionMethod,
+  PublicPartitionMethod,
   PublicSource,
   SourceAskParams,
   SourceAskResponse,
@@ -52,14 +52,14 @@ import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
   /**
-   * Defaults to process.env['GRAPHOR_API_KEY'].
+   * Defaults to process.env['GRAPHOR_PRD_API_KEY'].
    */
-  apiKey?: string | null | undefined;
+  apiKey?: string | undefined;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
    *
-   * Defaults to process.env['GRAPHOR_BASE_URL'].
+   * Defaults to process.env['GRAPHOR_PRD_BASE_URL'].
    */
   baseURL?: string | null | undefined;
 
@@ -113,7 +113,7 @@ export interface ClientOptions {
   /**
    * Set the log level.
    *
-   * Defaults to process.env['GRAPHOR_LOG'] or 'warn' if it isn't set.
+   * Defaults to process.env['GRAPHOR_PRD_LOG'] or 'warn' if it isn't set.
    */
   logLevel?: LogLevel | undefined;
 
@@ -126,10 +126,10 @@ export interface ClientOptions {
 }
 
 /**
- * API Client for interfacing with the Graphor API.
+ * API Client for interfacing with the Graphor Prd API.
  */
-export class Graphor {
-  apiKey: string | null;
+export class GraphorPrd {
+  apiKey: string;
 
   baseURL: string;
   maxRetries: number;
@@ -144,10 +144,10 @@ export class Graphor {
   private _options: ClientOptions;
 
   /**
-   * API Client for interfacing with the Graphor API.
+   * API Client for interfacing with the Graphor Prd API.
    *
-   * @param {string | null | undefined} [opts.apiKey=process.env['GRAPHOR_API_KEY'] ?? null]
-   * @param {string} [opts.baseURL=process.env['GRAPHOR_BASE_URL'] ?? https://api.graphorlm.com/api/public/v1] - Override the default base URL for the API.
+   * @param {string | undefined} [opts.apiKey=process.env['GRAPHOR_PRD_API_KEY'] ?? undefined]
+   * @param {string} [opts.baseURL=process.env['GRAPHOR_PRD_BASE_URL'] ?? https://graphorlm.com/api/public/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
@@ -156,25 +156,31 @@ export class Graphor {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
   constructor({
-    baseURL = readEnv('GRAPHOR_BASE_URL'),
-    apiKey = readEnv('GRAPHOR_API_KEY') ?? null,
+    baseURL = readEnv('GRAPHOR_PRD_BASE_URL'),
+    apiKey = readEnv('GRAPHOR_PRD_API_KEY'),
     ...opts
   }: ClientOptions = {}) {
+    if (apiKey === undefined) {
+      throw new Errors.GraphorPrdError(
+        "The GRAPHOR_PRD_API_KEY environment variable is missing or empty; either provide it, or instantiate the GraphorPrd client with an apiKey option, like new GraphorPrd({ apiKey: 'My API Key' }).",
+      );
+    }
+
     const options: ClientOptions = {
       apiKey,
       ...opts,
-      baseURL: baseURL || `https://api.graphorlm.com/api/public/v1`,
+      baseURL: baseURL || `https://graphorlm.com/api/public/v1`,
     };
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? Graphor.DEFAULT_TIMEOUT /* 1 minute */;
+    this.timeout = options.timeout ?? GraphorPrd.DEFAULT_TIMEOUT /* 1 minute */;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
     this.logLevel =
       parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('GRAPHOR_LOG'), "process.env['GRAPHOR_LOG']", this) ??
+      parseLogLevel(readEnv('GRAPHOR_PRD_LOG'), "process.env['GRAPHOR_PRD_LOG']", this) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
@@ -209,7 +215,7 @@ export class Graphor {
    * Check whether the base URL is set to its default.
    */
   #baseURLOverridden(): boolean {
-    return this.baseURL !== 'https://api.graphorlm.com/api/public/v1';
+    return this.baseURL !== 'https://graphorlm.com/api/public/v1';
   }
 
   protected defaultQuery(): Record<string, string | undefined> | undefined {
@@ -217,22 +223,10 @@ export class Graphor {
   }
 
   protected validateHeaders({ values, nulls }: NullableHeaders) {
-    if (this.apiKey && values.get('authorization')) {
-      return;
-    }
-    if (nulls.has('authorization')) {
-      return;
-    }
-
-    throw new Error(
-      'Could not resolve authentication method. Expected the apiKey to be set. Or for the "Authorization" headers to be explicitly omitted',
-    );
+    return;
   }
 
   protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    if (this.apiKey == null) {
-      return undefined;
-    }
     return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
   }
 
@@ -249,7 +243,7 @@ export class Graphor {
         if (value === null) {
           return `${encodeURIComponent(key)}=`;
         }
-        throw new Errors.GraphorError(
+        throw new Errors.GraphorPrdError(
           `Cannot stringify type ${typeof value}; Expected string, number, boolean, or null. If you need to pass nested query parameters, you can manually encode them, e.g. { query: { 'foo[key1]': value1, 'foo[key2]': value2 } }, and please open a GitHub issue requesting better support for your use case.`,
         );
       })
@@ -515,7 +509,7 @@ export class Graphor {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    const abort = controller.abort.bind(controller);
+    const abort = this._makeAbort(controller);
     if (signal) signal.addEventListener('abort', abort, { once: true });
 
     const timeout = setTimeout(abort, ms);
@@ -685,6 +679,12 @@ export class Graphor {
     return headers.values;
   }
 
+  private _makeAbort(controller: AbortController) {
+    // note: we can't just inline this method inside `fetchWithTimeout()` because then the closure
+    //       would capture all request options, and cause a memory leak.
+    return () => controller.abort();
+  }
+
   private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
     bodyHeaders: HeadersLike;
     body: BodyInit | undefined;
@@ -722,10 +722,10 @@ export class Graphor {
     }
   }
 
-  static Graphor = this;
+  static GraphorPrd = this;
   static DEFAULT_TIMEOUT = 60000; // 1 minute
 
-  static GraphorError = Errors.GraphorError;
+  static GraphorPrdError = Errors.GraphorPrdError;
   static APIError = Errors.APIError;
   static APIConnectionError = Errors.APIConnectionError;
   static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
@@ -744,14 +744,14 @@ export class Graphor {
   sources: API.Sources = new API.Sources(this);
 }
 
-Graphor.Sources = Sources;
+GraphorPrd.Sources = Sources;
 
-export declare namespace Graphor {
+export declare namespace GraphorPrd {
   export type RequestOptions = Opts.RequestOptions;
 
   export {
     Sources as Sources,
-    type PartitionMethod as PartitionMethod,
+    type PublicPartitionMethod as PublicPartitionMethod,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,

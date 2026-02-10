@@ -8,8 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "graphor/*": ["./src/*"],
-      "graphor": ["./src/index.ts"]
+      "graphor-prd/*": ["./src/*"],
+      "graphor-prd": ["./src/index.ts"]
     },
     "noEmit": true,
 
