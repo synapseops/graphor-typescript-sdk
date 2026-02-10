@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIPromise } from 'graphor-prd/core/api-promise';
+import { APIPromise } from 'graphor/core/api-promise';
 
 import util from 'node:util';
-import GraphorPrd from 'graphor-prd';
-import { APIUserAbortError } from 'graphor-prd';
+import GraphorPrd from 'graphor';
+import { APIUserAbortError } from 'graphor';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
