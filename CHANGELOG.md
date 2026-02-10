@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 (2026-02-10)
+
+Full Changelog: [v0.5.0...v0.5.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.5.0...v0.5.1)
+
+### Chores
+
+* update SDK settings ([dbca039](https://github.com/synapseops/graphor-typescript-sdk/commit/dbca039f723308ca0b61585dab9ca9d6b2a85a23))
+
 ## 0.5.0 (2026-02-10)
 
 Full Changelog: [v0.4.3...v0.5.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.4.3...v0.5.0)
