@@ -40,7 +40,7 @@ export const tool: Tool = {
 };
 
 const docsSearchURL =
-  process.env['DOCS_SEARCH_URL'] || 'https://api.stainless.com/api/projects/graphor/docs/search';
+  process.env['DOCS_SEARCH_URL'] || 'https://api.stainless.com/api/projects/graphor-prd/docs/search';
 
 export const handler = async (_: unknown, args: Record<string, unknown> | undefined) => {
   const body = args as any;

@@ -8,32 +8,69 @@ import {
   SetLevelRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ClientOptions } from 'graphor';
-import Graphor from 'graphor';
+import GraphorPrd from 'graphor';
 import { codeTool } from './code-tool';
 import docsSearchTool from './docs-search-tool';
 import { McpOptions } from './options';
+import { blockedMethodsForCodeTool } from './methods';
 import { HandlerFunction, McpTool } from './types';
 
 export { McpOptions } from './options';
 export { ClientOptions } from 'graphor';
 
-export const newMcpServer = () =>
+async function getInstructions() {
+  // This API key is optional; providing it allows the server to fetch instructions for unreleased versions.
+  const stainlessAPIKey = readEnv('STAINLESS_API_KEY');
+  const response = await fetch(
+    readEnv('CODE_MODE_INSTRUCTIONS_URL') ?? 'https://api.stainless.com/api/ai/instructions/graphor-prd',
+    {
+      method: 'GET',
+      headers: { ...(stainlessAPIKey && { Authorization: stainlessAPIKey }) },
+    },
+  );
+
+  let instructions: string | undefined;
+  if (!response.ok) {
+    console.warn(
+      'Warning: failed to retrieve MCP server instructions. Proceeding with default instructions...',
+    );
+
+    instructions = `
+      This is the graphor-prd MCP server. You will use Code Mode to help the user perform
+      actions. You can use search_docs tool to learn about how to take action with this server. Then,
+      you will write TypeScript code using the execute tool take action. It is CRITICAL that you be
+      thoughtful and deliberate when executing code. Always try to entirely solve the problem in code
+      block: it can be as long as you need to get the job done!
+    `;
+  }
+
+  instructions ??= ((await response.json()) as { instructions: string }).instructions;
+  instructions = `
+    The current time in Unix timestamps is ${Date.now()}.
+
+    ${instructions}
+  `;
+
+  return instructions;
+}
+
+export const newMcpServer = async () =>
   new McpServer(
     {
       name: 'graphor_api',
-      version: '0.4.1',
+      version: '0.4.2',
     },
-    { capabilities: { tools: {}, logging: {} } },
+    {
+      instructions: await getInstructions(),
+      capabilities: { tools: {}, logging: {} },
+    },
   );
-
-// Create server instance
-export const server = newMcpServer();
 
 /**
  * Initializes the provided MCP Server with the given tools and handlers.
  * If not provided, the default client, tools and handlers will be used.
  */
-export function initMcpServer(params: {
+export async function initMcpServer(params: {
   server: Server | McpServer;
   clientOptions?: ClientOptions;
   mcpOptions?: McpOptions;
@@ -55,7 +92,7 @@ export function initMcpServer(params: {
     error: logAtLevel('error'),
   };
 
-  let client = new Graphor({
+  let client = new GraphorPrd({
     logger,
     ...params.clientOptions,
     defaultHeaders: {
@@ -111,7 +148,11 @@ export function initMcpServer(params: {
  * Selects the tools to include in the MCP Server based on the provided options.
  */
 export function selectTools(options?: McpOptions): McpTool[] {
-  const includedTools = [codeTool()];
+  const includedTools = [
+    codeTool({
+      blockedMethods: blockedMethodsForCodeTool(options),
+    }),
+  ];
   if (options?.includeDocsTools ?? true) {
     includedTools.push(docsSearchTool);
   }
@@ -123,7 +164,7 @@ export function selectTools(options?: McpOptions): McpTool[] {
  */
 export async function executeHandler(
   handler: HandlerFunction,
-  client: Graphor,
+  client: GraphorPrd,
   args: Record<string, unknown> | undefined,
 ) {
   return await handler(client, args || {});

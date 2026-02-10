@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { Graphor } from 'graphor';
+import { GraphorPrd } from 'graphor';
 
-const { stringifyQuery } = Graphor.prototype as any;
+const { stringifyQuery } = GraphorPrd.prototype as any;
 
 describe(stringifyQuery, () => {
   for (const [input, expected] of [
