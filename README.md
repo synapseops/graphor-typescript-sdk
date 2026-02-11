@@ -36,6 +36,8 @@ const client = new Graphor({
 });
 
 const publicSource = await client.sources.upload({ file: fs.createReadStream('path/to/file') });
+
+console.log(publicSource.project_id);
 ```
 
 ### Request & Response types
@@ -185,7 +187,7 @@ const { data: publicSource, response: raw } = await client.sources
   .upload({ file: fs.createReadStream('path/to/file') })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(publicSource);
+console.log(publicSource.project_id);
 ```
 
 ### Logging
