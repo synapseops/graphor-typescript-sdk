@@ -7,8 +7,8 @@ const config: JestConfigWithTsJest = {
     '^.+\\.(t|j)sx?$': ['@swc/jest', { sourceMaps: 'inline' }],
   },
   moduleNameMapper: {
-    '^graphor-mc$': '<rootDir>/src/index.ts',
-    '^graphor-mc/(.*)$': '<rootDir>/src/$1',
+    '^graphor-mcp$': '<rootDir>/src/index.ts',
+    '^graphor-mcp/(.*)$': '<rootDir>/src/$1',
   },
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   testPathIgnorePatterns: ['scripts'],
