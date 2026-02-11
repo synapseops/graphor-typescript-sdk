@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 (2026-02-11)
+
+Full Changelog: [v0.9.0...v0.9.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.9.0...v0.9.1)
+
 ## 0.9.0 (2026-02-11)
 
 Full Changelog: [v0.8.0...v0.9.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.8.0...v0.9.0)

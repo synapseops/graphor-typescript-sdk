@@ -58,7 +58,7 @@ export const newMcpServer = async () =>
   new McpServer(
     {
       name: 'graphor_api',
-      version: '0.9.0',
+      version: '0.9.1',
     },
     {
       instructions: await getInstructions(),
