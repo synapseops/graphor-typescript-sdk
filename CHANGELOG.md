@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 (2026-02-11)
+
+Full Changelog: [v0.8.0...v0.9.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.8.0...v0.9.0)
+
+### Features
+
+* **api:** manual updates ([28bf732](https://github.com/synapseops/graphor-typescript-sdk/commit/28bf732da28f1c5c174e3baa45bd2843c83f079a))
+
 ## 0.8.0 (2026-02-11)
 
 Full Changelog: [v0.7.0...v0.8.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.7.0...v0.8.0)
