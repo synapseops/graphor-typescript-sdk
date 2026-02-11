@@ -32,10 +32,8 @@ const serverConfig: ServerConfig = {
 
 export class MyMCP extends McpAgent<Env, unknown, MCPProps> {
   server: McpServer;
-
   async init() {
     this.server = await newMcpServer();
-    
     initMcpServer({
       server: this.server,
       clientOptions: this.props.clientProps,
