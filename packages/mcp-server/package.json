@@ -1,5 +1,5 @@
 {
-  "name": "graphor-mcp",
+  "name": "graphor-mc",
   "version": "0.10.0",
   "description": "The official MCP Server for the Graphor API",
   "author": "Graphor <support@graphorlm.com>",
@@ -73,8 +73,8 @@
     "tsconfig-paths": "^4.0.0"
   },
   "imports": {
-    "graphor-mcp": ".",
-    "graphor-mcp/*": "./src/*"
+    "graphor-mc": ".",
+    "graphor-mc/*": "./src/*"
   },
   "exports": {
     ".": {

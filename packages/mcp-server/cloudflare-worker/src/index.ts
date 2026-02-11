@@ -1,7 +1,7 @@
 import { makeOAuthConsent } from './app';
 import { McpAgent } from 'agents/mcp';
 import OAuthProvider from '@cloudflare/workers-oauth-provider';
-import { McpOptions, initMcpServer, newMcpServer, ClientOptions } from 'graphor-mcp/server';
+import { McpOptions, initMcpServer, newMcpServer, ClientOptions } from 'graphor-mc/server';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
