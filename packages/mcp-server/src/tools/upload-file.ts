@@ -72,9 +72,7 @@ const tool: McpTool = {
     const filePath = args['file_path'] as string | undefined;
     const fileContent = args['file_content'] as string | undefined;
     const fileName = args['file_name'] as string | undefined;
-    const partitionMethod = args['partition_method'] as
-      | Graphor.SourceUploadParams['partition_method']
-      | undefined;
+    const partitionMethod = args['partition_method'] as Graphor.PublicPartitionMethod | undefined;
 
     let uploadFile: any;
 
