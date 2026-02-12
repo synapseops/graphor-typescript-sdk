@@ -96,6 +96,12 @@ const client = new Graphor();  // Uses GRAPHOR_API_KEY env var
 const source = await client.sources.upload({ file: fs.createReadStream('document.pdf') });
 console.log(`Uploaded: ${source.file_name}`);
 
+// Process with a parsing strategy
+await client.sources.parse({
+  file_name: source.file_name,
+  partition_method: 'graphorlm'  // Options: basic (Fast), hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
+});
+
 // Ask questions about your documents
 const response = await client.sources.ask({ question: 'What are the main topics?' });
 console.log(`Answer: ${response.answer}`);
