@@ -29,7 +29,13 @@ const tool: McpTool = {
         partition_method: {
           type: 'string',
           enum: ['basic', 'hi_res', 'hi_res_ft', 'mai', 'graphorlm'],
-          description: 'The partitioning strategy to apply.',
+          description:
+            'The partitioning strategy to apply.\n' +
+            '- "basic" (Fast) — Fastest, rule-based partitioning with minimal overhead.\n' +
+            '- "hi_res" (Balanced) — Balanced speed and accuracy using layout-aware parsing.\n' +
+            '- "hi_res_ft" (Accurate) — High-accuracy parsing with fine-tuned models.\n' +
+            '- "mai" (VLM) — Vision-language model for complex visual documents.\n' +
+            '- "graphorlm" (Agentic) — Agentic pipeline with the highest accuracy.',
         },
       },
     },
