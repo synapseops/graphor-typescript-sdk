@@ -1,22 +1,17 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import morgan from 'morgan';
 import morganBody from 'morgan-body';
-import { McpOptions } from './options';
 import { ClientOptions, initMcpServer, newMcpServer } from './server';
 import { parseAuthHeaders } from './headers';
 
 const newServer = async ({
   clientOptions,
-  mcpOptions,
   req,
   res,
 }: {
   clientOptions: ClientOptions;
-  mcpOptions: McpOptions;
   req: express.Request;
   res: express.Response;
 }): Promise<McpServer | null> => {
@@ -26,7 +21,6 @@ const newServer = async ({
     const authOptions = parseAuthHeaders(req, false);
     await initMcpServer({
       server: server,
-      mcpOptions: mcpOptions,
       clientOptions: {
         ...clientOptions,
         ...authOptions,
@@ -47,7 +41,7 @@ const newServer = async ({
 };
 
 const post =
-  (options: { clientOptions: ClientOptions; mcpOptions: McpOptions }) =>
+  (options: { clientOptions: ClientOptions }) =>
   async (req: express.Request, res: express.Response) => {
     const server = await newServer({ ...options, req, res });
     // If we return null, we already set the authorization error.
@@ -79,11 +73,9 @@ const del = async (req: express.Request, res: express.Response) => {
 
 export const streamableHTTPApp = ({
   clientOptions = {},
-  mcpOptions,
   debug,
 }: {
   clientOptions?: ClientOptions;
-  mcpOptions: McpOptions;
   debug: boolean;
 }): express.Express => {
   const app = express();
@@ -105,18 +97,17 @@ export const streamableHTTPApp = ({
     res.status(200).send('OK');
   });
   app.get('/', get);
-  app.post('/', post({ clientOptions, mcpOptions }));
+  app.post('/', post({ clientOptions }));
   app.delete('/', del);
 
   return app;
 };
 
 export const launchStreamableHTTPServer = async (params: {
-  mcpOptions: McpOptions;
   debug: boolean;
   port: number | string | undefined;
 }) => {
-  const app = streamableHTTPApp({ mcpOptions: params.mcpOptions, debug: params.debug });
+  const app = streamableHTTPApp({ debug: params.debug });
   const server = app.listen(params.port);
   const address = server.address();
 

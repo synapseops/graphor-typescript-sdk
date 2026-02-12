@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
@@ -9,49 +7,90 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { ClientOptions } from 'graphor';
 import Graphor from 'graphor';
-import { codeTool } from './code-tool';
-import docsSearchTool from './docs-search-tool';
-import { McpOptions } from './options';
-import { blockedMethodsForCodeTool } from './methods';
+import { allTools } from './tools';
 import { HandlerFunction, McpTool } from './types';
 
-export { McpOptions } from './options';
 export { ClientOptions } from 'graphor';
 
-async function getInstructions() {
-  // This API key is optional; providing it allows the server to fetch instructions for unreleased versions.
-  const stainlessAPIKey = readEnv('STAINLESS_API_KEY');
-  const response = await fetch(
-    readEnv('CODE_MODE_INSTRUCTIONS_URL') ?? 'https://api.stainless.com/api/ai/instructions/graphor-prd',
-    {
-      method: 'GET',
-      headers: { ...(stainlessAPIKey && { Authorization: stainlessAPIKey }) },
-    },
-  );
+function getInstructions(): string {
+  return `The current time in Unix timestamps is ${Date.now()}.
 
-  let instructions: string | undefined;
-  if (!response.ok) {
-    console.warn(
-      'Warning: failed to retrieve MCP server instructions. Proceeding with default instructions...',
-    );
+ # Graphor TypeScript SDK Guide
 
-    instructions = `
-      This is the graphor-prd MCP server. You will use Code Mode to help the user perform
-      actions. You can use search_docs tool to learn about how to take action with this server. Then,
-      you will write TypeScript code using the execute tool take action. It is CRITICAL that you be
-      thoughtful and deliberate when executing code. Always try to entirely solve the problem in code
-      block: it can be as long as you need to get the job done!
-    `;
-  }
+## What is Graphor?
 
-  instructions ??= ((await response.json()) as { instructions: string }).instructions;
-  instructions = `
-    The current time in Unix timestamps is ${Date.now()}.
+Graphor is a document intelligence platform that ingests files, web pages, GitHub repos, and YouTube videos into a knowledge graph. The SDK provides conversational Q&A, structured data extraction, and semantic search over your ingested documents.
 
-    ${instructions}
-  `;
+## Core Capabilities
 
-  return instructions;
+- **Multi-source ingestion**: Upload PDFs, DOCX, images, audio, video, web pages, GitHub repos, and YouTube videos
+- **Conversational chat**: Ask questions with memory across conversation turns
+- **Structured extraction**: Extract typed data using JSON Schema validation
+- **Semantic search**: Retrieve relevant chunks for custom RAG pipelines
+
+---
+
+## Common Use Cases
+
+### 1. Upload & Chat with Documents
+
+Upload a file using the \`upload_file\` tool, then ask questions using the \`ask\` tool.
+Pass \`conversation_id\` from the response to maintain context across multiple turns.
+
+### 2. Extract Structured Data
+
+Use the \`extract\` tool with a \`user_instruction\` describing what to extract and an \`output_schema\` (JSON Schema) defining the desired shape.
+
+### 3. Semantic Search (Custom RAG)
+
+Use the \`retrieve_chunks\` tool to find relevant text chunks without generating an answer.
+
+### 4. Upload from External Sources
+
+- Web pages: use \`upload_url\` (set \`crawlUrls: true\` to follow links)
+- GitHub repos: use \`upload_github\`
+- YouTube videos: use \`upload_youtube\`
+
+### 5. Manage Documents
+
+- List all sources: \`list_sources\`
+- Delete a source: \`delete_source\`
+- Re-parse with different strategy: \`parse\`
+- Inspect parsed chunks: \`load_elements\`
+
+---
+
+## Special Features
+
+**Conversation Memory**: Pass \`conversation_id\` from a previous \`ask\` response to maintain context across multiple turns.
+
+**Scoped Queries**: Use \`file_names\` or \`file_ids\` in \`ask\`, \`extract\`, and \`retrieve_chunks\` to restrict searches to specific documents.
+
+**Thinking Levels**: Control cost/speed with \`thinking_level: "fast" | "balanced" | "accurate"\` in \`ask\` and \`extract\`.
+
+**File Upload Modes**: The \`upload_file\` tool supports two modes:
+- \`file_path\`: Provide an absolute path to a local file (works in local/stdio MCP).
+- \`file_content\` + \`file_name\`: Provide text content directly (works in both local and remote MCP; best for text files like .md, .txt, .csv, .html).
+For binary files (PDF, DOCX, images, etc.), use \`file_path\`.
+
+---
+
+## Method Reference
+
+| Tool | Description |
+|------|-------------|
+| \`ask\` | Ask questions grounded on ingested sources |
+| \`extract\` | Extract structured data using JSON Schema |
+| \`retrieve_chunks\` | Semantic search for relevant chunks |
+| \`upload_file\` | Upload a local file |
+| \`upload_url\` | Ingest a web page |
+| \`upload_github\` | Ingest a GitHub repository |
+| \`upload_youtube\` | Ingest a YouTube video |
+| \`list_sources\` | List all ingested sources |
+| \`delete_source\` | Delete a source |
+| \`parse\` | Re-process a source with a different strategy |
+| \`load_elements\` | Get parsed elements/chunks of a source |
+`;
 }
 
 export const newMcpServer = async () =>
@@ -61,7 +100,7 @@ export const newMcpServer = async () =>
       version: '0.10.0',
     },
     {
-      instructions: await getInstructions(),
+      instructions: getInstructions(),
       capabilities: { tools: {}, logging: {} },
     },
   );
@@ -73,7 +112,6 @@ export const newMcpServer = async () =>
 export async function initMcpServer(params: {
   server: Server | McpServer;
   clientOptions?: ClientOptions;
-  mcpOptions?: McpOptions;
 }) {
   const server = params.server instanceof McpServer ? params.server.server : params.server;
 
@@ -97,11 +135,10 @@ export async function initMcpServer(params: {
     ...params.clientOptions,
     defaultHeaders: {
       ...params.clientOptions?.defaultHeaders,
-      'X-Stainless-MCP': 'true',
     },
   });
 
-  const providedTools = selectTools(params.mcpOptions);
+  const providedTools = selectTools();
   const toolMap = Object.fromEntries(providedTools.map((mcpTool) => [mcpTool.tool.name, mcpTool]));
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -145,18 +182,10 @@ export async function initMcpServer(params: {
 }
 
 /**
- * Selects the tools to include in the MCP Server based on the provided options.
+ * Returns all available tools for the MCP Server.
  */
-export function selectTools(options?: McpOptions): McpTool[] {
-  const includedTools = [
-    codeTool({
-      blockedMethods: blockedMethodsForCodeTool(options),
-    }),
-  ];
-  if (options?.includeDocsTools ?? true) {
-    includedTools.push(docsSearchTool);
-  }
-  return includedTools;
+export function selectTools(): McpTool[] {
+  return [...allTools];
 }
 
 /**

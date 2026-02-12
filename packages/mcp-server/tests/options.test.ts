@@ -1,4 +1,4 @@
-import { parseCLIOptions, parseQueryOptions } from '../src/options';
+import { parseCLIOptions } from '../src/options';
 
 // Mock process.argv
 const mockArgv = (args: string[]) => {
@@ -16,6 +16,7 @@ describe('parseCLIOptions', () => {
     const result = parseCLIOptions();
 
     expect(result.transport).toBe('stdio');
+    expect(result.debug).toBe(false);
 
     cleanup();
   });
@@ -29,22 +30,23 @@ describe('parseCLIOptions', () => {
     expect(result.port).toBe(2222);
     cleanup();
   });
-});
 
-describe('parseQueryOptions', () => {
-  const defaultOptions = {};
+  it('debug flag', () => {
+    const cleanup = mockArgv(['--debug']);
 
-  it('default parsing should be empty', () => {
-    const query = '';
-    const result = parseQueryOptions(defaultOptions, query);
+    const result = parseCLIOptions();
 
-    expect(result).toEqual({});
+    expect(result.debug).toBe(true);
+    cleanup();
   });
 
-  it('should handle invalid query string gracefully', () => {
-    const query = 'invalid=value&tools=invalid-operation';
+  it('socket option', () => {
+    const cleanup = mockArgv(['--transport=http', '--socket=/tmp/mcp.sock']);
 
-    // Should throw due to Zod validation for invalid tools
-    expect(() => parseQueryOptions(defaultOptions, query)).toThrow();
+    const result = parseCLIOptions();
+
+    expect(result.transport).toBe('http');
+    expect(result.socket).toBe('/tmp/mcp.sock');
+    cleanup();
   });
 });
