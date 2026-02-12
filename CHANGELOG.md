@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.0 (2026-02-12)
+
+Full Changelog: [v0.11.4...v0.12.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.11.4...v0.12.0)
+
+### Features
+
+* **api:** api update ([2f25ed5](https://github.com/synapseops/graphor-typescript-sdk/commit/2f25ed5441e461a888a8aff3edc1a2ff87213914))
+
+
+### Documentation
+
+* add parsing to quickstart ([dd969ff](https://github.com/synapseops/graphor-typescript-sdk/commit/dd969ff016775b48cc5e95906080bd5b5aa766af))
+
 ## 0.11.4 (2026-02-12)
 
 Full Changelog: [v0.11.3...v0.11.4](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.11.3...v0.11.4)
