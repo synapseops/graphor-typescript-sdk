@@ -42,10 +42,10 @@ const tool: McpTool = {
     const params: Graphor.SourceParseParams = {
       ...(args['file_id'] != null && { file_id: args['file_id'] as string }),
       ...(args['file_name'] != null && { file_name: args['file_name'] as string }),
-      ...(args['partition_method'] != null && {
-        partition_method: args['partition_method'] as Graphor.SourceParseParams['partition_method'],
-      }),
     };
+    if (args['partition_method'] != null) {
+      params.partition_method = args['partition_method'] as Graphor.SourceParseParams['partition_method'];
+    }
 
     const result = await client.sources.parse(params);
     return asTextContentResult(result);

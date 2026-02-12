@@ -38,10 +38,10 @@ const tool: McpTool = {
     const params: Graphor.SourceUploadURLParams = {
       url: args['url'] as string,
       ...(args['crawlUrls'] != null && { crawlUrls: args['crawlUrls'] as boolean }),
-      ...(args['partition_method'] != null && {
-        partition_method: args['partition_method'] as Graphor.SourceUploadURLParams['partition_method'],
-      }),
     };
+    if (args['partition_method'] != null) {
+      params.partition_method = args['partition_method'] as Graphor.SourceUploadURLParams['partition_method'];
+    }
 
     const result = await client.sources.uploadURL(params);
     return asTextContentResult(result);

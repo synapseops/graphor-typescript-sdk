@@ -99,8 +99,10 @@ const tool: McpTool = {
 
     const params: Graphor.SourceUploadParams = {
       file: uploadFile,
-      ...(partitionMethod != null && { partition_method: partitionMethod }),
     };
+    if (partitionMethod != null) {
+      params.partition_method = partitionMethod;
+    }
 
     const result = await client.sources.upload(params);
     return asTextContentResult(result);
