@@ -41,6 +41,15 @@ const tool: McpTool = {
       '2. **file_content** + **file_name** — provide the file content as a string and a file name ' +
       '(works in both local and remote MCP; suitable for text-based files like .md, .txt, .csv, .html).\n\n' +
       'At least one mode must be used. For binary files (PDF, DOCX, images, etc.), use file_path.\n\n' +
+      '**Fallback for binary files when file_path is not available** (e.g. remote MCP on Cloudflare):\n' +
+      'If the MCP client has shell/terminal access, you can upload binary files directly via curl:\n' +
+      '```\n' +
+      'curl -s -X POST "{base_url}/source/upload" \\\n' +
+      '  -H "Authorization: Bearer {api_key}" \\\n' +
+      '  -F "file=@/path/to/document.pdf" \\\n' +
+      '  -F "partition_method=graphorlm"\n' +
+      '```\n' +
+      'Use the GRAPHOR_BASE_URL and GRAPHOR_API_KEY environment variables for the base_url and api_key values.\n\n' +
       'Supported file types: pdf, doc, docx, odt, ppt, pptx, csv, tsv, xls, xlsx, txt, text, ' +
       'md, html, htm, png, jpg, jpeg, tiff, bmp, heic, mp4, mov, avi, mkv, webm, mp3, wav, m4a, ogg, flac.',
     inputSchema: {

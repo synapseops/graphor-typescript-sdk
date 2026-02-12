@@ -73,6 +73,15 @@ Use the \`retrieve_chunks\` tool to find relevant text chunks without generating
 - \`file_content\` + \`file_name\`: Provide text content directly (works in both local and remote MCP; best for text files like .md, .txt, .csv, .html).
 For binary files (PDF, DOCX, images, etc.), use \`file_path\`.
 
+**Binary file upload fallback**: If \`file_path\` is not available (e.g. remote MCP on Cloudflare) and the file is binary, you can upload it directly via curl in the user's terminal:
+\`\`\`
+curl -s -X POST "{base_url}/source/upload" \\
+  -H "Authorization: Bearer {api_key}" \\
+  -F "file=@/path/to/document.pdf" \\
+  -F "partition_method=graphorlm"
+\`\`\`
+Use the GRAPHOR_BASE_URL and GRAPHOR_API_KEY environment variables for the base_url and api_key values.
+
 ---
 
 ## Method Reference
