@@ -11,6 +11,7 @@ export type CLIOptions = McpOptions & {
 };
 
 export type McpOptions = {
+  includeDocsTools?: boolean | undefined;
   codeAllowHttpGets?: boolean | undefined;
   codeAllowedMethods?: string[] | undefined;
   codeBlockedMethods?: string[] | undefined;
@@ -39,7 +40,7 @@ export function parseCLIOptions(): CLIOptions {
     .option('no-tools', {
       type: 'string',
       array: true,
-      choices: ['code'],
+      choices: ['code', 'docs'],
       description: 'Tools to explicitly disable',
     })
     .option('port', {
@@ -51,7 +52,7 @@ export function parseCLIOptions(): CLIOptions {
     .option('tools', {
       type: 'string',
       array: true,
-      choices: ['code'],
+      choices: ['code', 'docs'],
       description: 'Tools to explicitly enable',
     })
     .option('transport', {
@@ -66,14 +67,17 @@ export function parseCLIOptions(): CLIOptions {
 
   const argv = opts.parseSync();
 
-  const shouldIncludeToolType = (toolType: 'code') =>
+  const shouldIncludeToolType = (toolType: 'code' | 'docs') =>
     argv.noTools?.includes(toolType) ? false
     : argv.tools?.includes(toolType) ? true
     : undefined;
 
+  const includeDocsTools = shouldIncludeToolType('docs');
+
   const transport = argv.transport as 'stdio' | 'http';
 
   return {
+    ...(includeDocsTools !== undefined && { includeDocsTools }),
     debug: !!argv.debug,
     codeAllowHttpGets: argv.codeAllowHttpGets,
     codeAllowedMethods: argv.codeAllowedMethods,
@@ -94,8 +98,8 @@ const coerceArray = <T extends z.ZodTypeAny>(zodType: T) =>
   );
 
 const QueryOptions = z.object({
-  tools: coerceArray(z.enum(['code'])).describe('Specify which MCP tools to use'),
-  no_tools: coerceArray(z.enum(['code'])).describe('Specify which MCP tools to not use.'),
+  tools: coerceArray(z.enum(['code', 'docs'])).describe('Specify which MCP tools to use'),
+  no_tools: coerceArray(z.enum(['code', 'docs'])).describe('Specify which MCP tools to not use.'),
   tool: coerceArray(z.string()).describe('Include tools matching the specified names'),
 });
 
@@ -103,5 +107,12 @@ export function parseQueryOptions(defaultOptions: McpOptions, query: unknown): M
   const queryObject = typeof query === 'string' ? qs.parse(query) : query;
   const queryOptions = QueryOptions.parse(queryObject);
 
-  return {};
+  let docsTools: boolean | undefined =
+    queryOptions.no_tools && queryOptions.no_tools?.includes('docs') ? false
+    : queryOptions.tools?.includes('docs') ? true
+    : defaultOptions.includeDocsTools;
+
+  return {
+    ...(docsTools !== undefined && { includeDocsTools: docsTools }),
+  };
 }
