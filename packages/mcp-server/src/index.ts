@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 
 import { selectTools } from './server';
-import { McpOptions, parseCLIOptions } from './options';
+import { parseCLIOptions } from './options';
 import { launchStdioServer } from './stdio';
 import { launchStreamableHTTPServer } from './http';
-import type { McpTool } from './types';
 
 async function main() {
   const options = parseOptionsOrError();
 
-  const selectedTools = await selectToolsOrError(options);
+  const selectedTools = selectTools();
 
   console.error(
     `MCP Server starting with ${selectedTools.length} tools:`,
@@ -18,11 +17,10 @@ async function main() {
 
   switch (options.transport) {
     case 'stdio':
-      await launchStdioServer(options);
+      await launchStdioServer();
       break;
     case 'http':
       await launchStreamableHTTPServer({
-        mcpOptions: options,
         debug: options.debug,
         port: options.port ?? options.socket,
       });
@@ -42,24 +40,6 @@ function parseOptionsOrError() {
     return parseCLIOptions();
   } catch (error) {
     console.error('Error parsing options:', error);
-    process.exit(1);
-  }
-}
-
-async function selectToolsOrError(options: McpOptions): Promise<McpTool[]> {
-  try {
-    const includedTools = selectTools(options);
-    if (includedTools.length === 0) {
-      console.error('No tools match the provided filters.');
-      process.exit(1);
-    }
-    return includedTools;
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error filtering tools:', error.message);
-    } else {
-      console.error('Error filtering tools:', error);
-    }
     process.exit(1);
   }
 }

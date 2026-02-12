@@ -1,13 +1,12 @@
 import { makeOAuthConsent } from './app';
 import { McpAgent } from 'agents/mcp';
 import OAuthProvider from '@cloudflare/workers-oauth-provider';
-import { McpOptions, initMcpServer, newMcpServer, ClientOptions } from 'graphor-mcp/server';
+import { initMcpServer, newMcpServer, ClientOptions } from 'graphor-mcp/server';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 type MCPProps = {
   clientProps: ClientOptions;
-  clientConfig: McpOptions;
 };
 
 /**
@@ -37,7 +36,6 @@ export class MyMCP extends McpAgent<Env, unknown, MCPProps> {
     initMcpServer({
       server: this.server,
       clientOptions: this.props.clientProps,
-      mcpOptions: this.props.clientConfig,
     });
   }
 }

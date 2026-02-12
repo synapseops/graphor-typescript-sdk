@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.11.0 (2026-02-12)
+
+Full Changelog: [v0.10.0...v0.11.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.10.0...v0.11.0)
+
+### Features
+
+* **api:** manual updates ([977e8f6](https://github.com/synapseops/graphor-typescript-sdk/commit/977e8f60ba536ef17fe87e94fbcbc0abcf9bab97))
+* **api:** manual updates ([483f494](https://github.com/synapseops/graphor-typescript-sdk/commit/483f49498552865661b5cc50cd86e0fee31e0ebe))
+* **api:** manual updates ([0336517](https://github.com/synapseops/graphor-typescript-sdk/commit/0336517d9aa58dfd4cb30b621ef3699cbef29a41))
+* **api:** manual updates ([7ddf06e](https://github.com/synapseops/graphor-typescript-sdk/commit/7ddf06ebabed4dee0ac520287409da102fa08a3c))
+* **api:** manual updates ([1fa0791](https://github.com/synapseops/graphor-typescript-sdk/commit/1fa0791baf4177238f464ce04a106005ad1839b9))
+* **api:** manual updates ([4646639](https://github.com/synapseops/graphor-typescript-sdk/commit/4646639ca3ac2490cd3c9dd0b6d4d1d3fc84b38e))
+
+
+### Chores
+
+* **internal:** avoid type checking errors with ts-reset ([533e902](https://github.com/synapseops/graphor-typescript-sdk/commit/533e90257c929b20c0d6e40d8f5de82994ac0eb0))
+
 ## 0.10.0 (2026-02-11)
 
 Full Changelog: [v0.9.1...v0.10.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.9.1...v0.10.0)
