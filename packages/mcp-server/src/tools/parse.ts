@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceParseParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -36,15 +35,15 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    if (args.file_id == null && args.file_name == null) {
+    if (args['file_id'] == null && args['file_name'] == null) {
       return asErrorResult('At least one of file_id or file_name must be provided.');
     }
 
-    const params: SourceParseParams = {
-      ...(args.file_id != null && { file_id: args.file_id as string }),
-      ...(args.file_name != null && { file_name: args.file_name as string }),
-      ...(args.partition_method != null && {
-        partition_method: args.partition_method as SourceParseParams['partition_method'],
+    const params: Graphor.SourceParseParams = {
+      ...(args['file_id'] != null && { file_id: args['file_id'] as string }),
+      ...(args['file_name'] != null && { file_name: args['file_name'] as string }),
+      ...(args['partition_method'] != null && {
+        partition_method: args['partition_method'] as Graphor.SourceParseParams['partition_method'],
       }),
     };
 

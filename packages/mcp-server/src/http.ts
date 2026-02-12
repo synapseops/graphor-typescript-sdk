@@ -41,8 +41,7 @@ const newServer = async ({
 };
 
 const post =
-  (options: { clientOptions: ClientOptions }) =>
-  async (req: express.Request, res: express.Response) => {
+  (options: { clientOptions: ClientOptions }) => async (req: express.Request, res: express.Response) => {
     const server = await newServer({ ...options, req, res });
     // If we return null, we already set the authorization error.
     if (server === null) return;

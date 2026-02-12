@@ -109,10 +109,7 @@ export const newMcpServer = async () =>
  * Initializes the provided MCP Server with the given tools and handlers.
  * If not provided, the default client, tools and handlers will be used.
  */
-export async function initMcpServer(params: {
-  server: Server | McpServer;
-  clientOptions?: ClientOptions;
-}) {
+export async function initMcpServer(params: { server: Server | McpServer; clientOptions?: ClientOptions }) {
   const server = params.server instanceof McpServer ? params.server.server : params.server;
 
   const logAtLevel =

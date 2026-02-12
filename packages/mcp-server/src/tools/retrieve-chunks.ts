@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceRetrieveChunksParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -38,10 +37,10 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const params: SourceRetrieveChunksParams = {
-      query: args.query as string,
-      ...(args.file_ids != null && { file_ids: args.file_ids as string[] }),
-      ...(args.file_names != null && { file_names: args.file_names as string[] }),
+    const params: Graphor.SourceRetrieveChunksParams = {
+      query: args['query'] as string,
+      ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
+      ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
     };
 
     const result = await client.sources.retrieveChunks(params);

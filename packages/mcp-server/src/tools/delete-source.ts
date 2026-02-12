@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceDeleteParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -13,7 +12,7 @@ const tool: McpTool = {
   tool: {
     name: 'delete_source',
     description:
-      'Delete a source from the project\'s knowledge graph and all associated data. ' +
+      "Delete a source from the project's knowledge graph and all associated data. " +
       'The operation is irreversible. Provide file_id (preferred) or file_name.',
     inputSchema: {
       type: 'object',
@@ -30,13 +29,13 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    if (args.file_id == null && args.file_name == null) {
+    if (args['file_id'] == null && args['file_name'] == null) {
       return asErrorResult('At least one of file_id or file_name must be provided.');
     }
 
-    const params: SourceDeleteParams = {
-      ...(args.file_id != null && { file_id: args.file_id as string }),
-      ...(args.file_name != null && { file_name: args.file_name as string }),
+    const params: Graphor.SourceDeleteParams = {
+      ...(args['file_id'] != null && { file_id: args['file_id'] as string }),
+      ...(args['file_name'] != null && { file_name: args['file_name'] as string }),
     };
 
     const result = await client.sources.delete(params);

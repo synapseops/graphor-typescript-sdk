@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceAskParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -13,7 +12,7 @@ const tool: McpTool = {
   tool: {
     name: 'ask',
     description:
-      'Ask a natural-language question grounded on the project\'s ingested sources. ' +
+      "Ask a natural-language question grounded on the project's ingested sources. " +
       'Supports conversation memory via conversation_id, scoping to specific files, ' +
       'and optional structured JSON output via output_schema.',
     inputSchema: {
@@ -25,8 +24,7 @@ const tool: McpTool = {
         },
         conversation_id: {
           type: 'string',
-          description:
-            'An existing conversation identifier to maintain context across multiple turns.',
+          description: 'An existing conversation identifier to maintain context across multiple turns.',
         },
         reset: {
           type: 'boolean',
@@ -58,15 +56,17 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const params: SourceAskParams = {
-      question: args.question as string,
-      ...(args.conversation_id != null && { conversation_id: args.conversation_id as string }),
-      ...(args.reset != null && { reset: args.reset as boolean }),
-      ...(args.file_ids != null && { file_ids: args.file_ids as string[] }),
-      ...(args.file_names != null && { file_names: args.file_names as string[] }),
-      ...(args.output_schema != null && { output_schema: args.output_schema as Record<string, unknown> }),
-      ...(args.thinking_level != null && {
-        thinking_level: args.thinking_level as 'fast' | 'balanced' | 'accurate',
+    const params: Graphor.SourceAskParams = {
+      question: args['question'] as string,
+      ...(args['conversation_id'] != null && { conversation_id: args['conversation_id'] as string }),
+      ...(args['reset'] != null && { reset: args['reset'] as boolean }),
+      ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
+      ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
+      ...(args['output_schema'] != null && {
+        output_schema: args['output_schema'] as Record<string, unknown>,
+      }),
+      ...(args['thinking_level'] != null && {
+        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate',
       }),
     };
 

@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceLoadElementsParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -59,16 +58,18 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    if (args.file_id == null && args.file_name == null) {
+    if (args['file_id'] == null && args['file_name'] == null) {
       return asErrorResult('At least one of file_id or file_name must be provided.');
     }
 
-    const params: SourceLoadElementsParams = {
-      ...(args.file_id != null && { file_id: args.file_id as string }),
-      ...(args.file_name != null && { file_name: args.file_name as string }),
-      ...(args.page != null && { page: args.page as number }),
-      ...(args.page_size != null && { page_size: args.page_size as number }),
-      ...(args.filter != null && { filter: args.filter as SourceLoadElementsParams.Filter }),
+    const params: Graphor.SourceLoadElementsParams = {
+      ...(args['file_id'] != null && { file_id: args['file_id'] as string }),
+      ...(args['file_name'] != null && { file_name: args['file_name'] as string }),
+      ...(args['page'] != null && { page: args['page'] as number }),
+      ...(args['page_size'] != null && { page_size: args['page_size'] as number }),
+      ...(args['filter'] != null && {
+        filter: args['filter'] as Graphor.SourceLoadElementsParams.Filter,
+      }),
     };
 
     const result = await client.sources.loadElements(params);

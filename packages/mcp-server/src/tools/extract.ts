@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceExtractParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -48,13 +47,13 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const params: SourceExtractParams = {
-      user_instruction: args.user_instruction as string,
-      output_schema: args.output_schema as Record<string, unknown>,
-      ...(args.file_ids != null && { file_ids: args.file_ids as string[] }),
-      ...(args.file_names != null && { file_names: args.file_names as string[] }),
-      ...(args.thinking_level != null && {
-        thinking_level: args.thinking_level as 'fast' | 'balanced' | 'accurate',
+    const params: Graphor.SourceExtractParams = {
+      user_instruction: args['user_instruction'] as string,
+      output_schema: args['output_schema'] as Record<string, unknown>,
+      ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
+      ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
+      ...(args['thinking_level'] != null && {
+        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate',
       }),
     };
 

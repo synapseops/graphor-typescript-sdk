@@ -27,7 +27,7 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const result = await client.sources.uploadYoutube({ url: args.url as string });
+    const result = await client.sources.uploadYoutube({ url: args['url'] as string });
     return asTextContentResult(result);
   },
 };

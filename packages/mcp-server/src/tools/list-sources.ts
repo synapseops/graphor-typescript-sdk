@@ -12,7 +12,7 @@ const tool: McpTool = {
   tool: {
     name: 'list_sources',
     description:
-      'List all sources in the project\'s knowledge graph. ' +
+      "List all sources in the project's knowledge graph. " +
       'Returns every source with file metadata (ID, name, size, type, origin) ' +
       'and its current processing status.',
     inputSchema: {

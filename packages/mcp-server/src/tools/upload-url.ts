@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceUploadURLParams } from 'graphor/resources/sources';
 
 const tool: McpTool = {
   metadata: {
@@ -36,11 +35,11 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const params: SourceUploadURLParams = {
-      url: args.url as string,
-      ...(args.crawlUrls != null && { crawlUrls: args.crawlUrls as boolean }),
-      ...(args.partition_method != null && {
-        partition_method: args.partition_method as SourceUploadURLParams['partition_method'],
+    const params: Graphor.SourceUploadURLParams = {
+      url: args['url'] as string,
+      ...(args['crawlUrls'] != null && { crawlUrls: args['crawlUrls'] as boolean }),
+      ...(args['partition_method'] != null && {
+        partition_method: args['partition_method'] as Graphor.SourceUploadURLParams['partition_method'],
       }),
     };
 

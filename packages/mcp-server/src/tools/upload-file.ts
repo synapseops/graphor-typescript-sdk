@@ -1,6 +1,5 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
 import { Graphor } from 'graphor';
-import type { SourceUploadParams } from 'graphor/resources/sources';
 
 /**
  * Try to dynamically import 'fs' and 'path' modules.
@@ -70,10 +69,12 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const filePath = args.file_path as string | undefined;
-    const fileContent = args.file_content as string | undefined;
-    const fileName = args.file_name as string | undefined;
-    const partitionMethod = args.partition_method as SourceUploadParams['partition_method'] | undefined;
+    const filePath = args['file_path'] as string | undefined;
+    const fileContent = args['file_content'] as string | undefined;
+    const fileName = args['file_name'] as string | undefined;
+    const partitionMethod = args['partition_method'] as
+      | Graphor.SourceUploadParams['partition_method']
+      | undefined;
 
     let uploadFile: any;
 
@@ -96,7 +97,7 @@ const tool: McpTool = {
       );
     }
 
-    const params: SourceUploadParams = {
+    const params: Graphor.SourceUploadParams = {
       file: uploadFile,
       ...(partitionMethod != null && { partition_method: partitionMethod }),
     };
