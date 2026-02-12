@@ -10,6 +10,7 @@ import {
 import { ClientOptions } from 'graphor';
 import Graphor from 'graphor';
 import { codeTool } from './code-tool';
+import docsSearchTool from './docs-search-tool';
 import { McpOptions } from './options';
 import { blockedMethodsForCodeTool } from './methods';
 import { HandlerFunction, McpTool } from './types';
@@ -152,7 +153,9 @@ export function selectTools(options?: McpOptions): McpTool[] {
       blockedMethods: blockedMethodsForCodeTool(options),
     }),
   ];
-
+  if (options?.includeDocsTools ?? true) {
+    includedTools.push(docsSearchTool);
+  }
   return includedTools;
 }
 
