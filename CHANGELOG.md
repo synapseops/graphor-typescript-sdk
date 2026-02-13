@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.1 (2026-02-13)
+
+Full Changelog: [v0.12.0...v0.12.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.0...v0.12.1)
+
+### Chores
+
+* **internal:** improve reliability of MCP servers when using local code mode execution ([088cc77](https://github.com/synapseops/graphor-typescript-sdk/commit/088cc7775d6fc9f840f63a7585d5535b88710f02))
+
+
+### Documentation
+
+* update mcp docs ([22683c4](https://github.com/synapseops/graphor-typescript-sdk/commit/22683c46548ef9daede772880cbfe45ffd2c3217))
+
 ## 0.12.0 (2026-02-12)
 
 Full Changelog: [v0.11.4...v0.12.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.11.4...v0.12.0)
