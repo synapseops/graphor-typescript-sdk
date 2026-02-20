@@ -17,25 +17,14 @@ const newServer = async ({
 }): Promise<McpServer | null> => {
   const server = await newMcpServer();
 
-  try {
-    const authOptions = parseAuthHeaders(req, false);
-    await initMcpServer({
-      server: server,
-      clientOptions: {
-        ...clientOptions,
-        ...authOptions,
-      },
-    });
-  } catch (error) {
-    res.status(401).json({
-      jsonrpc: '2.0',
-      error: {
-        code: -32000,
-        message: `Unauthorized: ${error instanceof Error ? error.message : error}`,
-      },
-    });
-    return null;
-  }
+  const authOptions = parseAuthHeaders(req, false);
+  await initMcpServer({
+    server: server,
+    clientOptions: {
+      ...clientOptions,
+      ...authOptions,
+    },
+  });
 
   return server;
 };
