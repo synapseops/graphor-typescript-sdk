@@ -60,7 +60,7 @@ $ yarn link graphor
 # With pnpm
 $ pnpm link --global
 $ cd ../my-package
-$ pnpm link -—global graphor
+$ pnpm link --global graphor
 ```
 
 ## Running tests
