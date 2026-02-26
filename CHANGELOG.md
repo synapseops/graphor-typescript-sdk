@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.2 (2026-02-26)
+
+Full Changelog: [v0.12.1...v0.12.2](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.1...v0.12.2)
+
+### Chores
+
+* **mcp:** forward STAINLESS_API_KEY to docs search endpoint ([ca16262](https://github.com/synapseops/graphor-typescript-sdk/commit/ca1626242aff94b57d7d412fb98373eae8dc3587))
+
 ## 0.12.1 (2026-02-13)
 
 Full Changelog: [v0.12.0...v0.12.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.0...v0.12.1)
