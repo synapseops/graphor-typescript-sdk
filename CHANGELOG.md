@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.13.0 (2026-03-06)
+
+Full Changelog: [v0.12.2...v0.13.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.2...v0.13.0)
+
+### Features
+
+* **api:** api update ([b28ea3a](https://github.com/synapseops/graphor-typescript-sdk/commit/b28ea3a44b51ce9531a8a13cc2bb7b5b10a0bda0))
+
+
+### Bug Fixes
+
+* **docs/contributing:** correct pnpm link command ([3a5d8bd](https://github.com/synapseops/graphor-typescript-sdk/commit/3a5d8bd20c3586f5fd08a50693bbdbb9fba7d98e))
+* **mcp:** initialize SDK lazily to avoid failing the connection on init errors ([8b17815](https://github.com/synapseops/graphor-typescript-sdk/commit/8b178159df1d809ba76f68487fbe1e48659452c9))
+
+
+### Chores
+
+* **internal/client:** fix form-urlencoded requests ([3310edf](https://github.com/synapseops/graphor-typescript-sdk/commit/3310edfbdd3e9f9c70b099d6c2565b1377ebe0a6))
+* **internal:** allow setting x-stainless-api-key header on mcp server requests ([b5adbfb](https://github.com/synapseops/graphor-typescript-sdk/commit/b5adbfbd7bf1be3f0c8b7ce4e65f2cf1e8f0e89b))
+* **internal:** cache fetch instruction calls in MCP server ([117ddaa](https://github.com/synapseops/graphor-typescript-sdk/commit/117ddaac88f0cd18f2fac20984670ca292204b86))
+* **internal:** codegen related update ([b4697bf](https://github.com/synapseops/graphor-typescript-sdk/commit/b4697bf2ae457dccd0ba4a71bd7b4d2d92851bb4))
+* **internal:** codegen related update ([16abe1f](https://github.com/synapseops/graphor-typescript-sdk/commit/16abe1fad057b1f1f624afb551f2dd55a0c7e3e8))
+* **internal:** fix MCP Dockerfiles so they can be built without buildkit ([331032b](https://github.com/synapseops/graphor-typescript-sdk/commit/331032b7cb9cefa80a6ea1b41be5f0823efe95c2))
+* **internal:** fix MCP Dockerfiles so they can be built without buildkit ([87e1ac3](https://github.com/synapseops/graphor-typescript-sdk/commit/87e1ac36843648894835198fdec8b9a85fbe74f7))
+* **internal:** improve layout of generated MCP server files ([300c1f4](https://github.com/synapseops/graphor-typescript-sdk/commit/300c1f497f0334c0b4bab26b92dbfa86f539ef79))
+* **internal:** make MCP code execution location configurable via a flag ([6c9d349](https://github.com/synapseops/graphor-typescript-sdk/commit/6c9d349e363c458e0c04b8a01679bab2d1b712e5))
+* **internal:** move stringifyQuery implementation to internal function ([1a850c9](https://github.com/synapseops/graphor-typescript-sdk/commit/1a850c97236da08ce870eb666484986ca842d8b0))
+* **internal:** remove mock server code ([644bd1f](https://github.com/synapseops/graphor-typescript-sdk/commit/644bd1f56c4af9570c5af4994c5c48cdb84271ee))
+* **internal:** update agents version ([867b145](https://github.com/synapseops/graphor-typescript-sdk/commit/867b14553875fc8c339150dad698d17c1551dd13))
+* **internal:** upgrade @modelcontextprotocol/sdk and hono ([982814b](https://github.com/synapseops/graphor-typescript-sdk/commit/982814b043d6fe92ade4a283febb60e28e2e85a2))
+* **internal:** upgrade pnpm version ([2417ce5](https://github.com/synapseops/graphor-typescript-sdk/commit/2417ce5a71b3a43e483de6121532baf3a71f3649))
+* **internal:** version bump ([61e1675](https://github.com/synapseops/graphor-typescript-sdk/commit/61e167518cdda73f400d2a959c5ef29a0f9265fc))
+* **mcp:** correctly update version in sync with sdk ([ef520aa](https://github.com/synapseops/graphor-typescript-sdk/commit/ef520aa4a03ef0c45aaa7611fe28770bc8f110d7))
+* update mock server docs ([ecd27ed](https://github.com/synapseops/graphor-typescript-sdk/commit/ecd27ed8935b8e62d4ac504e5e9f2dca82471de9))
+
 ## 0.12.2 (2026-02-26)
 
 Full Changelog: [v0.12.1...v0.12.2](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.1...v0.12.2)
