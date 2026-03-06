@@ -136,31 +136,13 @@ export async function initMcpServer(params: { server: Server | McpServer; client
     error: logAtLevel('error'),
   };
 
-  let _client: Graphor | undefined;
-  let _clientError: Error | undefined;
-  let _logLevel: 'debug' | 'info' | 'warn' | 'error' | 'off' | undefined;
-
-  const getClient = (): Graphor => {
-    if (_clientError) throw _clientError;
-    if (!_client) {
-      try {
-        _client = new Graphor({
-          logger,
-          ...params.clientOptions,
-          defaultHeaders: {
-            ...params.clientOptions?.defaultHeaders,
-          },
-        });
-        if (_logLevel) {
-          _client = _client.withOptions({ logLevel: _logLevel });
-        }
-      } catch (e) {
-        _clientError = e instanceof Error ? e : new Error(String(e));
-        throw _clientError;
-      }
-    }
-    return _client;
-  };
+  let client = new Graphor({
+    logger,
+    ...params.clientOptions,
+    defaultHeaders: {
+      ...params.clientOptions?.defaultHeaders,
+    },
+  });
 
   const providedTools = selectTools();
   const toolMap = Object.fromEntries(providedTools.map((mcpTool) => [mcpTool.tool.name, mcpTool]));
@@ -178,48 +160,28 @@ export async function initMcpServer(params: { server: Server | McpServer; client
       throw new Error(`Unknown tool: ${name}`);
     }
 
-    let client: Graphor;
-    try {
-      client = getClient();
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `Failed to initialize client: ${error instanceof Error ? error.message : String(error)}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-
     return executeHandler(mcpTool.handler, client, args);
   });
 
   server.setRequestHandler(SetLevelRequestSchema, async (request) => {
     const { level } = request.params;
-    let logLevel: 'debug' | 'info' | 'warn' | 'error' | 'off';
     switch (level) {
       case 'debug':
-        logLevel = 'debug';
+        client = client.withOptions({ logLevel: 'debug' });
         break;
       case 'info':
-        logLevel = 'info';
+        client = client.withOptions({ logLevel: 'info' });
         break;
       case 'notice':
       case 'warning':
-        logLevel = 'warn';
+        client = client.withOptions({ logLevel: 'warn' });
         break;
       case 'error':
-        logLevel = 'error';
+        client = client.withOptions({ logLevel: 'error' });
         break;
       default:
-        logLevel = 'off';
+        client = client.withOptions({ logLevel: 'off' });
         break;
-    }
-    _logLevel = logLevel;
-    if (_client) {
-      _client = _client.withOptions({ logLevel });
     }
     return {};
   });

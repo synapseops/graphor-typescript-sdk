@@ -22,7 +22,7 @@ async function main() {
     case 'http':
       await launchStreamableHTTPServer({
         debug: options.debug,
-        port: options.socket ?? options.port,
+        port: options.port ?? options.socket,
       });
       break;
   }
