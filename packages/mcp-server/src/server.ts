@@ -9,7 +9,8 @@ import { ClientOptions } from 'graphor';
 import Graphor from 'graphor';
 import { allTools } from './tools';
 import { HandlerFunction, McpTool } from './types';
-import { readEnv } from './util';
+
+export { ClientOptions } from 'graphor';
 
 function getInstructions(): string {
   return `The current time in Unix timestamps is ${Date.now()}.
@@ -203,3 +204,27 @@ export async function executeHandler(
 ) {
   return await handler(client, args || {});
 }
+
+export const readEnv = (env: string): string | undefined => {
+  if (typeof (globalThis as any).process !== 'undefined') {
+    return (globalThis as any).process.env?.[env]?.trim();
+  } else if (typeof (globalThis as any).Deno !== 'undefined') {
+    return (globalThis as any).Deno.env?.get?.(env)?.trim();
+  }
+  return;
+};
+
+export const readEnvOrError = (env: string): string => {
+  let envValue = readEnv(env);
+  if (envValue === undefined) {
+    throw new Error(`Environment variable ${env} is not set`);
+  }
+  return envValue;
+};
+
+export const requireValue = <T>(value: T | undefined, description: string): T => {
+  if (value === undefined) {
+    throw new Error(`Missing required value: ${description}`);
+  }
+  return value;
+};
