@@ -229,8 +229,8 @@ export class Sources extends APIResource {
    * - **file** (`multipart/form-data`): The file to upload. Must include
    *   `Content-Length` and have a supported extension (pdf, doc, docx, csv, txt, md,
    *   etc.).
-   * - **partition_method** (`form`, optional): Partitioning strategy. One of:
-   *   `fast`, `balanced`, `accurate`, `vlm`, `agentic`. Default when omitted.
+   * - **method** (`form`, optional): Partitioning strategy. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`. Default when omitted.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing
    * status.
@@ -295,9 +295,9 @@ export class Sources extends APIResource {
    * - **crawlUrls** (bool, optional, default `false`): When `true`, the system will
    *   also follow and ingest links found on the page. Ignored when the URL resolves
    *   to a file.
-   * - **partition_method** (str, optional): The partitioning strategy to use. One
-   *   of: `fast`, `balanced`, `accurate`, `vlm`, `agentic`. When omitted the system
-   *   default is applied.
+   * - **method** (str, optional): The partitioning strategy to use. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`. When omitted the system default is
+   *   applied.
    *
    * **Returns** a `PublicSourceResponse` with `status: "processing"` immediately.
    * Poll the source status endpoint using the returned `file_id` to track
@@ -357,8 +357,8 @@ export class Sources extends APIResource {
    * **Parameters (JSON body):**
    *
    * - **file_id** (str, required): Unique identifier of the source to re-process.
-   * - **partition_method** (str, default `"fast"`): Partitioning strategy. One of:
-   *   `fast`, `balanced`, `accurate`, `vlm`, `agentic`.
+   * - **method** (str, default `"fast"`): Partitioning strategy. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`.
    *
@@ -481,7 +481,7 @@ export interface PublicSource {
    * Partitioning strategy used during ingestion. V1 API: basic, hi_res, hi_res_ft,
    * mai, graphorlm. V2 API: fast, balanced, accurate, vlm, agentic.
    */
-  partition_method?: string | null;
+  method?: string | null;
 }
 
 export type SourceListResponse = Array<PublicSource>;
@@ -975,7 +975,7 @@ export interface SourceIngestFileParams {
    * - vlm → mai
    * - agentic → graphorlm
    */
-  partition_method?: Method | null;
+  method?: Method | null;
 }
 
 export interface SourceIngestGitHubParams {
@@ -1007,7 +1007,7 @@ export interface SourceIngestURLParams {
    * - vlm → mai
    * - agentic → graphorlm
    */
-  partition_method?: Method | null;
+  method?: Method | null;
 }
 
 export interface SourceIngestYoutubeParams {
@@ -1027,7 +1027,7 @@ export interface SourceReprocessParams {
   /**
    * Partitioning strategy. One of: fast, balanced, accurate, vlm, agentic.
    */
-  partition_method?: Method;
+  method?: Method;
 }
 
 export interface SourceRetrieveChunksParams {
