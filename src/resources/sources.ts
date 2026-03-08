@@ -5,6 +5,7 @@ import { APIPromise } from '../core/api-promise';
 import { type Uploadable } from '../core/uploads';
 import { RequestOptions } from '../internal/request-options';
 import { multipartFormRequestOptions } from '../internal/uploads';
+import { path } from '../internal/utils/path';
 
 export class Sources extends APIResource {
   /**
@@ -175,6 +176,80 @@ export class Sources extends APIResource {
    */
   extract(body: SourceExtractParams, options?: RequestOptions): APIPromise<SourceExtractResponse> {
     return this._client.post('/sources/run-extraction', { body, ...options });
+  }
+
+  /**
+   * Return the status and optional parsed elements for an async build identified by
+   * `build_id`.
+   *
+   * Use this endpoint to poll the result of an async ingestion or re-process
+   * request. The `build_id` is returned in the response of:
+   *
+   * - `POST /v2/sources/upload` (async file upload)
+   * - `POST /v2/sources/upload-url-source` (async URL ingestion)
+   * - `POST /v2/sources/upload-github-source` (async GitHub ingestion)
+   * - `POST /v2/sources/upload-youtube-source` (async YouTube ingestion)
+   * - `POST /v2/sources/process` (async re-process)
+   *
+   * **Path parameter:**
+   *
+   * - **build_id** (str, required): The build identifier returned when the job was
+   *   scheduled.
+   *
+   * **Query parameters:**
+   *
+   * - **suppress_elements** (bool, default `false`): When `true`, elements are
+   *   omitted from the response. When `false` (default), the response includes the
+   *   parsed elements (chunks/partitions) for the build if it completed
+   *   successfully. Same structure as `POST /sources/elements` (each element has
+   *   `page_content` and `metadata`). If `page` and `page_size` are not passed, all
+   *   elements are returned.
+   * - **suppress_img_base64** (bool, default `false`): When `true`, `img_base64` is
+   *   omitted from each element (useful to reduce payload size when images are not
+   *   needed).
+   * - **page** (int, optional): 1-based page number. Only used when
+   *   `suppress_elements=false` and pagination is used (pass either `page` or
+   *   `page_size` to enable pagination).
+   * - **page_size** (int, optional): Number of elements per page (max 100). Only
+   *   used when `suppress_elements=false` and pagination is used.
+   *
+   * **Response fields:**
+   *
+   * - **build_id**: The requested build identifier.
+   * - **status**: SourceNodeStatus value when history exists (e.g. Processed,
+   *   Processing, Processing failed). `not_found` when no history exists (build in
+   *   progress or invalid id).
+   * - **success**: `true` only when `status == "Completed"`
+   *   (SourceNodeStatus.COMPLETED).
+   * - **file_id**, **file_name**: Source identifiers; present when the build has
+   *   been persisted (history exists).
+   * - **error**: Error message from the pipeline when the build failed.
+   * - **method**, **total_partitions**, **total_pages**: Build metadata when history
+   *   exists.
+   * - **created_at**, **updated_at**: ISO8601 timestamps when history exists.
+   * - **message**: Human-readable message (e.g. when status is `not_found`).
+   * - **elements**: List of `{ page_content, metadata }` when
+   *   `suppress_elements=false` and the build completed successfully.
+   * - **total_elements**, **page**, **page_size**, **total_pages_elements**:
+   *   Pagination metadata for `elements` when `suppress_elements=false`.
+   *
+   * **Error responses:**
+   *
+   * - `500` — Unexpected internal error.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.getBuildStatus(
+   *   'build_id',
+   * );
+   * ```
+   */
+  getBuildStatus(
+    buildID: string,
+    query: SourceGetBuildStatusParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<SourceGetBuildStatusResponse> {
+    return this._client.get(path`/sources/builds/${buildID}`, { query, ...options });
   }
 
   /**
@@ -418,6 +493,109 @@ export class Sources extends APIResource {
 }
 
 /**
+ * A single parsed element (chunk/partition) from a source, with explicit fields.
+ */
+export interface Element {
+  /**
+   * Bounding box (e.g. left, top, width, height) when available.
+   */
+  bounding_box?: { [key: string]: unknown } | null;
+
+  /**
+   * Unique identifier for the element.
+   */
+  element_id?: string | null;
+
+  /**
+   * Type of the element (Title, NarrativeText, Image, Table, etc.).
+   */
+  element_type?:
+    | 'Title'
+    | 'NarrativeText'
+    | 'TextBlock'
+    | 'ListItem'
+    | 'Table'
+    | 'TableRow'
+    | 'Image'
+    | 'Footer'
+    | 'Formula'
+    | 'CompositeElement'
+    | 'FigureCaption'
+    | 'PageBreak'
+    | 'Address'
+    | 'EmailAddress'
+    | 'PageNumber'
+    | 'CodeSnippet'
+    | 'Header'
+    | 'FormKeysValues'
+    | 'Link'
+    | 'UncategorizedText'
+    | 'Abstract'
+    | 'AsideText'
+    | 'Reference'
+    | 'ReferenceContent'
+    | 'Chart'
+    | 'Seal'
+    | 'FormulaNumber'
+    | null;
+
+  /**
+   * HTML representation of the content, when available.
+   */
+  html?: string | null;
+
+  /**
+   * Base64-encoded image data, when the element is an image.
+   */
+  img_base64?: string | null;
+
+  /**
+   * Markdown representation of the content, when available.
+   */
+  markdown?: string | null;
+
+  /**
+   * Additional metadata.
+   */
+  metadata?: { [key: string]: unknown };
+
+  /**
+   * Annotation/summary for the page containing this element.
+   */
+  page_annotation?: string | null;
+
+  /**
+   * Keywords extracted for the page.
+   */
+  page_keywords?: Array<string> | null;
+
+  /**
+   * Page dimensions (width, height) when available.
+   */
+  page_layout?: { [key: string]: unknown } | null;
+
+  /**
+   * Page number (1-based) where the element appears.
+   */
+  page_number?: number | null;
+
+  /**
+   * Topics extracted for the page.
+   */
+  page_topics?: Array<string> | null;
+
+  /**
+   * Order/position of the element within the document.
+   */
+  position?: number | null;
+
+  /**
+   * Plain text content of the element.
+   */
+  text?: string;
+}
+
+/**
  * Public-facing partition method names for API v2.
  *
  * Maps to internal PartitionMethod as:
@@ -566,11 +744,121 @@ export interface SourceExtractResponse {
   structured_output?: { [key: string]: unknown } | null;
 }
 
+/**
+ * Status and optional result for an async build (ingestion/re-process) identified
+ * by build_id.
+ *
+ * Returned by GET /v2/sources/builds/{build_id}. When the build has completed
+ * successfully, includes file_id, file_name, and optionally paginated elements
+ * (parsed chunks).
+ */
+export interface SourceGetBuildStatusResponse {
+  /**
+   * The build identifier returned when the ingestion was scheduled.
+   */
+  build_id: string;
+
+  /**
+   * Current build status. When a build history exists, this is a SourceNodeStatus
+   * value (e.g. Completed, Processing, Processing failed). When no history exists
+   * yet: not_found.
+   */
+  status: string;
+
+  /**
+   * True if the build completed successfully (status is Completed).
+   */
+  success: boolean;
+
+  /**
+   * ISO8601 timestamp when the build (history) was created. Present when history
+   * exists.
+   */
+  created_at?: string | null;
+
+  /**
+   * Paginated list of parsed elements (chunks) for this build. Only present when
+   * suppress_elements=false and the build has completed (status Completed).
+   */
+  elements?: Array<Element> | null;
+
+  /**
+   * Error message from the pipeline, if the build failed (e.g. processing_failed).
+   */
+  error?: string | null;
+
+  /**
+   * Source file identifier. Present when the build has been persisted (history
+   * exists).
+   */
+  file_id?: string | null;
+
+  /**
+   * Display name of the source file. Present when the build has been persisted.
+   */
+  file_name?: string | null;
+
+  /**
+   * Human-readable message (e.g. when status is not_found or processing).
+   */
+  message?: string | null;
+
+  /**
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
+   */
+  method?: Method | null;
+
+  /**
+   * Current page of elements (1-based). Null when no pagination was requested (all
+   * elements returned).
+   */
+  page?: number | null;
+
+  /**
+   * Number of elements per page. Null when no pagination was requested.
+   */
+  page_size?: number | null;
+
+  /**
+   * Total number of elements for this build. Present when suppress_elements=false.
+   */
+  total_elements?: number | null;
+
+  /**
+   * Total pages in the source for this build. Present when history exists.
+   */
+  total_pages?: number | null;
+
+  /**
+   * Total number of pages of elements. Null when no pagination was requested.
+   */
+  total_pages_elements?: number | null;
+
+  /**
+   * Total number of partitions created in this build. Present when history exists.
+   */
+  total_partitions?: number | null;
+
+  /**
+   * ISO8601 timestamp when the build (history) was last updated. Present when
+   * history exists.
+   */
+  updated_at?: string | null;
+}
+
 export interface SourceGetElementsResponse {
   /**
    * List of items in the current page
    */
-  items: Array<SourceGetElementsResponse.Item>;
+  items: Array<Element>;
 
   /**
    * Total number of items
@@ -591,111 +879,6 @@ export interface SourceGetElementsResponse {
    * Total number of pages
    */
   total_pages?: number | null;
-}
-
-export namespace SourceGetElementsResponse {
-  /**
-   * A single parsed element (chunk/partition) from a source, with explicit fields.
-   */
-  export interface Item {
-    /**
-     * Bounding box (e.g. left, top, width, height) when available.
-     */
-    bounding_box?: { [key: string]: unknown } | null;
-
-    /**
-     * Unique identifier for the element.
-     */
-    element_id?: string | null;
-
-    /**
-     * Type of the element (Title, NarrativeText, Image, Table, etc.).
-     */
-    element_type?:
-      | 'Title'
-      | 'NarrativeText'
-      | 'TextBlock'
-      | 'ListItem'
-      | 'Table'
-      | 'TableRow'
-      | 'Image'
-      | 'Footer'
-      | 'Formula'
-      | 'CompositeElement'
-      | 'FigureCaption'
-      | 'PageBreak'
-      | 'Address'
-      | 'EmailAddress'
-      | 'PageNumber'
-      | 'CodeSnippet'
-      | 'Header'
-      | 'FormKeysValues'
-      | 'Link'
-      | 'UncategorizedText'
-      | 'Abstract'
-      | 'AsideText'
-      | 'Reference'
-      | 'ReferenceContent'
-      | 'Chart'
-      | 'Seal'
-      | 'FormulaNumber'
-      | null;
-
-    /**
-     * HTML representation of the content, when available.
-     */
-    html?: string | null;
-
-    /**
-     * Base64-encoded image data, when the element is an image.
-     */
-    img_base64?: string | null;
-
-    /**
-     * Markdown representation of the content, when available.
-     */
-    markdown?: string | null;
-
-    /**
-     * Additional metadata.
-     */
-    metadata?: { [key: string]: unknown };
-
-    /**
-     * Annotation/summary for the page containing this element.
-     */
-    page_annotation?: string | null;
-
-    /**
-     * Keywords extracted for the page.
-     */
-    page_keywords?: Array<string> | null;
-
-    /**
-     * Page dimensions (width, height) when available.
-     */
-    page_layout?: { [key: string]: unknown } | null;
-
-    /**
-     * Page number (1-based) where the element appears.
-     */
-    page_number?: number | null;
-
-    /**
-     * Topics extracted for the page.
-     */
-    page_topics?: Array<string> | null;
-
-    /**
-     * Order/position of the element within the document.
-     */
-    position?: number | null;
-
-    /**
-     * Plain text content of the element.
-     */
-    text?: string;
-  }
 }
 
 export interface SourceIngestFileResponse {
@@ -924,6 +1107,16 @@ export interface SourceExtractParams {
   thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
+export interface SourceGetBuildStatusParams {
+  page?: number | null;
+
+  page_size?: number | null;
+
+  suppress_elements?: boolean;
+
+  suppress_img_base64?: boolean;
+}
+
 export interface SourceGetElementsParams {
   /**
    * Unique identifier of the source
@@ -1050,12 +1243,14 @@ export interface SourceRetrieveChunksParams {
 
 export declare namespace Sources {
   export {
+    type Element as Element,
     type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
+    type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
@@ -1067,6 +1262,7 @@ export declare namespace Sources {
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
+    type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,

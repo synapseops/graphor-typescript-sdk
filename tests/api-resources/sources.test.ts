@@ -92,6 +92,35 @@ describe('resource sources', () => {
   });
 
   // Mock server tests are disabled
+  test.skip('getBuildStatus', async () => {
+    const responsePromise = client.sources.getBuildStatus('build_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('getBuildStatus: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.sources.getBuildStatus(
+        'build_id',
+        {
+          page: 0,
+          page_size: 0,
+          suppress_elements: true,
+          suppress_img_base64: true,
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Graphor.NotFoundError);
+  });
+
+  // Mock server tests are disabled
   test.skip('getElements: only required params', async () => {
     const responsePromise = client.sources.getElements({ file_id: 'file_id' });
     const rawResponse = await responsePromise.asResponse();
