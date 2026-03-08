@@ -30,7 +30,9 @@ For example:
 
 \`\`\`
 async function run(client) {
-  const publicSources = await client.sources.list();
+  const response = await client.sources.ingestURL({ url: 'url' });
+
+  console.log(response.build_id);
 }
 \`\`\`
 

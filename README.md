@@ -35,7 +35,9 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const publicSources = await client.sources.list();
+const response = await client.sources.ingestURL({ url: 'url' });
+
+console.log(response.build_id);
 ```
 
 ### Request & Response types
@@ -50,7 +52,8 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const publicSources: Graphor.SourceListResponse = await client.sources.list();
+const params: Graphor.SourceIngestURLParams = { url: 'url' };
+const response: Graphor.SourceIngestURLResponse = await client.sources.ingestURL(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -92,7 +95,7 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const publicSources = await client.sources.list().catch(async (err) => {
+const response = await client.sources.ingestURL({ url: 'url' }).catch(async (err) => {
   if (err instanceof Graphor.APIError) {
     console.log(err.status); // 400
     console.log(err.name); // BadRequestError
@@ -132,7 +135,7 @@ const client = new Graphor({
 });
 
 // Or, configure per-request:
-await client.sources.list({
+await client.sources.ingestURL({ url: 'url' }, {
   maxRetries: 5,
 });
 ```
@@ -149,7 +152,7 @@ const client = new Graphor({
 });
 
 // Override per-request:
-await client.sources.list({
+await client.sources.ingestURL({ url: 'url' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -172,13 +175,15 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Graphor();
 
-const response = await client.sources.list().asResponse();
+const response = await client.sources.ingestURL({ url: 'url' }).asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: publicSources, response: raw } = await client.sources.list().withResponse();
+const { data: response, response: raw } = await client.sources
+  .ingestURL({ url: 'url' })
+  .withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(publicSources);
+console.log(response.build_id);
 ```
 
 ### Logging
@@ -258,7 +263,7 @@ parameter. This library doesn't validate at runtime that the request matches the
 send will be sent as-is.
 
 ```ts
-client.sources.list({
+client.sources.ingestURL({
   // ...
   // @ts-expect-error baz is not yet public
   baz: 'undocumented option',
