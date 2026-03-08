@@ -134,7 +134,7 @@ describe('resource sources', () => {
   test.skip('ingestFile: required and optional params', async () => {
     const response = await client.sources.ingestFile({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
-      partition_method: 'fast',
+      method: 'fast',
     });
   });
 
@@ -172,7 +172,7 @@ describe('resource sources', () => {
     const response = await client.sources.ingestURL({
       url: 'url',
       crawlUrls: true,
-      partition_method: 'fast',
+      method: 'fast',
     });
   });
 
@@ -207,7 +207,7 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('reprocess: required and optional params', async () => {
-    const response = await client.sources.reprocess({ file_id: 'file_id', partition_method: 'fast' });
+    const response = await client.sources.reprocess({ file_id: 'file_id', method: 'fast' });
   });
 
   // Mock server tests are disabled
