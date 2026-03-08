@@ -18,7 +18,8 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
-  PublicPartitionMethod,
+  Element,
+  Method,
   PublicSource,
   SourceAskParams,
   SourceAskResponse,
@@ -26,16 +27,24 @@ import {
   SourceDeleteResponse,
   SourceExtractParams,
   SourceExtractResponse,
+  SourceGetBuildStatusParams,
+  SourceGetBuildStatusResponse,
+  SourceGetElementsParams,
+  SourceGetElementsResponse,
+  SourceIngestFileParams,
+  SourceIngestFileResponse,
+  SourceIngestGitHubParams,
+  SourceIngestGitHubResponse,
+  SourceIngestURLParams,
+  SourceIngestURLResponse,
+  SourceIngestYoutubeParams,
+  SourceIngestYoutubeResponse,
+  SourceListParams,
   SourceListResponse,
-  SourceLoadElementsParams,
-  SourceLoadElementsResponse,
-  SourceParseParams,
+  SourceReprocessParams,
+  SourceReprocessResponse,
   SourceRetrieveChunksParams,
   SourceRetrieveChunksResponse,
-  SourceUploadGitHubParams,
-  SourceUploadParams,
-  SourceUploadURLParams,
-  SourceUploadYoutubeParams,
   Sources,
 } from './resources/sources';
 import { type Fetch } from './internal/builtin-types';
@@ -231,9 +240,6 @@ export class Graphor {
     return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
   }
 
-  /**
-   * Basic re-implementation of `qs.stringify` for primitive types.
-   */
   protected stringifyQuery(query: object | Record<string, unknown>): string {
     return stringifyQuery(query);
   }
@@ -267,8 +273,9 @@ export class Graphor {
       : new URL(baseURL + (baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
 
     const defaultQuery = this.defaultQuery();
-    if (!isEmptyObj(defaultQuery)) {
-      query = { ...defaultQuery, ...query };
+    const pathQuery = Object.fromEntries(url.searchParams);
+    if (!isEmptyObj(defaultQuery) || !isEmptyObj(pathQuery)) {
+      query = { ...pathQuery, ...defaultQuery, ...query };
     }
 
     if (typeof query === 'object' && query && !Array.isArray(query)) {
@@ -577,9 +584,9 @@ export class Graphor {
       }
     }
 
-    // If the API asks us to wait a certain amount of time (and it's a reasonable amount),
-    // just do what it says, but otherwise calculate a default
-    if (!(timeoutMillis && 0 <= timeoutMillis && timeoutMillis < 60 * 1000)) {
+    // If the API asks us to wait a certain amount of time, just do what it
+    // says, but otherwise calculate a default
+    if (timeoutMillis === undefined) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
@@ -747,23 +754,32 @@ export declare namespace Graphor {
 
   export {
     Sources as Sources,
-    type PublicPartitionMethod as PublicPartitionMethod,
+    type Element as Element,
+    type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
-    type SourceLoadElementsResponse as SourceLoadElementsResponse,
+    type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
+    type SourceGetElementsResponse as SourceGetElementsResponse,
+    type SourceIngestFileResponse as SourceIngestFileResponse,
+    type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
+    type SourceIngestURLResponse as SourceIngestURLResponse,
+    type SourceIngestYoutubeResponse as SourceIngestYoutubeResponse,
+    type SourceReprocessResponse as SourceReprocessResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
+    type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
-    type SourceLoadElementsParams as SourceLoadElementsParams,
-    type SourceParseParams as SourceParseParams,
+    type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
+    type SourceGetElementsParams as SourceGetElementsParams,
+    type SourceIngestFileParams as SourceIngestFileParams,
+    type SourceIngestGitHubParams as SourceIngestGitHubParams,
+    type SourceIngestURLParams as SourceIngestURLParams,
+    type SourceIngestYoutubeParams as SourceIngestYoutubeParams,
+    type SourceReprocessParams as SourceReprocessParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
-    type SourceUploadParams as SourceUploadParams,
-    type SourceUploadGitHubParams as SourceUploadGitHubParams,
-    type SourceUploadURLParams as SourceUploadURLParams,
-    type SourceUploadYoutubeParams as SourceUploadYoutubeParams,
   };
 }

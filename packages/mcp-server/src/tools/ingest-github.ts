@@ -5,16 +5,18 @@ const tool: McpTool = {
   metadata: {
     resource: 'sources',
     operation: 'write',
-    tags: ['upload', 'github'],
+    tags: ['ingest', 'github'],
     httpMethod: 'post',
-    httpPath: '/sources/upload-github-source',
+    httpPath: '/sources/ingest-github',
   },
   tool: {
-    name: 'upload_github',
+    name: 'ingest_github',
     description:
-      'Ingest a GitHub repository as a source into the knowledge graph. ' +
+      'Ingest a public GitHub repository as a source into the knowledge graph. ' +
       'Clones the repository, extracts text-based files, partitions, generates embeddings, ' +
-      'and persists everything in the knowledge graph.',
+      'and persists everything in the knowledge graph.\n\n' +
+      'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
+      'and obtain the file_id for subsequent calls.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -27,7 +29,7 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const result = await client.sources.uploadGitHub({ url: args['url'] as string });
+    const result = await client.sources.ingestGitHub({ url: args['url'] as string });
     return asTextContentResult(result);
   },
 };

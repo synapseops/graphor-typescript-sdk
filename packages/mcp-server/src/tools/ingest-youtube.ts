@@ -5,16 +5,18 @@ const tool: McpTool = {
   metadata: {
     resource: 'sources',
     operation: 'write',
-    tags: ['upload', 'youtube'],
+    tags: ['ingest', 'youtube'],
     httpMethod: 'post',
-    httpPath: '/sources/upload-youtube-source',
+    httpPath: '/sources/ingest-youtube',
   },
   tool: {
-    name: 'upload_youtube',
+    name: 'ingest_youtube',
     description:
-      'Ingest a YouTube video as a source into the knowledge graph. ' +
+      'Ingest a public YouTube video as a source into the knowledge graph. ' +
       'Downloads the transcript/captions, partitions the text, generates embeddings, ' +
-      'and persists everything in the knowledge graph.',
+      'and persists everything in the knowledge graph.\n\n' +
+      'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
+      'and obtain the file_id for subsequent calls.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -27,7 +29,7 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const result = await client.sources.uploadYoutube({ url: args['url'] as string });
+    const result = await client.sources.ingestYoutube({ url: args['url'] as string });
     return asTextContentResult(result);
   },
 };

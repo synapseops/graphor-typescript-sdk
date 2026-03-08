@@ -5,6 +5,7 @@ import { APIPromise } from '../core/api-promise';
 import { type Uploadable } from '../core/uploads';
 import { RequestOptions } from '../internal/request-options';
 import { multipartFormRequestOptions } from '../internal/uploads';
+import { path } from '../internal/utils/path';
 
 export class Sources extends APIResource {
   /**
@@ -15,12 +16,17 @@ export class Sources extends APIResource {
    * type, origin) along with its current processing status and a human-readable
    * status message.
    *
+   * **Query parameters:**
+   *
+   * - **file_ids** (list, optional): If provided, only sources whose file_id is in
+   *   this list are returned. Repeat the param for multiple IDs (e.g.
+   *   ?file_ids=id1&file_ids=id2).
+   *
    * **Status messages returned per source:**
    *
    * - `"completed"` → _"Source processed successfully"_
    * - `"processing"` → _"Source is being processed"_
    * - `"failed"` → _"Source processing failed"_
-   * - `"new"` → _"Source uploaded, awaiting processing"_
    *
    * **Returns** a JSON array of `PublicSourceResponse` objects.
    *
@@ -33,8 +39,11 @@ export class Sources extends APIResource {
    * const publicSources = await client.sources.list();
    * ```
    */
-  list(options?: RequestOptions): APIPromise<SourceListResponse> {
-    return this._client.get('/sources', options);
+  list(
+    query: SourceListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<SourceListResponse> {
+    return this._client.get('/sources', { query, ...options });
   }
 
   /**
@@ -170,89 +179,273 @@ export class Sources extends APIResource {
   }
 
   /**
-   * Retrieve the parsed elements (chunks/partitions) of a specific source with
-   * pagination.
+   * Return the status and optional parsed elements for an async build identified by
+   * `build_id`.
    *
-   * Returns the individual document partitions (text chunks) that were generated
-   * during ingestion for a given source. This is useful for inspecting how a file
-   * was segmented, reviewing chunk content, or building custom retrieval logic on
-   * top of the raw partitions.
+   * Use this endpoint to poll the result of an async ingestion or re-process
+   * request. The `build_id` is returned in the response of:
    *
-   * **Parameters (JSON body):**
+   * - `POST /v2/sources/upload` (async file upload)
+   * - `POST /v2/sources/upload-url-source` (async URL ingestion)
+   * - `POST /v2/sources/upload-github-source` (async GitHub ingestion)
+   * - `POST /v2/sources/upload-youtube-source` (async YouTube ingestion)
+   * - `POST /v2/sources/process` (async re-process)
    *
-   * - **file_id** (str, optional — preferred): The unique identifier of the source
-   *   whose elements to retrieve.
-   * - **file_name** (str, optional — deprecated): The display name of the source.
-   *   Use `file_id` when possible. At least one of `file_id` or `file_name` must be
-   *   provided.
-   * - **page** (int, optional): The 1-based page number for pagination.
-   * - **page_size** (int, optional): The number of elements per page. Both `page`
-   *   and `page_size` must be provided together to enable pagination.
-   * - **filter** (object, optional): An optional filter object with:
-   *   - `type` — filter by element type.
-   *   - `page_numbers` — restrict to specific source page numbers.
-   *   - `elementsToRemove` — list of element types to exclude.
+   * **Path parameter:**
    *
-   * **Returns** a `PaginatedResponse[Document]` containing:
+   * - **build_id** (str, required): The build identifier returned when the job was
+   *   scheduled.
    *
-   * - `items` — list of `Document` objects (LangChain format) with `page_content`
-   *   and `metadata`.
-   * - `total` — total number of matching elements.
-   * - `page`, `page_size`, `total_pages` — pagination metadata.
+   * **Query parameters:**
+   *
+   * - **suppress_elements** (bool, default `false`): When `true`, elements are
+   *   omitted from the response. When `false` (default), the response includes the
+   *   parsed elements (chunks/partitions) for the build if it completed
+   *   successfully. Same structure as `POST /sources/elements` (each element has
+   *   `page_content` and `metadata`). If `page` and `page_size` are not passed, all
+   *   elements are returned.
+   * - **suppress_img_base64** (bool, default `false`): When `true`, `img_base64` is
+   *   omitted from each element (useful to reduce payload size when images are not
+   *   needed).
+   * - **page** (int, optional): 1-based page number. Only used when
+   *   `suppress_elements=false` and pagination is used (pass either `page` or
+   *   `page_size` to enable pagination).
+   * - **page_size** (int, optional): Number of elements per page (max 100). Only
+   *   used when `suppress_elements=false` and pagination is used.
+   *
+   * **Response fields:**
+   *
+   * - **build_id**: The requested build identifier.
+   * - **status**: SourceNodeStatus value when history exists (e.g. Processed,
+   *   Processing, Processing failed). `not_found` when no history exists (build in
+   *   progress or invalid id).
+   * - **success**: `true` only when `status == "Completed"`
+   *   (SourceNodeStatus.COMPLETED).
+   * - **file_id**, **file_name**: Source identifiers; present when the build has
+   *   been persisted (history exists).
+   * - **error**: Error message from the pipeline when the build failed.
+   * - **method**, **total_partitions**, **total_pages**: Build metadata when history
+   *   exists.
+   * - **created_at**, **updated_at**: ISO8601 timestamps when history exists.
+   * - **message**: Human-readable message (e.g. when status is `not_found`).
+   * - **elements**: List of `{ page_content, metadata }` when
+   *   `suppress_elements=false` and the build completed successfully.
+   * - **total_elements**, **page**, **page_size**, **total_pages_elements**:
+   *   Pagination metadata for `elements` when `suppress_elements=false`.
    *
    * **Error responses:**
    *
-   * - `400` — Invalid input (e.g. neither identifier provided).
-   * - `404` — Source file not found.
    * - `500` — Unexpected internal error.
    *
    * @example
    * ```ts
-   * const response = await client.sources.loadElements();
+   * const response = await client.sources.getBuildStatus(
+   *   'build_id',
+   * );
    * ```
    */
-  loadElements(
-    body: SourceLoadElementsParams,
+  getBuildStatus(
+    buildID: string,
+    query: SourceGetBuildStatusParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<SourceLoadElementsResponse> {
-    return this._client.post('/sources/elements', { body, ...options });
+  ): APIPromise<SourceGetBuildStatusResponse> {
+    return this._client.get(path`/sources/builds/${buildID}`, { query, ...options });
   }
 
   /**
-   * Re-process (re-parse) an existing source that has already been uploaded.
+   * Retrieve the parsed elements (chunks/partitions) of a source in the same format
+   * as get_build_status.
    *
-   * Use this endpoint to re-run the data-ingestion pipeline on a source that is
-   * already present in the knowledge graph — for example, after changing the
-   * partitioning strategy. The endpoint locates the source node, sets its status to
-   * `PROCESSING`, applies the requested partition method, and executes the full
-   * ingestion pipeline synchronously (partitioning, chunking, embedding, and graph
-   * persistence).
+   * Returns elements with explicit fields: element_id, element_type, text, markdown,
+   * html, img_base64 (optional), position, page_number, bounding_box, page_layout,
+   * etc.
    *
-   * **Parameters (JSON body):**
+   * **Query parameters:**
    *
-   * - **file_id** (str, optional — preferred): The unique identifier of the source
-   *   to re-process.
-   * - **file_name** (str, optional — deprecated): The display name of the source.
-   *   Use `file_id` instead when possible. At least one of `file_id` or `file_name`
-   *   must be provided.
-   * - **partition_method** (str, default `"basic"`): The partitioning strategy to
-   *   apply. One of: `basic` (Fast), `hi_res` (Balanced), `hi_res_ft` (Accurate),
-   *   `mai` (VLM), `graphorlm` (Agentic).
+   * - **file_id** (str, required): Unique identifier of the source.
+   * - **page** (int, optional): 1-based page number. Use with page_size to enable
+   *   pagination.
+   * - **page_size** (int, optional): Number of elements per page (max 100).
+   * - **suppress_img_base64** (bool, default false): When true, img_base64 is
+   *   omitted from each element.
+   * - **type** (str, optional): Filter by element type (e.g. NarrativeText, Title,
+   *   Table).
+   * - **page_numbers** (list, optional): Restrict to specific page numbers (repeat
+   *   param for multiple).
+   * - **elementsToRemove** (list, optional): Element types to exclude (repeat param
+   *   for multiple).
    *
-   * **Returns** a `PublicSourceResponse` with the updated source metadata.
-   *
-   * **Error responses:**
-   *
-   * - `404` — Source node not found for the given identifier.
-   * - `500` — Processing or unexpected internal error.
+   * **Returns** Paginated response with items as BuildStatusElement list (same shape
+   * as GET /builds/{build_id} elements).
    *
    * @example
    * ```ts
-   * const publicSource = await client.sources.parse();
+   * const response = await client.sources.getElements({
+   *   file_id: 'file_id',
+   * });
    * ```
    */
-  parse(body: SourceParseParams, options?: RequestOptions): APIPromise<PublicSource> {
-    return this._client.post('/sources/process', { body, ...options });
+  getElements(
+    query: SourceGetElementsParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceGetElementsResponse> {
+    return this._client.get('/sources/get-elements', { query, ...options });
+  }
+
+  /**
+   * Upload a local file and schedule ingestion in the background.
+   *
+   * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
+   * extension, stores the file, then schedules the full data-ingestion pipeline in
+   * the background. Returns immediately with a `build_id` to poll for status.
+   *
+   * **Parameters:**
+   *
+   * - **file** (`multipart/form-data`): The file to upload. Must include
+   *   `Content-Length` and have a supported extension (pdf, doc, docx, csv, txt, md,
+   *   etc.).
+   * - **method** (`form`, optional): Partitioning strategy. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`. Default when omitted.
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing
+   * status.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestFile({
+   *   file: fs.createReadStream('path/to/file'),
+   * });
+   * ```
+   */
+  ingestFile(body: SourceIngestFileParams, options?: RequestOptions): APIPromise<SourceIngestFileResponse> {
+    return this._client.post(
+      '/sources/ingest-file',
+      multipartFormRequestOptions({ body, ...options }, this._client),
+    );
+  }
+
+  /**
+   * Ingest a GitHub repository as a source into the project's knowledge graph.
+   *
+   * Schedules the ingestion in the background and returns immediately with a
+   * `build_id`. Use the returned `build_id` to poll for processing status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The GitHub repository URL to ingest (e.g.
+   *   `https://github.com/owner/repo`).
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestGitHub({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestGitHub(
+    body: SourceIngestGitHubParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceIngestGitHubResponse> {
+    return this._client.post('/sources/ingest-github', { body, ...options });
+  }
+
+  /**
+   * Ingest a web page (or a set of crawled pages) as a source into the project's
+   * knowledge graph.
+   *
+   * Unlike the synchronous version, this endpoint schedules the ingestion in the
+   * background and returns immediately with a `processing` status. The source will
+   * be fully available once background processing completes.
+   *
+   * If the URL points directly to a downloadable file (detected via URL path
+   * extension or HTTP Content-Type), the file is first downloaded and uploaded to
+   * storage synchronously, then the partition/embedding pipeline runs in the
+   * background.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The web page URL to ingest.
+   * - **crawlUrls** (bool, optional, default `false`): When `true`, the system will
+   *   also follow and ingest links found on the page. Ignored when the URL resolves
+   *   to a file.
+   * - **method** (str, optional): The partitioning strategy to use. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`. When omitted the system default is
+   *   applied.
+   *
+   * **Returns** a `PublicSourceResponse` with `status: "processing"` immediately.
+   * Poll the source status endpoint using the returned `file_id` to track
+   * completion.
+   *
+   * **Error responses:**
+   *
+   * - `400` — Unsupported file type detected from a file URL.
+   * - `500` — Unexpected internal error during URL processing.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestURL({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestURL(body: SourceIngestURLParams, options?: RequestOptions): APIPromise<SourceIngestURLResponse> {
+    return this._client.post('/sources/ingest-url', { body, ...options });
+  }
+
+  /**
+   * Ingest a YouTube video as a source into the project's knowledge graph.
+   *
+   * Schedules the ingestion in the background and returns immediately with a
+   * `build_id`. The endpoint will download the transcript/captions and process them
+   * in the background. Use the returned `build_id` to poll for processing status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The YouTube video URL to ingest (e.g.
+   *   `https://www.youtube.com/watch?v=...`).
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestYoutube({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestYoutube(
+    body: SourceIngestYoutubeParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceIngestYoutubeResponse> {
+    return this._client.post('/sources/ingest-youtube', { body, ...options });
+  }
+
+  /**
+   * Re-process (re-parse) an existing source in the background.
+   *
+   * Schedules the data-ingestion pipeline (partitioning, chunking, embedding) for an
+   * existing source and returns immediately with a `build_id`. Use it to poll for
+   * status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **file_id** (str, required): Unique identifier of the source to re-process.
+   * - **method** (str, default `"fast"`): Partitioning strategy. One of: `fast`,
+   *   `balanced`, `accurate`, `vlm`, `agentic`.
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.reprocess({
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  reprocess(body: SourceReprocessParams, options?: RequestOptions): APIPromise<SourceReprocessResponse> {
+    return this._client.post('/sources/reprocess', { body, ...options });
   }
 
   /**
@@ -297,242 +490,123 @@ export class Sources extends APIResource {
   ): APIPromise<SourceRetrieveChunksResponse> {
     return this._client.post('/sources/prebuilt-rag', { body, ...options });
   }
-
-  /**
-   * Upload a local file and ingest it as a source into the project's knowledge
-   * graph.
-   *
-   * This endpoint accepts a **`multipart/form-data`** request containing the file to
-   * upload. It validates the file size (max 100 MB) and extension against the list
-   * of allowed types, stores the file, and then runs the full data-ingestion
-   * pipeline synchronously — including partitioning, chunking, embedding, and graph
-   * persistence.
-   *
-   * **Usage via SDK (AI agent / MCP context):**
-   *
-   * The SDK executes code in a **remote sandboxed container** that does **not** have
-   * access to the local filesystem. Because of this, `fs.createReadStream()` with a
-   * local file path will **not work** — the file does not exist inside the
-   * container.
-   *
-   * For **text-based files** (md, txt, csv, html, etc.), you can read the file
-   * content with a local tool (e.g. IDE file-read) and create a `File` object in
-   * memory:
-   *
-   * ```
-   * const content = `...file contents read locally...`;
-   * const file = new File([content], "my-document.md", { type: "text/markdown" });
-   * const result = await client.sources.upload({ file });
-   * ```
-   *
-   * For **binary files** (pdf, docx, images, video, audio, etc.), the in-memory
-   * approach is impractical. Instead, use **`curl`** or **`subprocess`** to call the
-   * upload endpoint directly from the local machine, where the file is accessible:
-   *
-   * ```
-   * import { execSync } from "child_process";
-   *
-   * const result = execSync(`
-   *   curl -s -X POST "{base_url}/source/upload" \
-   *     -H "Authorization: Bearer {access_key}" \
-   *     -F "file=@/local/path/to/document.pdf" \
-   *     -F "partition_method=graphorlm"
-   * `).toString();
-   * ```
-   *
-   * Or with Python `subprocess`:
-   *
-   * ```
-   * import subprocess, json
-   *
-   * result = subprocess.run([
-   *     "curl", "-s", "-X", "POST", "{base_url}/source/upload",
-   *     "-H", "Authorization: Bearer {access_key}",
-   *     "-F", "file=@/local/path/to/document.pdf",
-   *     "-F", "partition_method=graphorlm",
-   * ], capture_output=True, text=True)
-   * response = json.loads(result.stdout)
-   * ```
-   *
-   * **Important:** Do NOT use `fs.createReadStream("/local/path")` inside the SDK
-   * code — it will fail because the execution environment cannot access local paths.
-   * Always prefer `curl`/`requests` executed locally for binary uploads.
-   *
-   * **Usage via curl:**
-   *
-   * ```
-   * curl -X POST "{base_url}/source/upload" \
-   *   -H "Authorization: Bearer {access_key}" \
-   *   -F "file=@/path/to/document.pdf" \
-   *   -F "partition_method=graphorlm"
-   * ```
-   *
-   * **Usage via Python `requests`:**
-   *
-   * ```
-   * import requests
-   *
-   * with open("document.pdf", "rb") as f:
-   *     response = requests.post(
-   *         "{base_url}/source/upload",
-   *         headers={"Authorization": "Bearer {access_key}"},
-   *         files={"file": ("document.pdf", f, "application/pdf")},
-   *         data={"partition_method": "graphorlm"},  # optional
-   *     )
-   * ```
-   *
-   * **Parameters:**
-   *
-   * - **file** (`multipart/form-data`): The file to upload. Must include a
-   *   `Content-Length` header and have one of the supported extensions: pdf, doc,
-   *   docx, odt, ppt, pptx, csv, tsv, xls, xlsx, txt, text, md, html, htm, png, jpg,
-   *   jpeg, tiff, bmp, heic, mp4, mov, avi, mkv, webm, mp3, wav, m4a, ogg, flac.
-   * - **partition_method** (`form`, optional): The partitioning strategy to apply.
-   *   One of: `basic` (Fast), `hi_res` (Balanced), `hi_res_ft` (Accurate), `mai`
-   *   (VLM), `graphorlm` (Agentic). When omitted, the system default is used.
-   *
-   * **Returns** a `PublicSourceResponse` with the resulting source metadata (file
-   * ID, name, size, type, source origin, partition method, and processing status).
-   *
-   * **Error responses:**
-   *
-   * - `400` — Unsupported file type or missing file name.
-   * - `411` — Missing `Content-Length` header (file size cannot be determined).
-   * - `413` — File exceeds the 100 MB size limit.
-   * - `403` — Permission denied.
-   * - `404` — File not found during processing.
-   * - `500` — Unexpected internal error.
-   *
-   * @example
-   * ```ts
-   * const publicSource = await client.sources.upload({
-   *   file: fs.createReadStream('path/to/file'),
-   * });
-   * ```
-   */
-  upload(body: SourceUploadParams, options?: RequestOptions): APIPromise<PublicSource> {
-    return this._client.post(
-      '/sources/upload',
-      multipartFormRequestOptions({ body, ...options }, this._client),
-    );
-  }
-
-  /**
-   * Ingest a GitHub repository as a source into the project's knowledge graph.
-   *
-   * The endpoint clones or fetches the repository at the given URL, extracts its
-   * text-based files, partitions them using the system default method, generates
-   * embeddings, and persists everything in the knowledge graph synchronously.
-   *
-   * **Parameters (JSON body):**
-   *
-   * - **url** (str, required): The GitHub repository URL to ingest (e.g.
-   *   `https://github.com/owner/repo`).
-   *
-   * **Returns** a `PublicSourceResponse` with the resulting source metadata (file
-   * ID, name, size, type, source origin, partition method, and processing status).
-   *
-   * **Error responses:**
-   *
-   * - `500` — Unexpected internal error during GitHub source processing.
-   *
-   * @example
-   * ```ts
-   * const publicSource = await client.sources.uploadGitHub({
-   *   url: 'url',
-   * });
-   * ```
-   */
-  uploadGitHub(body: SourceUploadGitHubParams, options?: RequestOptions): APIPromise<PublicSource> {
-    return this._client.post('/sources/upload-github-source', { body, ...options });
-  }
-
-  /**
-   * Ingest a web page (or a set of crawled pages) as a source into the project's
-   * knowledge graph.
-   *
-   * The endpoint fetches the content at the given URL, optionally crawls linked
-   * pages (when `crawlUrls` is `true`), partitions the resulting HTML/text,
-   * generates embeddings, and persists everything in the knowledge graph
-   * synchronously.
-   *
-   * If the URL points directly to a downloadable file (detected via URL path
-   * extension or HTTP Content-Type), the file is downloaded, uploaded to storage,
-   * and processed through the local file ingestion pipeline instead of the web-page
-   * pipeline.
-   *
-   * **Parameters (JSON body):**
-   *
-   * - **url** (str, required): The web page URL to ingest.
-   * - **crawlUrls** (bool, optional, default `false`): When `true`, the system will
-   *   also follow and ingest links found on the page. Ignored when the URL resolves
-   *   to a file.
-   * - **partition_method** (str, optional): The partitioning strategy to use. One
-   *   of: `basic` (Fast), `hi_res` (Balanced), `hi_res_ft` (Accurate), `mai` (VLM),
-   *   `graphorlm` (Agentic). When omitted the system default is applied.
-   *
-   * **Returns** a `PublicSourceResponse` with the resulting source metadata (file
-   * ID, name, size, type, source origin, partition method, and processing status).
-   *
-   * **Error responses:**
-   *
-   * - `400` — Unsupported file type detected from a file URL.
-   * - `500` — Unexpected internal error during URL processing.
-   *
-   * @example
-   * ```ts
-   * const publicSource = await client.sources.uploadURL({
-   *   url: 'url',
-   * });
-   * ```
-   */
-  uploadURL(body: SourceUploadURLParams, options?: RequestOptions): APIPromise<PublicSource> {
-    return this._client.post('/sources/upload-url-source', { body, ...options });
-  }
-
-  /**
-   * Ingest a YouTube video as a source into the project's knowledge graph.
-   *
-   * The endpoint downloads the transcript/captions of the given YouTube video,
-   * partitions the text using the system default method, generates embeddings, and
-   * persists everything in the knowledge graph synchronously.
-   *
-   * **Parameters (JSON body):**
-   *
-   * - **url** (str, required): The YouTube video URL to ingest (e.g.
-   *   `https://www.youtube.com/watch?v=...`).
-   *
-   * **Returns** a `PublicSourceResponse` with the resulting source metadata (file
-   * ID, name, size, type, source origin, partition method, and processing status).
-   *
-   * **Error responses:**
-   *
-   * - `500` — Unexpected internal error during YouTube source processing.
-   *
-   * @example
-   * ```ts
-   * const publicSource = await client.sources.uploadYoutube({
-   *   url: 'url',
-   * });
-   * ```
-   */
-  uploadYoutube(body: SourceUploadYoutubeParams, options?: RequestOptions): APIPromise<PublicSource> {
-    return this._client.post('/sources/upload-youtube-source', { body, ...options });
-  }
 }
 
 /**
- * Partition methods available for public API endpoints.
- *
- * Each value also has a human-readable alias:
- *
- * - `basic` → **Fast**
- * - `hi_res` → **Balanced**
- * - `hi_res_ft` → **Accurate**
- * - `mai` → **VLM**
- * - `graphorlm` → **Agentic**
+ * A single parsed element (chunk/partition) from a source, with explicit fields.
  */
-export type PublicPartitionMethod = 'basic' | 'hi_res' | 'hi_res_ft' | 'mai' | 'graphorlm';
+export interface Element {
+  /**
+   * Bounding box (e.g. left, top, width, height) when available.
+   */
+  bounding_box?: { [key: string]: unknown } | null;
+
+  /**
+   * Unique identifier for the element.
+   */
+  element_id?: string | null;
+
+  /**
+   * Type of the element (Title, NarrativeText, Image, Table, etc.).
+   */
+  element_type?:
+    | 'Title'
+    | 'NarrativeText'
+    | 'TextBlock'
+    | 'ListItem'
+    | 'Table'
+    | 'TableRow'
+    | 'Image'
+    | 'Footer'
+    | 'Formula'
+    | 'CompositeElement'
+    | 'FigureCaption'
+    | 'PageBreak'
+    | 'Address'
+    | 'EmailAddress'
+    | 'PageNumber'
+    | 'CodeSnippet'
+    | 'Header'
+    | 'FormKeysValues'
+    | 'Link'
+    | 'UncategorizedText'
+    | 'Abstract'
+    | 'AsideText'
+    | 'Reference'
+    | 'ReferenceContent'
+    | 'Chart'
+    | 'Seal'
+    | 'FormulaNumber'
+    | null;
+
+  /**
+   * HTML representation of the content, when available.
+   */
+  html?: string | null;
+
+  /**
+   * Base64-encoded image data, when the element is an image.
+   */
+  img_base64?: string | null;
+
+  /**
+   * Markdown representation of the content, when available.
+   */
+  markdown?: string | null;
+
+  /**
+   * Additional metadata.
+   */
+  metadata?: { [key: string]: unknown };
+
+  /**
+   * Annotation/summary for the page containing this element.
+   */
+  page_annotation?: string | null;
+
+  /**
+   * Keywords extracted for the page.
+   */
+  page_keywords?: Array<string> | null;
+
+  /**
+   * Page dimensions (width, height) when available.
+   */
+  page_layout?: { [key: string]: unknown } | null;
+
+  /**
+   * Page number (1-based) where the element appears.
+   */
+  page_number?: number | null;
+
+  /**
+   * Topics extracted for the page.
+   */
+  page_topics?: Array<string> | null;
+
+  /**
+   * Order/position of the element within the document.
+   */
+  position?: number | null;
+
+  /**
+   * Plain text content of the element.
+   */
+  text?: string;
+}
+
+/**
+ * Public-facing partition method names for API v2.
+ *
+ * Maps to internal PartitionMethod as:
+ *
+ * - fast → basic
+ * - balanced → hi_res
+ * - accurate → hi_res_ft
+ * - vlm → mai
+ * - agentic → graphorlm
+ */
+export type Method = 'fast' | 'balanced' | 'accurate' | 'vlm' | 'agentic';
 
 export interface PublicSource {
   /**
@@ -582,19 +656,10 @@ export interface PublicSource {
   file_id?: string | null;
 
   /**
-   * Partitioning strategy used during ingestion. Available methods: basic (Fast),
-   * hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
+   * Partitioning strategy used during ingestion. V1 API: basic, hi_res, hi_res_ft,
+   * mai, graphorlm. V2 API: fast, balanced, accurate, vlm, agentic.
    */
-  partition_method?:
-    | 'basic'
-    | 'hi_res'
-    | 'hi_res_ft'
-    | 'mai'
-    | 'graphorlm'
-    | 'ocr'
-    | 'advanced'
-    | 'yolox'
-    | null;
+  method?: string | null;
 }
 
 export type SourceListResponse = Array<PublicSource>;
@@ -679,11 +744,121 @@ export interface SourceExtractResponse {
   structured_output?: { [key: string]: unknown } | null;
 }
 
-export interface SourceLoadElementsResponse {
+/**
+ * Status and optional result for an async build (ingestion/re-process) identified
+ * by build_id.
+ *
+ * Returned by GET /v2/sources/builds/{build_id}. When the build has completed
+ * successfully, includes file_id, file_name, and optionally paginated elements
+ * (parsed chunks).
+ */
+export interface SourceGetBuildStatusResponse {
+  /**
+   * The build identifier returned when the ingestion was scheduled.
+   */
+  build_id: string;
+
+  /**
+   * Current build status. When a build history exists, this is a SourceNodeStatus
+   * value (e.g. Completed, Processing, Processing failed). When no history exists
+   * yet: not_found.
+   */
+  status: string;
+
+  /**
+   * True if the build completed successfully (status is Completed).
+   */
+  success: boolean;
+
+  /**
+   * ISO8601 timestamp when the build (history) was created. Present when history
+   * exists.
+   */
+  created_at?: string | null;
+
+  /**
+   * Paginated list of parsed elements (chunks) for this build. Only present when
+   * suppress_elements=false and the build has completed (status Completed).
+   */
+  elements?: Array<Element> | null;
+
+  /**
+   * Error message from the pipeline, if the build failed (e.g. processing_failed).
+   */
+  error?: string | null;
+
+  /**
+   * Source file identifier. Present when the build has been persisted (history
+   * exists).
+   */
+  file_id?: string | null;
+
+  /**
+   * Display name of the source file. Present when the build has been persisted.
+   */
+  file_name?: string | null;
+
+  /**
+   * Human-readable message (e.g. when status is not_found or processing).
+   */
+  message?: string | null;
+
+  /**
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
+   */
+  method?: Method | null;
+
+  /**
+   * Current page of elements (1-based). Null when no pagination was requested (all
+   * elements returned).
+   */
+  page?: number | null;
+
+  /**
+   * Number of elements per page. Null when no pagination was requested.
+   */
+  page_size?: number | null;
+
+  /**
+   * Total number of elements for this build. Present when suppress_elements=false.
+   */
+  total_elements?: number | null;
+
+  /**
+   * Total pages in the source for this build. Present when history exists.
+   */
+  total_pages?: number | null;
+
+  /**
+   * Total number of pages of elements. Null when no pagination was requested.
+   */
+  total_pages_elements?: number | null;
+
+  /**
+   * Total number of partitions created in this build. Present when history exists.
+   */
+  total_partitions?: number | null;
+
+  /**
+   * ISO8601 timestamp when the build (history) was last updated. Present when
+   * history exists.
+   */
+  updated_at?: string | null;
+}
+
+export interface SourceGetElementsResponse {
   /**
    * List of items in the current page
    */
-  items: Array<SourceLoadElementsResponse.Item>;
+  items: Array<Element>;
 
   /**
    * Total number of items
@@ -706,30 +881,89 @@ export interface SourceLoadElementsResponse {
   total_pages?: number | null;
 }
 
-export namespace SourceLoadElementsResponse {
+export interface SourceIngestFileResponse {
   /**
-   * Class for storing a piece of text and associated metadata.
-   *
-   * Example:
-   *
-   *     .. code-block:: python
-   *
-   *         from langchain_core.documents import Document
-   *
-   *         document = Document(
-   *             page_content="Hello, world!",
-   *             metadata={"source": "https://example.com"}
-   *         )
+   * The ID of the build. This ID can be used to check the status of the request.
    */
-  export interface Item {
-    page_content: string;
+  build_id: string;
 
-    id?: string | null;
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
 
-    metadata?: { [key: string]: unknown };
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
 
-    type?: 'Document';
-  }
+export interface SourceIngestGitHubResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceIngestURLResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceIngestYoutubeResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceReprocessResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
 }
 
 export interface SourceRetrieveChunksResponse {
@@ -781,6 +1015,14 @@ export namespace SourceRetrieveChunksResponse {
      */
     score?: number | null;
   }
+}
+
+export interface SourceListParams {
+  /**
+   * Optional list of file_id to filter by (only these sources are returned). Repeat
+   * the param for multiple IDs.
+   */
+  file_ids?: Array<string> | null;
 }
 
 export interface SourceDeleteParams {
@@ -865,71 +1107,120 @@ export interface SourceExtractParams {
   thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
-export interface SourceLoadElementsParams {
+export interface SourceGetBuildStatusParams {
+  page?: number | null;
+
+  page_size?: number | null;
+
+  suppress_elements?: boolean;
+
+  suppress_img_base64?: boolean;
+}
+
+export interface SourceGetElementsParams {
   /**
-   * Unique identifier for the source (preferred)
+   * Unique identifier of the source
    */
-  file_id?: string | null;
+  file_id: string;
 
   /**
-   * The name of the file (deprecated, use file_id)
+   * Element types to exclude
    */
-  file_name?: string | null;
+  elementsToRemove?: Array<string> | null;
 
   /**
-   * Optional filter to narrow down the returned elements
-   */
-  filter?: SourceLoadElementsParams.Filter | null;
-
-  /**
-   * Current page number
+   * 1-based page number (use with page_size)
    */
   page?: number | null;
 
   /**
-   * Number of items per page
+   * Restrict to specific page numbers
+   */
+  page_numbers?: Array<number> | null;
+
+  /**
+   * Number of elements per page
    */
   page_size?: number | null;
+
+  /**
+   * When true, img_base64 is omitted from each element
+   */
+  suppress_img_base64?: boolean;
+
+  /**
+   * Filter by element type (e.g. NarrativeText, Title)
+   */
+  type?: string | null;
 }
 
-export namespace SourceLoadElementsParams {
+export interface SourceIngestFileParams {
+  file: Uploadable;
+
   /**
-   * Optional filter to narrow down the returned elements
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
    */
-  export interface Filter {
-    /**
-     * List of element types to exclude from the results
-     */
-    elementsToRemove?: Array<string> | null;
-
-    /**
-     * Restrict results to specific page numbers from the original document
-     */
-    page_numbers?: Array<number> | null;
-
-    /**
-     * Filter by element type (e.g. NarrativeText, Title, Table)
-     */
-    type?: string | null;
-  }
+  method?: Method | null;
 }
 
-export interface SourceParseParams {
+export interface SourceIngestGitHubParams {
   /**
-   * Unique identifier for the source (preferred)
+   * The GitHub repository URL to ingest (e.g. https://github.com/owner/repo)
    */
-  file_id?: string | null;
+  url: string;
+}
+
+export interface SourceIngestURLParams {
+  /**
+   * The web page URL to ingest
+   */
+  url: string;
 
   /**
-   * The name of the file (deprecated, use file_id)
+   * When true, also follows and ingests links found on the page
    */
-  file_name?: string | null;
+  crawlUrls?: boolean;
 
   /**
-   * The partitioning strategy to apply. Available methods: basic (Fast), hi_res
-   * (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
    */
-  partition_method?: PublicPartitionMethod;
+  method?: Method | null;
+}
+
+export interface SourceIngestYoutubeParams {
+  /**
+   * The YouTube video URL to ingest (e.g.
+   * https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+   */
+  url: string;
+}
+
+export interface SourceReprocessParams {
+  /**
+   * Unique identifier of the source to re-process.
+   */
+  file_id: string;
+
+  /**
+   * Partitioning strategy. One of: fast, balanced, accurate, vlm, agentic.
+   */
+  method?: Method;
 }
 
 export interface SourceRetrieveChunksParams {
@@ -950,82 +1241,34 @@ export interface SourceRetrieveChunksParams {
   file_names?: Array<string> | null;
 }
 
-export interface SourceUploadParams {
-  file: Uploadable;
-
-  /**
-   * Partition methods available for public API endpoints.
-   *
-   * Each value also has a human-readable alias:
-   *
-   * - `basic` → **Fast**
-   * - `hi_res` → **Balanced**
-   * - `hi_res_ft` → **Accurate**
-   * - `mai` → **VLM**
-   * - `graphorlm` → **Agentic**
-   */
-  partition_method?: PublicPartitionMethod | null;
-}
-
-export interface SourceUploadGitHubParams {
-  /**
-   * The GitHub repository URL to ingest (e.g. https://github.com/owner/repo)
-   */
-  url: string;
-}
-
-export interface SourceUploadURLParams {
-  /**
-   * The web page URL to ingest
-   */
-  url: string;
-
-  /**
-   * When true, also follows and ingests links found on the page
-   */
-  crawlUrls?: boolean;
-
-  /**
-   * Partition methods available for public API endpoints.
-   *
-   * Each value also has a human-readable alias:
-   *
-   * - `basic` → **Fast**
-   * - `hi_res` → **Balanced**
-   * - `hi_res_ft` → **Accurate**
-   * - `mai` → **VLM**
-   * - `graphorlm` → **Agentic**
-   */
-  partition_method?: PublicPartitionMethod | null;
-}
-
-export interface SourceUploadYoutubeParams {
-  /**
-   * The YouTube video URL to ingest (e.g.
-   * https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-   */
-  url: string;
-}
-
 export declare namespace Sources {
   export {
-    type PublicPartitionMethod as PublicPartitionMethod,
+    type Element as Element,
+    type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
-    type SourceLoadElementsResponse as SourceLoadElementsResponse,
+    type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
+    type SourceGetElementsResponse as SourceGetElementsResponse,
+    type SourceIngestFileResponse as SourceIngestFileResponse,
+    type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
+    type SourceIngestURLResponse as SourceIngestURLResponse,
+    type SourceIngestYoutubeResponse as SourceIngestYoutubeResponse,
+    type SourceReprocessResponse as SourceReprocessResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
+    type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
-    type SourceLoadElementsParams as SourceLoadElementsParams,
-    type SourceParseParams as SourceParseParams,
+    type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
+    type SourceGetElementsParams as SourceGetElementsParams,
+    type SourceIngestFileParams as SourceIngestFileParams,
+    type SourceIngestGitHubParams as SourceIngestGitHubParams,
+    type SourceIngestURLParams as SourceIngestURLParams,
+    type SourceIngestYoutubeParams as SourceIngestYoutubeParams,
+    type SourceReprocessParams as SourceReprocessParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
-    type SourceUploadParams as SourceUploadParams,
-    type SourceUploadGitHubParams as SourceUploadGitHubParams,
-    type SourceUploadURLParams as SourceUploadURLParams,
-    type SourceUploadYoutubeParams as SourceUploadYoutubeParams,
   };
 }

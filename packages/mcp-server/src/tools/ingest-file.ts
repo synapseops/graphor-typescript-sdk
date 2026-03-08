@@ -28,14 +28,16 @@ const tool: McpTool = {
   metadata: {
     resource: 'sources',
     operation: 'write',
-    tags: ['upload', 'file'],
+    tags: ['ingest', 'file'],
     httpMethod: 'post',
-    httpPath: '/sources/upload',
+    httpPath: '/sources/ingest-file',
   },
   tool: {
-    name: 'upload_file',
+    name: 'ingest_file',
     description:
-      'Upload a local file and ingest it as a source into the knowledge graph. ' +
+      'Upload a local file and schedule ingestion in the background. ' +
+      'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
+      'and obtain the file_id for subsequent calls.\n\n' +
       'Supports two modes:\n' +
       '1. **file_path** — provide an absolute path to a file on the local filesystem (works in local/stdio MCP).\n' +
       '2. **file_content** + **file_name** — provide the file content as a string and a file name ' +
@@ -44,10 +46,10 @@ const tool: McpTool = {
       '**Fallback for binary files when file_path is not available** (e.g. remote MCP on Cloudflare):\n' +
       'If the MCP client has shell/terminal access, you can upload binary files directly via curl:\n' +
       '```\n' +
-      'curl -s -X POST "{base_url}/source/upload" \\\n' +
+      'curl -s -X POST "{base_url}/sources/ingest-file" \\\n' +
       '  -H "Authorization: Bearer {api_key}" \\\n' +
       '  -F "file=@/path/to/document.pdf" \\\n' +
-      '  -F "partition_method=graphorlm"\n' +
+      '  -F "method=balanced"\n' +
       '```\n' +
       'Use the GRAPHOR_BASE_URL and GRAPHOR_API_KEY environment variables for the base_url and api_key values.\n\n' +
       'Supported file types: pdf, doc, docx, odt, ppt, pptx, csv, tsv, xls, xlsx, txt, text, ' +
@@ -69,16 +71,16 @@ const tool: McpTool = {
           description:
             'The file name including extension (e.g. "report.md"). Required when using file_content.',
         },
-        partition_method: {
+        method: {
           type: 'string',
-          enum: ['basic', 'hi_res', 'hi_res_ft', 'mai', 'graphorlm'],
+          enum: ['fast', 'balanced', 'accurate', 'vlm', 'agentic'],
           description:
             'The partitioning strategy to apply. When omitted, the system default is used.\n' +
-            '- "basic" (Fast) — Fastest, rule-based partitioning with minimal overhead.\n' +
-            '- "hi_res" (Balanced) — Balanced speed and accuracy using layout-aware parsing.\n' +
-            '- "hi_res_ft" (Accurate) — High-accuracy parsing with fine-tuned models.\n' +
-            '- "mai" (VLM) — Vision-language model for complex visual documents.\n' +
-            '- "graphorlm" (Agentic) — Agentic pipeline with the highest accuracy.',
+            '- "fast" — Fastest, rule-based partitioning with minimal overhead.\n' +
+            '- "balanced" — Balanced speed and accuracy using layout-aware parsing.\n' +
+            '- "accurate" — High-accuracy parsing with fine-tuned models.\n' +
+            '- "vlm" — Vision-language model for complex visual documents.\n' +
+            '- "agentic" — Agentic pipeline with the highest accuracy.',
         },
       },
     },
@@ -87,12 +89,11 @@ const tool: McpTool = {
     const filePath = args['file_path'] as string | undefined;
     const fileContent = args['file_content'] as string | undefined;
     const fileName = args['file_name'] as string | undefined;
-    const partitionMethod = args['partition_method'] as Graphor.PublicPartitionMethod | undefined;
+    const method = args['method'] as Graphor.Method | undefined;
 
     let uploadFile: any;
 
     if (filePath) {
-      // Mode 1: Upload from local file path
       const fileInfo = await tryReadFileFromPath(filePath);
       if (!fileInfo) {
         return asErrorResult(
@@ -102,7 +103,6 @@ const tool: McpTool = {
       }
       uploadFile = fileInfo.stream;
     } else if (fileContent != null && fileName) {
-      // Mode 2: Upload from in-memory content
       uploadFile = new File([fileContent], fileName);
     } else {
       return asErrorResult(
@@ -110,14 +110,12 @@ const tool: McpTool = {
       );
     }
 
-    const params: Graphor.SourceUploadParams = {
-      file: uploadFile,
-    };
-    if (partitionMethod != null) {
-      params.partition_method = partitionMethod;
+    const params: Graphor.SourceIngestFileParams = { file: uploadFile };
+    if (method != null) {
+      params.method = method;
     }
 
-    const result = await client.sources.upload(params);
+    const result = await client.sources.ingestFile(params);
     return asTextContentResult(result);
   },
 };

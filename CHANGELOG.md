@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.14.0 (2026-03-08)
+
+Full Changelog: [v0.13.0...v0.14.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.13.0...v0.14.0)
+
+### Features
+
+* **api:** api update ([79530bb](https://github.com/synapseops/graphor-typescript-sdk/commit/79530bb7d40167582d8223efcf74543e19b46d9b))
+* **api:** api update ([bdb16b8](https://github.com/synapseops/graphor-typescript-sdk/commit/bdb16b89b4fccd7a662443b4725196f9f1042ba3))
+* **api:** manual updates ([1a97076](https://github.com/synapseops/graphor-typescript-sdk/commit/1a97076dc1938e61b1979b0f6c14c39b3655bcde))
+* **api:** manual updates ([5ff7a35](https://github.com/synapseops/graphor-typescript-sdk/commit/5ff7a35f23cf186029622dc9d1f40342592a7972))
+* **api:** manual updates ([7a889c7](https://github.com/synapseops/graphor-typescript-sdk/commit/7a889c7c7d616b87328ddbe8f5a4d51022666f1e))
+* **api:** manual updates ([f5f2308](https://github.com/synapseops/graphor-typescript-sdk/commit/f5f2308b82e8be4e29c7490eb835505419b3c618))
+* **mcp:** add an option to disable code tool ([e94c0ff](https://github.com/synapseops/graphor-typescript-sdk/commit/e94c0ff15bcddf04d9ed695b0d8e252be17848d6))
+
+
+### Bug Fixes
+
+* **client:** preserve URL params already embedded in path ([f15a979](https://github.com/synapseops/graphor-typescript-sdk/commit/f15a979aa41e9df7732389ac958e2c80c45a21fc))
+* **mcp:** update prompt ([820c100](https://github.com/synapseops/graphor-typescript-sdk/commit/820c1009a2be558ebc6ea72f1ae5c1f4e2b2b1b5))
+
+
+### Chores
+
+* **ci:** skip uploading artifacts on stainless-internal branches ([793e4b8](https://github.com/synapseops/graphor-typescript-sdk/commit/793e4b8c62f5285d32c9f31740d0b00277dbda99))
+* **internal:** codegen related update ([352b490](https://github.com/synapseops/graphor-typescript-sdk/commit/352b490a035cd599359fb9a8fd375c272bd1f4fa))
+* **internal:** codegen related update ([1a22c92](https://github.com/synapseops/graphor-typescript-sdk/commit/1a22c92ac2f4515a8f858ba97ff27710f6731c7d))
+* **internal:** use x-stainless-mcp-client-envs header for MCP remote code tool calls ([b4ef17e](https://github.com/synapseops/graphor-typescript-sdk/commit/b4ef17e9c0a7404731f96391133c934980d868f5))
+* **internal:** version bump ([5b2cd41](https://github.com/synapseops/graphor-typescript-sdk/commit/5b2cd418f89f6149cf3107e3863d395feda56e80))
+* **mcp-server:** improve instructions ([bb8ce84](https://github.com/synapseops/graphor-typescript-sdk/commit/bb8ce845d864439df5c8724c35ffb44f81af53d3))
+* **mcp-server:** return access instructions for 404 without API key ([6b897c3](https://github.com/synapseops/graphor-typescript-sdk/commit/6b897c30b19ea6a6c8e9a692739f89206da5edae))
+* update placeholder string ([4f59192](https://github.com/synapseops/graphor-typescript-sdk/commit/4f59192cc36983c724bed3da0561735690391397))
+
 ## 0.13.0 (2026-03-06)
 
 Full Changelog: [v0.12.2...v0.13.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.12.2...v0.13.0)
