@@ -13,32 +13,26 @@ const tool: McpTool = {
     name: 'delete_source',
     description:
       "Delete a source from the project's knowledge graph and all associated data. " +
-      'The operation is irreversible. Provide file_id (preferred) or file_name.',
+      'The operation is irreversible. Requires the file_id ' +
+      '(obtain it from list_sources or get_build_status).',
     inputSchema: {
       type: 'object',
       properties: {
         file_id: {
           type: 'string',
-          description: 'Unique identifier for the source (preferred).',
-        },
-        file_name: {
-          type: 'string',
-          description: 'The display name of the file to delete.',
+          description: 'Unique identifier of the source to delete.',
         },
       },
+      required: ['file_id'],
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    if (args['file_id'] == null && args['file_name'] == null) {
-      return asErrorResult('At least one of file_id or file_name must be provided.');
+    const fileId = args['file_id'] as string | undefined;
+    if (!fileId) {
+      return asErrorResult('file_id is required.');
     }
 
-    const params: Graphor.SourceDeleteParams = {
-      ...(args['file_id'] != null && { file_id: args['file_id'] as string }),
-      ...(args['file_name'] != null && { file_name: args['file_name'] as string }),
-    };
-
-    const result = await client.sources.delete(params);
+    const result = await client.sources.delete({ file_id: fileId });
     return asTextContentResult(result);
   },
 };
