@@ -35,9 +35,7 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const publicSource = await client.sources.upload({ file: fs.createReadStream('path/to/file') });
-
-console.log(publicSource.project_id);
+const publicSources = await client.sources.list();
 ```
 
 ### Request & Response types
@@ -52,40 +50,10 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const params: Graphor.SourceUploadParams = { file: fs.createReadStream('path/to/file') };
-const publicSource: Graphor.PublicSource = await client.sources.upload(params);
+const publicSources: Graphor.SourceListResponse = await client.sources.list();
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
-
-## File uploads
-
-Request parameters that correspond to file uploads can be passed in many different forms:
-
-- `File` (or an object with the same structure)
-- a `fetch` `Response` (or an object with the same structure)
-- an `fs.ReadStream`
-- the return value of our `toFile` helper
-
-```ts
-import fs from 'fs';
-import Graphor, { toFile } from 'graphor';
-
-const client = new Graphor();
-
-// If you have access to Node `fs` we recommend using `fs.createReadStream()`:
-await client.sources.upload({ file: fs.createReadStream('/path/to/file') });
-
-// Or if you have the web `File` API you can pass a `File` instance:
-await client.sources.upload({ file: new File(['my bytes'], 'file') });
-
-// You can also pass a `fetch` `Response`:
-await client.sources.upload({ file: await fetch('https://somesite/file') });
-
-// Finally, if none of the above are convenient, you can use our `toFile` helper:
-await client.sources.upload({ file: await toFile(Buffer.from('my bytes'), 'file') });
-await client.sources.upload({ file: await toFile(new Uint8Array([0, 1, 2]), 'file') });
-```
 
 ## Handling errors
 
@@ -95,17 +63,15 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const publicSource = await client.sources
-  .upload({ file: fs.createReadStream('path/to/file') })
-  .catch(async (err) => {
-    if (err instanceof Graphor.APIError) {
-      console.log(err.status); // 400
-      console.log(err.name); // BadRequestError
-      console.log(err.headers); // {server: 'nginx', ...}
-    } else {
-      throw err;
-    }
-  });
+const publicSources = await client.sources.list().catch(async (err) => {
+  if (err instanceof Graphor.APIError) {
+    console.log(err.status); // 400
+    console.log(err.name); // BadRequestError
+    console.log(err.headers); // {server: 'nginx', ...}
+  } else {
+    throw err;
+  }
+});
 ```
 
 Error codes are as follows:
@@ -137,7 +103,7 @@ const client = new Graphor({
 });
 
 // Or, configure per-request:
-await client.sources.upload({ file: fs.createReadStream('path/to/file') }, {
+await client.sources.list({
   maxRetries: 5,
 });
 ```
@@ -154,7 +120,7 @@ const client = new Graphor({
 });
 
 // Override per-request:
-await client.sources.upload({ file: fs.createReadStream('path/to/file') }, {
+await client.sources.list({
   timeout: 5 * 1000,
 });
 ```
@@ -177,17 +143,13 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Graphor();
 
-const response = await client.sources
-  .upload({ file: fs.createReadStream('path/to/file') })
-  .asResponse();
+const response = await client.sources.list().asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: publicSource, response: raw } = await client.sources
-  .upload({ file: fs.createReadStream('path/to/file') })
-  .withResponse();
+const { data: publicSources, response: raw } = await client.sources.list().withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(publicSource.project_id);
+console.log(publicSources);
 ```
 
 ### Logging
@@ -267,7 +229,7 @@ parameter. This library doesn't validate at runtime that the request matches the
 send will be sent as-is.
 
 ```ts
-client.sources.upload({
+client.sources.list({
   // ...
   // @ts-expect-error baz is not yet public
   baz: 'undocumented option',

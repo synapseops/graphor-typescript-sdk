@@ -108,13 +108,7 @@ const fuse = new Fuse(
     'client.sources.delete',
     'client.sources.extract',
     'client.sources.list',
-    'client.sources.loadElements',
-    'client.sources.parse',
     'client.sources.retrieveChunks',
-    'client.sources.upload',
-    'client.sources.uploadGitHub',
-    'client.sources.uploadURL',
-    'client.sources.uploadYoutube',
   ],
   { threshold: 1, shouldSort: true },
 );

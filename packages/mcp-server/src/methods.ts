@@ -35,46 +35,10 @@ export const sdkMethods: SdkMethod[] = [
     httpPath: '/sources/run-extraction',
   },
   {
-    clientCallName: 'client.sources.loadElements',
-    fullyQualifiedName: 'sources.loadElements',
-    httpMethod: 'post',
-    httpPath: '/sources/elements',
-  },
-  {
-    clientCallName: 'client.sources.parse',
-    fullyQualifiedName: 'sources.parse',
-    httpMethod: 'post',
-    httpPath: '/sources/process',
-  },
-  {
     clientCallName: 'client.sources.retrieveChunks',
     fullyQualifiedName: 'sources.retrieveChunks',
     httpMethod: 'post',
     httpPath: '/sources/prebuilt-rag',
-  },
-  {
-    clientCallName: 'client.sources.upload',
-    fullyQualifiedName: 'sources.upload',
-    httpMethod: 'post',
-    httpPath: '/sources/upload',
-  },
-  {
-    clientCallName: 'client.sources.uploadGitHub',
-    fullyQualifiedName: 'sources.uploadGitHub',
-    httpMethod: 'post',
-    httpPath: '/sources/upload-github-source',
-  },
-  {
-    clientCallName: 'client.sources.uploadURL',
-    fullyQualifiedName: 'sources.uploadURL',
-    httpMethod: 'post',
-    httpPath: '/sources/upload-url-source',
-  },
-  {
-    clientCallName: 'client.sources.uploadYoutube',
-    fullyQualifiedName: 'sources.uploadYoutube',
-    httpMethod: 'post',
-    httpPath: '/sources/upload-youtube-source',
   },
 ];
 

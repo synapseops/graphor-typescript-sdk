@@ -2,22 +2,15 @@
 
 export {
   Sources,
-  type PublicPartitionMethod,
   type PublicSource,
   type SourceListResponse,
   type SourceDeleteResponse,
   type SourceAskResponse,
   type SourceExtractResponse,
-  type SourceLoadElementsResponse,
   type SourceRetrieveChunksResponse,
+  type SourceListParams,
   type SourceDeleteParams,
   type SourceAskParams,
   type SourceExtractParams,
-  type SourceLoadElementsParams,
-  type SourceParseParams,
   type SourceRetrieveChunksParams,
-  type SourceUploadParams,
-  type SourceUploadGitHubParams,
-  type SourceUploadURLParams,
-  type SourceUploadYoutubeParams,
 } from './sources';

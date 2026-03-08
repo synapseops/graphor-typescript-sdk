@@ -30,9 +30,7 @@ For example:
 
 \`\`\`
 async function run(client) {
-  const publicSource = await client.sources.upload({ file: fs.createReadStream('path/to/file') });
-
-  console.log(publicSource.project_id);
+  const publicSources = await client.sources.list();
 }
 \`\`\`
 
