@@ -107,6 +107,7 @@ const fuse = new Fuse(
     'client.sources.ask',
     'client.sources.delete',
     'client.sources.extract',
+    'client.sources.getElements',
     'client.sources.ingestFile',
     'client.sources.ingestGitHub',
     'client.sources.ingestURL',
