@@ -2,7 +2,9 @@
 
 import { APIResource } from '../core/resource';
 import { APIPromise } from '../core/api-promise';
+import { type Uploadable } from '../core/uploads';
 import { RequestOptions } from '../internal/request-options';
+import { multipartFormRequestOptions } from '../internal/uploads';
 
 export class Sources extends APIResource {
   /**
@@ -176,6 +178,162 @@ export class Sources extends APIResource {
   }
 
   /**
+   * Upload a local file and schedule ingestion in the background.
+   *
+   * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
+   * extension, stores the file, then schedules the full data-ingestion pipeline in
+   * the background. Returns immediately with a `build_id` to poll for status.
+   *
+   * **Parameters:**
+   *
+   * - **file** (`multipart/form-data`): The file to upload. Must include
+   *   `Content-Length` and have a supported extension (pdf, doc, docx, csv, txt, md,
+   *   etc.).
+   * - **partition_method** (`form`, optional): Partitioning strategy. One of:
+   *   `fast`, `balanced`, `accurate`, `vlm`, `agentic`. Default when omitted.
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing
+   * status.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestFile({
+   *   file: fs.createReadStream('path/to/file'),
+   * });
+   * ```
+   */
+  ingestFile(body: SourceIngestFileParams, options?: RequestOptions): APIPromise<SourceIngestFileResponse> {
+    return this._client.post(
+      '/sources/ingest-file',
+      multipartFormRequestOptions({ body, ...options }, this._client),
+    );
+  }
+
+  /**
+   * Ingest a GitHub repository as a source into the project's knowledge graph.
+   *
+   * Schedules the ingestion in the background and returns immediately with a
+   * `build_id`. Use the returned `build_id` to poll for processing status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The GitHub repository URL to ingest (e.g.
+   *   `https://github.com/owner/repo`).
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestGitHub({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestGitHub(
+    body: SourceIngestGitHubParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceIngestGitHubResponse> {
+    return this._client.post('/sources/ingest-github', { body, ...options });
+  }
+
+  /**
+   * Ingest a web page (or a set of crawled pages) as a source into the project's
+   * knowledge graph.
+   *
+   * Unlike the synchronous version, this endpoint schedules the ingestion in the
+   * background and returns immediately with a `processing` status. The source will
+   * be fully available once background processing completes.
+   *
+   * If the URL points directly to a downloadable file (detected via URL path
+   * extension or HTTP Content-Type), the file is first downloaded and uploaded to
+   * storage synchronously, then the partition/embedding pipeline runs in the
+   * background.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The web page URL to ingest.
+   * - **crawlUrls** (bool, optional, default `false`): When `true`, the system will
+   *   also follow and ingest links found on the page. Ignored when the URL resolves
+   *   to a file.
+   * - **partition_method** (str, optional): The partitioning strategy to use. One
+   *   of: `fast`, `balanced`, `accurate`, `vlm`, `agentic`. When omitted the system
+   *   default is applied.
+   *
+   * **Returns** a `PublicSourceResponse` with `status: "processing"` immediately.
+   * Poll the source status endpoint using the returned `file_id` to track
+   * completion.
+   *
+   * **Error responses:**
+   *
+   * - `400` — Unsupported file type detected from a file URL.
+   * - `500` — Unexpected internal error during URL processing.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestURL({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestURL(body: SourceIngestURLParams, options?: RequestOptions): APIPromise<SourceIngestURLResponse> {
+    return this._client.post('/sources/ingest-url', { body, ...options });
+  }
+
+  /**
+   * Ingest a YouTube video as a source into the project's knowledge graph.
+   *
+   * Schedules the ingestion in the background and returns immediately with a
+   * `build_id`. The endpoint will download the transcript/captions and process them
+   * in the background. Use the returned `build_id` to poll for processing status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **url** (str, required): The YouTube video URL to ingest (e.g.
+   *   `https://www.youtube.com/watch?v=...`).
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.ingestYoutube({
+   *   url: 'url',
+   * });
+   * ```
+   */
+  ingestYoutube(
+    body: SourceIngestYoutubeParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceIngestYoutubeResponse> {
+    return this._client.post('/sources/ingest-youtube', { body, ...options });
+  }
+
+  /**
+   * Re-process (re-parse) an existing source in the background.
+   *
+   * Schedules the data-ingestion pipeline (partitioning, chunking, embedding) for an
+   * existing source and returns immediately with a `build_id`. Use it to poll for
+   * status.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **file_id** (str, required): Unique identifier of the source to re-process.
+   * - **partition_method** (str, default `"fast"`): Partitioning strategy. One of:
+   *   `fast`, `balanced`, `accurate`, `vlm`, `agentic`.
+   *
+   * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.reprocess({
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  reprocess(body: SourceReprocessParams, options?: RequestOptions): APIPromise<SourceReprocessResponse> {
+    return this._client.post('/sources/reprocess', { body, ...options });
+  }
+
+  /**
    * Retrieve relevant document chunks from the prebuilt RAG vector store.
    *
    * Performs a semantic similarity search over the project's prebuilt RAG store
@@ -218,6 +376,19 @@ export class Sources extends APIResource {
     return this._client.post('/sources/prebuilt-rag', { body, ...options });
   }
 }
+
+/**
+ * Public-facing partition method names for API v2.
+ *
+ * Maps to internal PartitionMethod as:
+ *
+ * - fast → basic
+ * - balanced → hi_res
+ * - accurate → hi_res_ft
+ * - vlm → mai
+ * - agentic → graphorlm
+ */
+export type Method = 'fast' | 'balanced' | 'accurate' | 'vlm' | 'agentic';
 
 export interface PublicSource {
   /**
@@ -353,6 +524,91 @@ export interface SourceExtractResponse {
    * Structured output (object) matching the requested output_schema.
    */
   structured_output?: { [key: string]: unknown } | null;
+}
+
+export interface SourceIngestFileResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceIngestGitHubResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceIngestURLResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceIngestYoutubeResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
+}
+
+export interface SourceReprocessResponse {
+  /**
+   * The ID of the build. This ID can be used to check the status of the request.
+   */
+  build_id: string;
+
+  /**
+   * If the request was not successful, this will contain an error message.
+   */
+  error?: string | null;
+
+  /**
+   * Whether the request was successfully scheduled.
+   */
+  success?: boolean;
 }
 
 export interface SourceRetrieveChunksResponse {
@@ -496,6 +752,75 @@ export interface SourceExtractParams {
   thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
+export interface SourceIngestFileParams {
+  file: Uploadable;
+
+  /**
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
+   */
+  partition_method?: Method | null;
+}
+
+export interface SourceIngestGitHubParams {
+  /**
+   * The GitHub repository URL to ingest (e.g. https://github.com/owner/repo)
+   */
+  url: string;
+}
+
+export interface SourceIngestURLParams {
+  /**
+   * The web page URL to ingest
+   */
+  url: string;
+
+  /**
+   * When true, also follows and ingests links found on the page
+   */
+  crawlUrls?: boolean;
+
+  /**
+   * Public-facing partition method names for API v2.
+   *
+   * Maps to internal PartitionMethod as:
+   *
+   * - fast → basic
+   * - balanced → hi_res
+   * - accurate → hi_res_ft
+   * - vlm → mai
+   * - agentic → graphorlm
+   */
+  partition_method?: Method | null;
+}
+
+export interface SourceIngestYoutubeParams {
+  /**
+   * The YouTube video URL to ingest (e.g.
+   * https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+   */
+  url: string;
+}
+
+export interface SourceReprocessParams {
+  /**
+   * Unique identifier of the source to re-process.
+   */
+  file_id: string;
+
+  /**
+   * Partitioning strategy. One of: fast, balanced, accurate, vlm, agentic.
+   */
+  partition_method?: Method;
+}
+
 export interface SourceRetrieveChunksParams {
   /**
    * The natural-language search query to find relevant chunks
@@ -516,16 +841,27 @@ export interface SourceRetrieveChunksParams {
 
 export declare namespace Sources {
   export {
+    type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
+    type SourceIngestFileResponse as SourceIngestFileResponse,
+    type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
+    type SourceIngestURLResponse as SourceIngestURLResponse,
+    type SourceIngestYoutubeResponse as SourceIngestYoutubeResponse,
+    type SourceReprocessResponse as SourceReprocessResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
     type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
+    type SourceIngestFileParams as SourceIngestFileParams,
+    type SourceIngestGitHubParams as SourceIngestGitHubParams,
+    type SourceIngestURLParams as SourceIngestURLParams,
+    type SourceIngestYoutubeParams as SourceIngestYoutubeParams,
+    type SourceReprocessParams as SourceReprocessParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
   };
 }

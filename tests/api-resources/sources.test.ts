@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Graphor from 'graphor';
+import Graphor, { toFile } from 'graphor';
 
 const client = new Graphor({
   apiKey: 'My API Key',
@@ -89,6 +89,100 @@ describe('resource sources', () => {
       file_names: ['string'],
       thinking_level: 'fast',
     });
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestFile: only required params', async () => {
+    const responsePromise = client.sources.ingestFile({
+      file: await toFile(Buffer.from('Example data'), 'README.md'),
+    });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestFile: required and optional params', async () => {
+    const response = await client.sources.ingestFile({
+      file: await toFile(Buffer.from('Example data'), 'README.md'),
+      partition_method: 'fast',
+    });
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestGitHub: only required params', async () => {
+    const responsePromise = client.sources.ingestGitHub({ url: 'url' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestGitHub: required and optional params', async () => {
+    const response = await client.sources.ingestGitHub({ url: 'url' });
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestURL: only required params', async () => {
+    const responsePromise = client.sources.ingestURL({ url: 'url' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestURL: required and optional params', async () => {
+    const response = await client.sources.ingestURL({
+      url: 'url',
+      crawlUrls: true,
+      partition_method: 'fast',
+    });
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestYoutube: only required params', async () => {
+    const responsePromise = client.sources.ingestYoutube({ url: 'url' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('ingestYoutube: required and optional params', async () => {
+    const response = await client.sources.ingestYoutube({ url: 'url' });
+  });
+
+  // Mock server tests are disabled
+  test.skip('reprocess: only required params', async () => {
+    const responsePromise = client.sources.reprocess({ file_id: 'file_id' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('reprocess: required and optional params', async () => {
+    const response = await client.sources.reprocess({ file_id: 'file_id', partition_method: 'fast' });
   });
 
   // Mock server tests are disabled
