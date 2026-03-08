@@ -35,6 +35,36 @@ export const sdkMethods: SdkMethod[] = [
     httpPath: '/sources/run-extraction',
   },
   {
+    clientCallName: 'client.sources.ingestFile',
+    fullyQualifiedName: 'sources.ingestFile',
+    httpMethod: 'post',
+    httpPath: '/sources/ingest-file',
+  },
+  {
+    clientCallName: 'client.sources.ingestGitHub',
+    fullyQualifiedName: 'sources.ingestGitHub',
+    httpMethod: 'post',
+    httpPath: '/sources/ingest-github',
+  },
+  {
+    clientCallName: 'client.sources.ingestURL',
+    fullyQualifiedName: 'sources.ingestURL',
+    httpMethod: 'post',
+    httpPath: '/sources/ingest-url',
+  },
+  {
+    clientCallName: 'client.sources.ingestYoutube',
+    fullyQualifiedName: 'sources.ingestYoutube',
+    httpMethod: 'post',
+    httpPath: '/sources/ingest-youtube',
+  },
+  {
+    clientCallName: 'client.sources.reprocess',
+    fullyQualifiedName: 'sources.reprocess',
+    httpMethod: 'post',
+    httpPath: '/sources/reprocess',
+  },
+  {
     clientCallName: 'client.sources.retrieveChunks',
     fullyQualifiedName: 'sources.retrieveChunks',
     httpMethod: 'post',
