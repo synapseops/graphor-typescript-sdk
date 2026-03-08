@@ -178,6 +178,46 @@ export class Sources extends APIResource {
   }
 
   /**
+   * Retrieve the parsed elements (chunks/partitions) of a source in the same format
+   * as get_build_status.
+   *
+   * Returns elements with explicit fields: element_id, element_type, text, markdown,
+   * html, img_base64 (optional), position, page_number, bounding_box, page_layout,
+   * etc.
+   *
+   * **Query parameters:**
+   *
+   * - **file_id** (str, required): Unique identifier of the source.
+   * - **page** (int, optional): 1-based page number. Use with page_size to enable
+   *   pagination.
+   * - **page_size** (int, optional): Number of elements per page (max 100).
+   * - **suppress_img_base64** (bool, default false): When true, img_base64 is
+   *   omitted from each element.
+   * - **type** (str, optional): Filter by element type (e.g. NarrativeText, Title,
+   *   Table).
+   * - **page_numbers** (list, optional): Restrict to specific page numbers (repeat
+   *   param for multiple).
+   * - **elementsToRemove** (list, optional): Element types to exclude (repeat param
+   *   for multiple).
+   *
+   * **Returns** Paginated response with items as BuildStatusElement list (same shape
+   * as GET /builds/{build_id} elements).
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.getElements({
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  getElements(
+    query: SourceGetElementsParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceGetElementsResponse> {
+    return this._client.get('/sources/get-elements', { query, ...options });
+  }
+
+  /**
    * Upload a local file and schedule ingestion in the background.
    *
    * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
@@ -526,6 +566,138 @@ export interface SourceExtractResponse {
   structured_output?: { [key: string]: unknown } | null;
 }
 
+export interface SourceGetElementsResponse {
+  /**
+   * List of items in the current page
+   */
+  items: Array<SourceGetElementsResponse.Item>;
+
+  /**
+   * Total number of items
+   */
+  total: number;
+
+  /**
+   * Current page
+   */
+  page?: number | null;
+
+  /**
+   * Items per page
+   */
+  page_size?: number | null;
+
+  /**
+   * Total number of pages
+   */
+  total_pages?: number | null;
+}
+
+export namespace SourceGetElementsResponse {
+  /**
+   * A single parsed element (chunk/partition) from a source, with explicit fields.
+   */
+  export interface Item {
+    /**
+     * Bounding box (e.g. left, top, width, height) when available.
+     */
+    bounding_box?: { [key: string]: unknown } | null;
+
+    /**
+     * Unique identifier for the element.
+     */
+    element_id?: string | null;
+
+    /**
+     * Type of the element (Title, NarrativeText, Image, Table, etc.).
+     */
+    element_type?:
+      | 'Title'
+      | 'NarrativeText'
+      | 'TextBlock'
+      | 'ListItem'
+      | 'Table'
+      | 'TableRow'
+      | 'Image'
+      | 'Footer'
+      | 'Formula'
+      | 'CompositeElement'
+      | 'FigureCaption'
+      | 'PageBreak'
+      | 'Address'
+      | 'EmailAddress'
+      | 'PageNumber'
+      | 'CodeSnippet'
+      | 'Header'
+      | 'FormKeysValues'
+      | 'Link'
+      | 'UncategorizedText'
+      | 'Abstract'
+      | 'AsideText'
+      | 'Reference'
+      | 'ReferenceContent'
+      | 'Chart'
+      | 'Seal'
+      | 'FormulaNumber'
+      | null;
+
+    /**
+     * HTML representation of the content, when available.
+     */
+    html?: string | null;
+
+    /**
+     * Base64-encoded image data, when the element is an image.
+     */
+    img_base64?: string | null;
+
+    /**
+     * Markdown representation of the content, when available.
+     */
+    markdown?: string | null;
+
+    /**
+     * Additional metadata.
+     */
+    metadata?: { [key: string]: unknown };
+
+    /**
+     * Annotation/summary for the page containing this element.
+     */
+    page_annotation?: string | null;
+
+    /**
+     * Keywords extracted for the page.
+     */
+    page_keywords?: Array<string> | null;
+
+    /**
+     * Page dimensions (width, height) when available.
+     */
+    page_layout?: { [key: string]: unknown } | null;
+
+    /**
+     * Page number (1-based) where the element appears.
+     */
+    page_number?: number | null;
+
+    /**
+     * Topics extracted for the page.
+     */
+    page_topics?: Array<string> | null;
+
+    /**
+     * Order/position of the element within the document.
+     */
+    position?: number | null;
+
+    /**
+     * Plain text content of the element.
+     */
+    text?: string;
+  }
+}
+
 export interface SourceIngestFileResponse {
   /**
    * The ID of the build. This ID can be used to check the status of the request.
@@ -752,6 +924,43 @@ export interface SourceExtractParams {
   thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
 }
 
+export interface SourceGetElementsParams {
+  /**
+   * Unique identifier of the source
+   */
+  file_id: string;
+
+  /**
+   * Element types to exclude
+   */
+  elementsToRemove?: Array<string> | null;
+
+  /**
+   * 1-based page number (use with page_size)
+   */
+  page?: number | null;
+
+  /**
+   * Restrict to specific page numbers
+   */
+  page_numbers?: Array<number> | null;
+
+  /**
+   * Number of elements per page
+   */
+  page_size?: number | null;
+
+  /**
+   * When true, img_base64 is omitted from each element
+   */
+  suppress_img_base64?: boolean;
+
+  /**
+   * Filter by element type (e.g. NarrativeText, Title)
+   */
+  type?: string | null;
+}
+
 export interface SourceIngestFileParams {
   file: Uploadable;
 
@@ -847,6 +1056,7 @@ export declare namespace Sources {
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
+    type SourceGetElementsResponse as SourceGetElementsResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
     type SourceIngestURLResponse as SourceIngestURLResponse,
@@ -857,6 +1067,7 @@ export declare namespace Sources {
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
+    type SourceGetElementsParams as SourceGetElementsParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,
     type SourceIngestURLParams as SourceIngestURLParams,
