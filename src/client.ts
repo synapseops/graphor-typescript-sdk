@@ -18,6 +18,7 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
+  Element,
   Method,
   PublicSource,
   SourceAskParams,
@@ -26,6 +27,8 @@ import {
   SourceDeleteResponse,
   SourceExtractParams,
   SourceExtractResponse,
+  SourceGetBuildStatusParams,
+  SourceGetBuildStatusResponse,
   SourceGetElementsParams,
   SourceGetElementsResponse,
   SourceIngestFileParams,
@@ -751,12 +754,14 @@ export declare namespace Graphor {
 
   export {
     Sources as Sources,
+    type Element as Element,
     type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
+    type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
@@ -768,6 +773,7 @@ export declare namespace Graphor {
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
+    type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,

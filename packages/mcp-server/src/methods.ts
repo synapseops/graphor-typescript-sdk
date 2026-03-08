@@ -35,6 +35,12 @@ export const sdkMethods: SdkMethod[] = [
     httpPath: '/sources/run-extraction',
   },
   {
+    clientCallName: 'client.sources.getBuildStatus',
+    fullyQualifiedName: 'sources.getBuildStatus',
+    httpMethod: 'get',
+    httpPath: '/sources/builds/{build_id}',
+  },
+  {
     clientCallName: 'client.sources.getElements',
     fullyQualifiedName: 'sources.getElements',
     httpMethod: 'get',

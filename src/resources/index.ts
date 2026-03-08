@@ -2,12 +2,14 @@
 
 export {
   Sources,
+  type Element,
   type Method,
   type PublicSource,
   type SourceListResponse,
   type SourceDeleteResponse,
   type SourceAskResponse,
   type SourceExtractResponse,
+  type SourceGetBuildStatusResponse,
   type SourceGetElementsResponse,
   type SourceIngestFileResponse,
   type SourceIngestGitHubResponse,
@@ -19,6 +21,7 @@ export {
   type SourceDeleteParams,
   type SourceAskParams,
   type SourceExtractParams,
+  type SourceGetBuildStatusParams,
   type SourceGetElementsParams,
   type SourceIngestFileParams,
   type SourceIngestGitHubParams,
