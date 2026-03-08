@@ -18,7 +18,6 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
-  PublicPartitionMethod,
   PublicSource,
   SourceAskParams,
   SourceAskResponse,
@@ -26,16 +25,10 @@ import {
   SourceDeleteResponse,
   SourceExtractParams,
   SourceExtractResponse,
+  SourceListParams,
   SourceListResponse,
-  SourceLoadElementsParams,
-  SourceLoadElementsResponse,
-  SourceParseParams,
   SourceRetrieveChunksParams,
   SourceRetrieveChunksResponse,
-  SourceUploadGitHubParams,
-  SourceUploadParams,
-  SourceUploadURLParams,
-  SourceUploadYoutubeParams,
   Sources,
 } from './resources/sources';
 import { type Fetch } from './internal/builtin-types';
@@ -231,9 +224,6 @@ export class Graphor {
     return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
   }
 
-  /**
-   * Basic re-implementation of `qs.stringify` for primitive types.
-   */
   protected stringifyQuery(query: object | Record<string, unknown>): string {
     return stringifyQuery(query);
   }
@@ -748,23 +738,16 @@ export declare namespace Graphor {
 
   export {
     Sources as Sources,
-    type PublicPartitionMethod as PublicPartitionMethod,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
     type SourceDeleteResponse as SourceDeleteResponse,
     type SourceAskResponse as SourceAskResponse,
     type SourceExtractResponse as SourceExtractResponse,
-    type SourceLoadElementsResponse as SourceLoadElementsResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
+    type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
     type SourceExtractParams as SourceExtractParams,
-    type SourceLoadElementsParams as SourceLoadElementsParams,
-    type SourceParseParams as SourceParseParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
-    type SourceUploadParams as SourceUploadParams,
-    type SourceUploadGitHubParams as SourceUploadGitHubParams,
-    type SourceUploadURLParams as SourceUploadURLParams,
-    type SourceUploadYoutubeParams as SourceUploadYoutubeParams,
   };
 }

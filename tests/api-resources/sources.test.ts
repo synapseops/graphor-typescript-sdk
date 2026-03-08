@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Graphor, { toFile } from 'graphor';
+import Graphor from 'graphor';
 
 const client = new Graphor({
   apiKey: 'My API Key',
@@ -18,6 +18,14 @@ describe('resource sources', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('list: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.sources.list({ file_ids: ['string'] }, { path: '/_stainless_unknown_path' }),
+    ).rejects.toThrow(Graphor.NotFoundError);
   });
 
   // Mock server tests are disabled
@@ -84,30 +92,6 @@ describe('resource sources', () => {
   });
 
   // Mock server tests are disabled
-  test.skip('loadElements', async () => {
-    const responsePromise = client.sources.loadElements({});
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('parse', async () => {
-    const responsePromise = client.sources.parse({});
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
   test.skip('retrieveChunks: only required params', async () => {
     const responsePromise = client.sources.retrieveChunks({ query: 'query' });
     const rawResponse = await responsePromise.asResponse();
@@ -126,82 +110,5 @@ describe('resource sources', () => {
       file_ids: ['string'],
       file_names: ['string'],
     });
-  });
-
-  // Mock server tests are disabled
-  test.skip('upload: only required params', async () => {
-    const responsePromise = client.sources.upload({
-      file: await toFile(Buffer.from('Example data'), 'README.md'),
-    });
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('upload: required and optional params', async () => {
-    const response = await client.sources.upload({
-      file: await toFile(Buffer.from('Example data'), 'README.md'),
-      partition_method: 'basic',
-    });
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadGitHub: only required params', async () => {
-    const responsePromise = client.sources.uploadGitHub({ url: 'url' });
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadGitHub: required and optional params', async () => {
-    const response = await client.sources.uploadGitHub({ url: 'url' });
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadURL: only required params', async () => {
-    const responsePromise = client.sources.uploadURL({ url: 'url' });
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadURL: required and optional params', async () => {
-    const response = await client.sources.uploadURL({
-      url: 'url',
-      crawlUrls: true,
-      partition_method: 'basic',
-    });
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadYoutube: only required params', async () => {
-    const responsePromise = client.sources.uploadYoutube({ url: 'url' });
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  // Mock server tests are disabled
-  test.skip('uploadYoutube: required and optional params', async () => {
-    const response = await client.sources.uploadYoutube({ url: 'url' });
   });
 });
