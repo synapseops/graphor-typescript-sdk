@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.15.0 (2026-03-11)
+
+Full Changelog: [v0.14.0...v0.15.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.14.0...v0.15.0)
+
+### Features
+
+* **api:** api update ([556f638](https://github.com/synapseops/graphor-typescript-sdk/commit/556f638bb09fca8f228025d4053a3cbd5ef1c4f8))
+
+
+### Chores
+
+* **internal:** codegen related update ([fb41503](https://github.com/synapseops/graphor-typescript-sdk/commit/fb41503233e2bf8df7e6cb7e8fe58178f324f7be))
+* **internal:** codegen related update ([1a45fa8](https://github.com/synapseops/graphor-typescript-sdk/commit/1a45fa89d79d777a1d84af20f98986b1d832723b))
+* **internal:** codegen related update ([3f2d394](https://github.com/synapseops/graphor-typescript-sdk/commit/3f2d3947ce3de3cd2170fee8de50a90e9e29ef6c))
+* **internal:** codegen related update ([8680dbc](https://github.com/synapseops/graphor-typescript-sdk/commit/8680dbc3fe464862061ead3bbf6f730199e93afa))
+* **internal:** codegen related update ([d99694f](https://github.com/synapseops/graphor-typescript-sdk/commit/d99694fc02e778daeaa9159ce01a1b87c7e083ee))
+* **internal:** codegen related update ([4b26e3f](https://github.com/synapseops/graphor-typescript-sdk/commit/4b26e3ff6f1379bce88529dc24f21fb8e7856364))
+* **internal:** codegen related update ([bd5fee9](https://github.com/synapseops/graphor-typescript-sdk/commit/bd5fee9d8806e62fe241652b1e87353b23afa86a))
+* **internal:** codegen related update ([0514e0f](https://github.com/synapseops/graphor-typescript-sdk/commit/0514e0ff1bdf3c09f9173ba4e28f641728b02b49))
+* **internal:** codegen related update ([8006270](https://github.com/synapseops/graphor-typescript-sdk/commit/8006270ebd4d67fc8dedad41d9a84f95149059c8))
+* **internal:** codegen related update ([5fa6ed7](https://github.com/synapseops/graphor-typescript-sdk/commit/5fa6ed74224869a2aaade6902e8ff3f9a99e314a))
+* **internal:** codegen related update ([a7654b7](https://github.com/synapseops/graphor-typescript-sdk/commit/a7654b7942b8fd7c9a1c9b578c81e97e78df1b55))
+* **internal:** update dependencies to address dependabot vulnerabilities ([aa0b9f1](https://github.com/synapseops/graphor-typescript-sdk/commit/aa0b9f1b61bd200afe9b3cbee59516f85d03674c))
+
 ## 0.14.0 (2026-03-08)
 
 Full Changelog: [v0.13.0...v0.14.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.13.0...v0.14.0)
