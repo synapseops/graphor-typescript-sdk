@@ -227,6 +227,8 @@ export class Sources extends APIResource {
    * - **method**, **total_partitions**, **total_pages**: Build metadata when history
    *   exists.
    * - **created_at**, **updated_at**: ISO8601 timestamps when history exists.
+   * - **document_annotation**: Document-level summary/annotation from the build
+   *   history when available.
    * - **message**: Human-readable message (e.g. when status is `not_found`).
    * - **elements**: List of `{ page_content, metadata }` when
    *   `suppress_elements=false` and the build completed successfully.
@@ -775,6 +777,12 @@ export interface SourceGetBuildStatusResponse {
    * exists.
    */
   created_at?: string | null;
+
+  /**
+   * Document-level summary/annotation from the build history. Present when history
+   * exists.
+   */
+  document_annotation?: string | null;
 
   /**
    * Paginated list of parsed elements (chunks) for this build. Only present when
