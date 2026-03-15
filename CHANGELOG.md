@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.15.1 (2026-03-15)
+
+Full Changelog: [v0.15.0...v0.15.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.15.0...v0.15.1)
+
+### Chores
+
+* **internal:** make generated MCP servers compatible with Cloudflare worker environments ([281a539](https://github.com/synapseops/graphor-typescript-sdk/commit/281a5396c19b1eb528bd97b565a436b5ff846ca3))
+* **internal:** support x-stainless-mcp-client-envs header in MCP servers ([8208752](https://github.com/synapseops/graphor-typescript-sdk/commit/8208752556bdbcdccda991ccad0bc04b4cd352f3))
+* **internal:** update lockfile ([f4c26cb](https://github.com/synapseops/graphor-typescript-sdk/commit/f4c26cb5bc4d572744a84c64027b39ba62c5df91))
+* use proper capitalization for WebSockets ([ecd8cf8](https://github.com/synapseops/graphor-typescript-sdk/commit/ecd8cf8edbf7072c5b6cb2989148cdbcce4c030d))
+
 ## 0.15.0 (2026-03-11)
 
 Full Changelog: [v0.14.0...v0.15.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.14.0...v0.15.0)
