@@ -150,6 +150,7 @@ export class Graphor {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
+  #undiciDispatcher: any;
   protected idempotencyHeader?: string;
   private _options: ClientOptions;
 
@@ -195,6 +196,7 @@ export class Graphor {
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 0;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
+    this.#undiciDispatcher = null;
     this.#encoder = Opts.FallbackEncoder;
 
     this._options = options;
@@ -523,6 +525,27 @@ export class Graphor {
       // Custom methods like 'patch' need to be uppercased
       // See https://github.com/nodejs/undici/issues/2294
       fetchOptions.method = method.toUpperCase();
+    }
+
+    // Node.js uses undici for fetch, which has its own bodyTimeout/headersTimeout
+    // defaults (300s). These can expire before the SDK's AbortController timeout,
+    // causing unexpected early timeouts. Sync undici's timeouts with the SDK timeout
+    // unless the user already provided a custom dispatcher.
+    if (!(fetchOptions as any).dispatcher && typeof (globalThis as any).process !== 'undefined') {
+      if (!this.#undiciDispatcher) {
+        try {
+          const undici: any = await (Function('return import("undici")')() as Promise<any>);
+          this.#undiciDispatcher = new undici.Agent({
+            bodyTimeout: this.timeout,
+            headersTimeout: this.timeout,
+          });
+        } catch {
+          // undici not available (browser, Deno, Bun) — no-op
+        }
+      }
+      if (this.#undiciDispatcher) {
+        (fetchOptions as any).dispatcher = this.#undiciDispatcher;
+      }
     }
 
     try {
