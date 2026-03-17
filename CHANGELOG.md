@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.15.2 (2026-03-17)
+
+Full Changelog: [v0.15.1...v0.15.2](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.15.1...v0.15.2)
+
+### Chores
+
+* **internal:** tweak CI branches ([1f89c57](https://github.com/synapseops/graphor-typescript-sdk/commit/1f89c57930375be7c9e2fa31fb9abae7834c57f7))
+
 ## 0.15.1 (2026-03-15)
 
 Full Changelog: [v0.15.0...v0.15.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.15.0...v0.15.1)
