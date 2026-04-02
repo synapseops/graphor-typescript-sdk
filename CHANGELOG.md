@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.16.0 (2026-04-02)
+
+Full Changelog: [v0.15.1...v0.16.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.15.1...v0.16.0)
+
+### Features
+
+* **api:** api update ([3bbead8](https://github.com/synapseops/graphor-typescript-sdk/commit/3bbead839fa8fc9701646c44c5656c48a02cddb6))
+
+
+### Bug Fixes
+
+* **internal:** gitignore generated `oidc` dir ([6485e2f](https://github.com/synapseops/graphor-typescript-sdk/commit/6485e2f04cfe58e1af41d98c5d39532b93ef1818))
+* **mcp:** bump agents version in cloudflare worker MCP servers ([02452e5](https://github.com/synapseops/graphor-typescript-sdk/commit/02452e5e7f9cb4997dfd1e17442711f8af84b838))
+
+
+### Chores
+
+* **ci:** escape input path in publish-npm workflow ([9bae640](https://github.com/synapseops/graphor-typescript-sdk/commit/9bae64025d668996b9d2716536a65fae32b71b19))
+* **ci:** skip lint on metadata-only changes ([cc4f70b](https://github.com/synapseops/graphor-typescript-sdk/commit/cc4f70bfba694ecc0060743fe2979e917a4bf182))
+* **internal:** fix MCP server TS errors that occur with required client options ([9b97b9b](https://github.com/synapseops/graphor-typescript-sdk/commit/9b97b9b4bed48398461f579f3d22a26bf3baeb9c))
+* **internal:** improve local docs search for MCP servers ([f2565fe](https://github.com/synapseops/graphor-typescript-sdk/commit/f2565fe317cd406af863e22f30f2d19296a52f76))
+* **internal:** improve local docs search for MCP servers ([9a93e1c](https://github.com/synapseops/graphor-typescript-sdk/commit/9a93e1c7f57015d98af81ec38946e6363dc65fc0))
+* **internal:** support custom-instructions-path flag in MCP servers ([5a0a60a](https://github.com/synapseops/graphor-typescript-sdk/commit/5a0a60ae4ab75a9c88412ac8ec942f667e55559b))
+* **internal:** support local docs search in MCP servers ([79685bb](https://github.com/synapseops/graphor-typescript-sdk/commit/79685bb4ac5b9d68635bbb31140726d8915fea38))
+* **internal:** support type annotations when running MCP in local execution mode ([2d014bb](https://github.com/synapseops/graphor-typescript-sdk/commit/2d014bbb50ee8ce5ac81d7c6dcfe16b72768419b))
+* **internal:** support x-stainless-mcp-client-permissions headers in MCP servers ([f44b21c](https://github.com/synapseops/graphor-typescript-sdk/commit/f44b21c304a5cb8c9c957a5e080b972c3a38af2b))
+* **internal:** tweak CI branches ([1f89c57](https://github.com/synapseops/graphor-typescript-sdk/commit/1f89c57930375be7c9e2fa31fb9abae7834c57f7))
+* **internal:** update gitignore ([2c5d96d](https://github.com/synapseops/graphor-typescript-sdk/commit/2c5d96d12988d13962639aa7c9201e4ba60fe444))
+* **mcp-server:** add support for session id, forward client info ([d64b4d5](https://github.com/synapseops/graphor-typescript-sdk/commit/d64b4d5fbece160c9ebfb09b0562ab4c15c217e9))
+* update SDK settings ([e86ed48](https://github.com/synapseops/graphor-typescript-sdk/commit/e86ed4805acc884434cce240510745d1d4f772e1))
+
 ## 0.4.3 (2026-02-10)
 
 Full Changelog: [v0.4.2...v0.4.3](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.4.2...v0.4.3)
