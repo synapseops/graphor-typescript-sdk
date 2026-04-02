@@ -136,6 +136,7 @@ describe('resource sources', () => {
   test.skip('getElements: required and optional params', async () => {
     const response = await client.sources.getElements({
       file_id: 'file_id',
+      element_ids: ['string'],
       elementsToRemove: ['string'],
       page: 0,
       page_numbers: [0],

@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 # Graphor TypeScript SDK
+=======
+# Graphor TypeScript API Library
+>>>>>>> origin/generated--merge-conflict
 
 [![NPM version](https://img.shields.io/npm/v/graphor.svg?label=npm%20(stable))](https://npmjs.org/package/graphor)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-blue.svg)](https://www.typescriptlang.org/)
 
+<<<<<<< HEAD
 The official TypeScript SDK for the [Graphor](https://graphorlm.com) API. Build intelligent document applications with ease.
 
 **Features:**
@@ -12,6 +17,22 @@ The official TypeScript SDK for the [Graphor](https://graphorlm.com) API. Build 
 - 🔍 **Semantic Search** — Retrieve relevant chunks for custom RAG pipelines
 - 🔒 **Type Safety** — Complete TypeScript definitions for all params and responses
 - 🌐 **Multi-Runtime** — Works in Node.js, Deno, Bun, and browsers
+=======
+This library provides convenient access to the Graphor REST API from server-side TypeScript or JavaScript.
+
+The REST API documentation can be found on [docs.graphorlm.com](https://docs.graphorlm.com). The full API of this library can be found in [api.md](api.md).
+
+It is generated with [Stainless](https://www.stainless.com/).
+>>>>>>> origin/generated--merge-conflict
+
+## MCP Server
+
+Use the Graphor MCP Server to enable AI assistants to interact with this API, allowing them to explore endpoints, make test requests, and use documentation to help integrate this SDK into your application.
+
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=graphor-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdyYXBob3ItbWNwIl0sImVudiI6eyJHUkFQSE9SX0FQSV9LRVkiOiJNeSBBUEkgS2V5In19)
+[![Install in VS Code](https://img.shields.io/badge/_-Add_to_VS_Code-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZmlsbD0iI0VFRSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMzAuMjM1IDM5Ljg4NGEyLjQ5MSAyLjQ5MSAwIDAgMS0xLjc4MS0uNzNMMTIuNyAyNC43OGwtMy40NiAyLjYyNC0zLjQwNiAyLjU4MmExLjY2NSAxLjY2NSAwIDAgMS0xLjA4Mi4zMzggMS42NjQgMS42NjQgMCAwIDEtMS4wNDYtLjQzMWwtMi4yLTJhMS42NjYgMS42NjYgMCAwIDEgMC0yLjQ2M0w3LjQ1OCAyMCA0LjY3IDE3LjQ1MyAxLjUwNyAxNC41N2ExLjY2NSAxLjY2NSAwIDAgMSAwLTIuNDYzbDIuMi0yYTEuNjY1IDEuNjY1IDAgMCAxIDIuMTMtLjA5N2w2Ljg2MyA1LjIwOUwyOC40NTIuODQ0YTIuNDg4IDIuNDg4IDAgMCAxIDEuODQxLS43MjljLjM1MS4wMDkuNjk5LjA5MSAxLjAxOS4yNDVsOC4yMzYgMy45NjFhMi41IDIuNSAwIDAgMSAxLjQxNSAyLjI1M3YuMDk5LS4wNDVWMzMuMzd2LS4wNDUuMDk1YTIuNTAxIDIuNTAxIDAgMCAxLTEuNDE2IDIuMjU3bC04LjIzNSAzLjk2MWEyLjQ5MiAyLjQ5MiAwIDAgMS0xLjA3Ny4yNDZabS43MTYtMjguOTQ3LTExLjk0OCA5LjA2MiAxMS45NTIgOS4wNjUtLjAwNC0xOC4xMjdaIi8+PC9zdmc+)](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22graphor-mcp%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22graphor-mcp%22%5D%2C%22env%22%3A%7B%22GRAPHOR_API_KEY%22%3A%22My%20API%20Key%22%7D%7D)
+
+> Note: You may need to set environment variables in your MCP client.
 
 ## Documentation
 
@@ -25,9 +46,25 @@ npm install graphor
 
 Or with your preferred package manager:
 
+<<<<<<< HEAD
 ```bash
 yarn add graphor
 pnpm add graphor
+=======
+The full API of this library can be found in [api.md](api.md).
+
+<!-- prettier-ignore -->
+```js
+import Graphor from 'graphor';
+
+const client = new Graphor({
+  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
+});
+
+const response = await client.sources.ingestURL({ url: 'url' });
+
+console.log(response.build_id);
+>>>>>>> origin/generated--merge-conflict
 ```
 
 ## Quick Start
@@ -36,21 +73,28 @@ pnpm add graphor
 import Graphor from 'graphor';
 import fs from 'fs';
 
+<<<<<<< HEAD
 const client = new Graphor();  // Uses GRAPHOR_API_KEY env var
 
 // Upload a document
 const source = await client.sources.upload({ file: fs.createReadStream('document.pdf') });
 console.log(`Uploaded: ${source.file_name}`);
 
-// Process with a parsing strategy
-await client.sources.parse({
-  file_name: source.file_name,
-  partition_method: 'graphorlm'  // Options: basic (Fast), hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
-});
-
 // Ask questions about your documents
 const response = await client.sources.ask({ question: 'What are the main topics?' });
 console.log(`Answer: ${response.answer}`);
+=======
+<!-- prettier-ignore -->
+```ts
+import Graphor from 'graphor';
+
+const client = new Graphor({
+  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
+});
+
+const params: Graphor.SourceIngestURLParams = { url: 'url' };
+const response: Graphor.SourceIngestURLResponse = await client.sources.ingestURL(params);
+>>>>>>> origin/generated--merge-conflict
 ```
 
 ## Authentication
@@ -232,6 +276,7 @@ import Graphor, { toFile } from 'graphor';
 
 const client = new Graphor();
 
+<<<<<<< HEAD
 // Using fs.createReadStream (Node.js)
 await client.sources.upload({ file: fs.createReadStream('/path/to/file') });
 
@@ -243,6 +288,20 @@ await client.sources.upload({ file: await fetch('https://somesite/file') });
 
 // Using toFile helper
 await client.sources.upload({ file: await toFile(Buffer.from('my bytes'), 'file') });
+=======
+// If you have access to Node `fs` we recommend using `fs.createReadStream()`:
+await client.sources.ingestFile({ file: fs.createReadStream('/path/to/file') });
+
+// Or if you have the web `File` API you can pass a `File` instance:
+await client.sources.ingestFile({ file: new File(['my bytes'], 'file') });
+
+// You can also pass a `fetch` `Response`:
+await client.sources.ingestFile({ file: await fetch('https://somesite/file') });
+
+// Finally, if none of the above are convenient, you can use our `toFile` helper:
+await client.sources.ingestFile({ file: await toFile(Buffer.from('my bytes'), 'file') });
+await client.sources.ingestFile({ file: await toFile(new Uint8Array([0, 1, 2]), 'file') });
+>>>>>>> origin/generated--merge-conflict
 ```
 
 ## Error Handling
@@ -250,6 +309,7 @@ await client.sources.upload({ file: await toFile(Buffer.from('my bytes'), 'file'
 ```typescript
 import Graphor from 'graphor';
 
+<<<<<<< HEAD
 const client = new Graphor();
 
 try {
@@ -271,6 +331,19 @@ try {
     throw err;
   }
 }
+=======
+<!-- prettier-ignore -->
+```ts
+const response = await client.sources.ingestURL({ url: 'url' }).catch(async (err) => {
+  if (err instanceof Graphor.APIError) {
+    console.log(err.status); // 400
+    console.log(err.name); // BadRequestError
+    console.log(err.headers); // {server: 'nginx', ...}
+  } else {
+    throw err;
+  }
+});
+>>>>>>> origin/generated--merge-conflict
 ```
 
 | Status Code | Error Type |
@@ -288,18 +361,39 @@ try {
 
 ### Retries
 
+<<<<<<< HEAD
 Requests are automatically retried twice with exponential backoff:
+=======
+Certain errors will be automatically retried 0 times by default, with a short exponential backoff.
+Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
+429 Rate Limit, and >=500 Internal errors will all be retried by default.
+>>>>>>> origin/generated--merge-conflict
 
 ```typescript
 // Configure default retries
 const client = new Graphor({ maxRetries: 5 });
 
+<<<<<<< HEAD
 // Or per-request
 await client.sources.ask({ question: '...' }, { maxRetries: 3 });
+=======
+<!-- prettier-ignore -->
+```js
+// Configure the default for all requests:
+const client = new Graphor({
+  maxRetries: 0, // default is 2
+});
+
+// Or, configure per-request:
+await client.sources.ingestURL({ url: 'url' }, {
+  maxRetries: 5,
+});
+>>>>>>> origin/generated--merge-conflict
 ```
 
 ### Timeouts
 
+<<<<<<< HEAD
 Default timeout is 60 seconds:
 
 ```typescript
@@ -329,16 +423,32 @@ console.log(`✅ Uploaded: ${source.file_name}`);
 const processed = await client.sources.parse({
   file_name: source.file_name,
   partition_method: 'hi_res'
+=======
+Requests time out after 10 minutes by default. You can configure this with a `timeout` option:
+
+<!-- prettier-ignore -->
+```ts
+// Configure the default for all requests:
+const client = new Graphor({
+  timeout: 20 * 1000, // 20 seconds (default is 10 minutes)
+>>>>>>> origin/generated--merge-conflict
 });
 console.log(`✅ Processed: ${processed.status}`);
 
+<<<<<<< HEAD
 // 3. Ask questions
 const response = await client.sources.ask({
   question: 'What are the key terms of this contract?',
   file_names: [source.file_name]
+=======
+// Override per-request:
+await client.sources.ingestURL({ url: 'url' }, {
+  timeout: 5 * 1000,
+>>>>>>> origin/generated--merge-conflict
 });
 console.log(`📝 Answer: ${response.answer}`);
 
+<<<<<<< HEAD
 // 4. Extract structured data
 const extracted = await client.sources.extract({
   file_names: [source.file_name],
@@ -352,197 +462,7 @@ const extracted = await client.sources.extract({
       total_value: { type: 'number' }
     }
   }
-});
-console.log(`📊 Extracted: ${JSON.stringify(extracted.structured_output)}`);
-
-// 5. Build custom RAG
-const chunks = await client.sources.retrieveChunks({
-  query: 'payment obligations',
-  file_names: [source.file_name]
-});
-console.log(`🔍 Found ${chunks.total} relevant chunks`);
-```
-
-## MCP Server
-
-Use the Graphor MCP Server to enable AI assistants to interact with this API, allowing them to explore endpoints, make test requests, and use documentation to help integrate this SDK into your application.
-
-[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=graphor-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImdyYXBob3ItbWNwIl0sImVudiI6eyJHUkFQSE9SX0FQSV9LRVkiOiJNeSBBUEkgS2V5In19)
-[![Install in VS Code](https://img.shields.io/badge/_-Add_to_VS_Code-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZmlsbD0iI0VFRSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMzAuMjM1IDM5Ljg4NGEyLjQ5MSAyLjQ5MSAwIDAgMS0xLjc4MS0uNzNMMTIuNyAyNC43OGwtMy40NiAyLjYyNC0zLjQwNiAyLjU4MmExLjY2NSAxLjY2NSAwIDAgMS0xLjA4Mi4zMzggMS42NjQgMS42NjQgMCAwIDEtMS4wNDYtLjQzMWwtMi4yLTJhMS42NjYgMS42NjYgMCAwIDEgMC0yLjQ2M0w3LjQ1OCAyMCA0LjY3IDE3LjQ1MyAxLjUwNyAxNC41N2ExLjY2NSAxLjY2NSAwIDAgMSAwLTIuNDYzbDIuMi0yYTEuNjY1IDEuNjY1IDAgMCAxIDIuMTMtLjA5N2w2Ljg2MyA1LjIwOUwyOC40NTIuODQ0YTIuNDg4IDIuNDg4IDAgMCAxIDEuODQxLS43MjljLjM1MS4wMDkuNjk5LjA5MSAxLjAxOS4yNDVsOC4yMzYgMy45NjFhMi41IDIuNSAwIDAgMSAxLjQxNSAyLjI1M3YuMDk5LS4wNDVWMzMuMzd2LS4wNDUuMDk1YTIuNTAxIDIuNTAxIDAgMCAxLTEuNDE2IDIuMjU3bC04LjIzNSAzLjk2MWEyLjQ5MiAyLjQ5MiAwIDAgMS0xLjA3Ny4yNDZabS43MTYtMjguOTQ3LTExLjk0OCA5LjA2MiAxMS45NTIgOS4wNjUtLjAwNC0xOC4xMjdaIi8+PC9zdmc+)](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22graphor-mcp%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22graphor-mcp%22%5D%2C%22env%22%3A%7B%22GRAPHOR_API_KEY%22%3A%22My%20API%20Key%22%7D%7D)
-
-Or manually add it to your MCP client's configuration:
-
-```json
-{
-  "mcpServers": {
-    "graphor_api": {
-      "command": "npx",
-      "args": ["-y", "graphor-mcp@latest"],
-      "env": {
-        "GRAPHOR_API_KEY": "grlm_your_api_key_here"
-      }
-    }
-  }
-}
-```
-
-> Note: You may need to set environment variables in your MCP client.
-
-### Remote MCP Server (Web Apps & Agentic Workflows)
-
-For web-based AI clients (e.g. [Claude.ai](https://claude.ai)) or agentic frameworks (e.g. LangChain, CrewAI) that cannot run local `npx` processes, use the hosted remote MCP server. Authentication is handled via **OAuth** — a browser window will open for you to log in.
-
-```
-https://mcp.graphor.workers.dev/sse
-```
-
-**Web apps (e.g. Claude.ai)** — in Claude.ai, go to **Settings > Connectors > Add custom connector**, fill in the name and the remote MCP server URL. You will be redirected to log in through the OAuth flow:
-
-The full API of this library can be found in [api.md](api.md).
-
-<!-- prettier-ignore -->
-```js
-import Graphor from 'graphor';
-
-const client = new Graphor({
-  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
-});
-
-const response = await client.sources.ingestURL({ url: 'url' });
-
-console.log(response.build_id);
-```
-
-**Desktop clients (e.g. Claude Desktop)** — use [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) as a local proxy:
-
-```json
-{
-  "mcpServers": {
-    "graphor_api": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://mcp.graphor.workers.dev/sse"]
-    }
-  }
-}
-```
-
-**Agentic workflows (e.g. LangChain)** — connect via SSE transport:
-
-```typescript
-import { MultiServerMCPClient } from "@langchain/mcp-adapters";
-
-const client = new MultiServerMCPClient({
-  graphor: {
-    url: "https://mcp.graphor.workers.dev/sse",
-    transport: "sse",
-  }
-});
-
-const params: Graphor.SourceIngestURLParams = { url: 'url' };
-const response: Graphor.SourceIngestURLResponse = await client.sources.ingestURL(params);
-```
-
-Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
-
-## File uploads
-
-Request parameters that correspond to file uploads can be passed in many different forms:
-
-- `File` (or an object with the same structure)
-- a `fetch` `Response` (or an object with the same structure)
-- an `fs.ReadStream`
-- the return value of our `toFile` helper
-
-```ts
-import fs from 'fs';
-import Graphor, { toFile } from 'graphor';
-
-const client = new Graphor();
-
-// If you have access to Node `fs` we recommend using `fs.createReadStream()`:
-await client.sources.ingestFile({ file: fs.createReadStream('/path/to/file') });
-
-// Or if you have the web `File` API you can pass a `File` instance:
-await client.sources.ingestFile({ file: new File(['my bytes'], 'file') });
-
-// You can also pass a `fetch` `Response`:
-await client.sources.ingestFile({ file: await fetch('https://somesite/file') });
-
-// Finally, if none of the above are convenient, you can use our `toFile` helper:
-await client.sources.ingestFile({ file: await toFile(Buffer.from('my bytes'), 'file') });
-await client.sources.ingestFile({ file: await toFile(new Uint8Array([0, 1, 2]), 'file') });
-```
-
-## Handling errors
-
-When the library is unable to connect to the API,
-or if the API returns a non-success status code (i.e., 4xx or 5xx response),
-a subclass of `APIError` will be thrown:
-
-<!-- prettier-ignore -->
-```ts
-const response = await client.sources.ingestURL({ url: 'url' }).catch(async (err) => {
-  if (err instanceof Graphor.APIError) {
-    console.log(err.status); // 400
-    console.log(err.name); // BadRequestError
-    console.log(err.headers); // {server: 'nginx', ...}
-  } else {
-    throw err;
-  }
-});
-```
-
-Error codes are as follows:
-
-| Status Code | Error Type                 |
-| ----------- | -------------------------- |
-| 400         | `BadRequestError`          |
-| 401         | `AuthenticationError`      |
-| 403         | `PermissionDeniedError`    |
-| 404         | `NotFoundError`            |
-| 422         | `UnprocessableEntityError` |
-| 429         | `RateLimitError`           |
-| >=500       | `InternalServerError`      |
-| N/A         | `APIConnectionError`       |
-
-### Retries
-
-Certain errors will be automatically retried 0 times by default, with a short exponential backoff.
-Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
-429 Rate Limit, and >=500 Internal errors will all be retried by default.
-
-You can use the `maxRetries` option to configure or disable this:
-
-<!-- prettier-ignore -->
-```js
-// Configure the default for all requests:
-const client = new Graphor({
-  maxRetries: 0, // default is 2
-});
-
-// Or, configure per-request:
-await client.sources.ingestURL({ url: 'url' }, {
-  maxRetries: 5,
-});
-```
-
-### Timeouts
-
-Requests time out after 10 minutes by default. You can configure this with a `timeout` option:
-
-<!-- prettier-ignore -->
-```ts
-// Configure the default for all requests:
-const client = new Graphor({
-  timeout: 20 * 1000, // 20 seconds (default is 10 minutes)
-});
-
-// Override per-request:
-await client.sources.ingestURL({ url: 'url' }, {
-  timeout: 5 * 1000,
-});
-```
-
+=======
 On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
@@ -590,9 +510,16 @@ import Graphor from 'graphor';
 
 const client = new Graphor({
   logLevel: 'debug', // Show all log messages
+>>>>>>> origin/generated--merge-conflict
 });
-```
+console.log(`📊 Extracted: ${JSON.stringify(extracted.structured_output)}`);
 
+<<<<<<< HEAD
+// 5. Build custom RAG
+const chunks = await client.sources.retrieveChunks({
+  query: 'payment obligations',
+  file_names: [source.file_name]
+=======
 Available log levels, from most to least verbose:
 
 - `'debug'` - Show debug messages, info, warnings, and errors
@@ -622,26 +549,51 @@ const logger = pino();
 const client = new Graphor({
   logger: logger.child({ name: 'Graphor' }),
   logLevel: 'debug', // Send all messages to pino, allowing it to filter
+>>>>>>> origin/generated--merge-conflict
 });
+console.log(`🔍 Found ${chunks.total} relevant chunks`);
 ```
 
-### Making custom/undocumented requests
+## API Reference
 
-This library is typed for convenient access to the documented API. If you need to access undocumented
-endpoints, params, or response properties, the library can still be used.
+### Sources
 
-#### Undocumented endpoints
+| Method | Description | Docs |
+|--------|-------------|------|
+| `sources.upload()` | Upload a local file | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file) |
+| `sources.uploadUrl()` | Upload from web URL | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url) |
+| `sources.uploadGithub()` | Upload from GitHub | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github) |
+| `sources.uploadYoutube()` | Upload from YouTube | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
+| `sources.parse()` | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process) |
+| `sources.list()` | List all sources | [📖](https://docs.graphorlm.com/sdk/sources/list) |
+| `sources.delete()` | Delete a source | [📖](https://docs.graphorlm.com/sdk/sources/delete) |
+| `sources.loadElements()` | Get parsed elements | [📖](https://docs.graphorlm.com/sdk/sources/list-elements) |
 
-To make requests to undocumented endpoints, you can use `client.get`, `client.post`, and other HTTP verbs.
-Options on the client, such as retries, will be respected when making these requests.
+### Chat & AI
 
-```ts
-await client.post('/some/path', {
-  body: { some_prop: 'foo' },
-  query: { some_query_arg: 'bar' },
-});
+| Method | Description | Docs |
+|--------|-------------|------|
+| `sources.ask()` | Ask questions about documents | [📖](https://docs.graphorlm.com/sdk/chat) |
+| `sources.extract()` | Extract structured data | [📖](https://docs.graphorlm.com/sdk/extract) |
+| `sources.retrieveChunks()` | Retrieve chunks for RAG | [📖](https://docs.graphorlm.com/sdk/prebuilt-rag) |
+
+## TypeScript Support
+
+This library includes complete TypeScript definitions for all request params and response fields:
+
+```typescript
+import Graphor from 'graphor';
+
+const client = new Graphor();
+
+// Type-safe params and responses
+const params: Graphor.SourceUploadParams = { file: fs.createReadStream('path/to/file') };
+const source: Graphor.PublicSource = await client.sources.upload(params);
 ```
 
+<<<<<<< HEAD
+Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
+=======
 #### Undocumented request params
 
 To make requests using undocumented parameters, you may use `// @ts-expect-error` on the undocumented
@@ -760,6 +712,7 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
 We are keen for your feedback; please open an [issue](https://www.github.com/synapseops/graphor-typescript-sdk/issues) with questions, bugs, or suggestions.
+>>>>>>> origin/generated--merge-conflict
 
 ## Requirements
 
