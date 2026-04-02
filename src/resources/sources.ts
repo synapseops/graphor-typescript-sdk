@@ -274,6 +274,8 @@ export class Sources extends APIResource {
    *   Table).
    * - **page_numbers** (list, optional): Restrict to specific page numbers (repeat
    *   param for multiple).
+   * - **element_ids** (list, optional): Restrict to specific partition element_ids
+   *   (repeat param for multiple).
    * - **elementsToRemove** (list, optional): Element types to exclude (repeat param
    *   for multiple).
    *
@@ -1130,6 +1132,11 @@ export interface SourceGetElementsParams {
    * Unique identifier of the source
    */
   file_id: string;
+
+  /**
+   * Restrict to specific element IDs (repeat param for multiple)
+   */
+  element_ids?: Array<string> | null;
 
   /**
    * Element types to exclude
