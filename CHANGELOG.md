@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.17.0 (2026-04-06)
+
+Full Changelog: [v0.16.0...v0.17.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.16.0...v0.17.0)
+
+### Features
+
+* **api:** api update ([633efd0](https://github.com/synapseops/graphor-typescript-sdk/commit/633efd029bea165dd78f5e93bef5418d1a84181a))
+
+
+### Chores
+
+* **mcp-server:** log client info ([6ee0800](https://github.com/synapseops/graphor-typescript-sdk/commit/6ee0800ef3c7d7e5ec780311cd13b5717c0b5a7e))
+
 ## 0.16.0 (2026-04-02)
 
 Full Changelog: [v0.15.1...v0.16.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.15.1...v0.16.0)

@@ -219,8 +219,8 @@ export class Sources extends APIResource {
    * - **status**: SourceNodeStatus value when history exists (e.g. Processed,
    *   Processing, Processing failed). `not_found` when no history exists (build in
    *   progress or invalid id).
-   * - **success**: `true` only when `status == "Completed"`
-   *   (SourceNodeStatus.COMPLETED).
+   * - **success**: `true` when the build completed (status is "Completed" or
+   *   "Completed with errors").
    * - **file_id**, **file_name**: Source identifiers; present when the build has
    *   been persisted (history exists).
    * - **error**: Error message from the pipeline when the build failed.
@@ -764,13 +764,13 @@ export interface SourceGetBuildStatusResponse {
 
   /**
    * Current build status. When a build history exists, this is a SourceNodeStatus
-   * value (e.g. Completed, Processing, Processing failed). When no history exists
-   * yet: not_found.
+   * value (e.g. Completed, Completed with errors, Processing, Processing failed).
+   * When no history exists yet: not_found.
    */
   status: string;
 
   /**
-   * True if the build completed successfully (status is Completed).
+   * True if the build completed (status is Completed or Completed with errors).
    */
   success: boolean;
 
@@ -788,7 +788,8 @@ export interface SourceGetBuildStatusResponse {
 
   /**
    * Paginated list of parsed elements (chunks) for this build. Only present when
-   * suppress_elements=false and the build has completed (status Completed).
+   * suppress_elements=false and the build has completed (status Completed or
+   * Completed with errors).
    */
   elements?: Array<Element> | null;
 
@@ -796,6 +797,11 @@ export interface SourceGetBuildStatusResponse {
    * Error message from the pipeline, if the build failed (e.g. processing_failed).
    */
   error?: string | null;
+
+  /**
+   * Number of failed batches when status is 'Completed with errors'. Null otherwise.
+   */
+  failed_batches_count?: number | null;
 
   /**
    * Source file identifier. Present when the build has been persisted (history
@@ -807,6 +813,11 @@ export interface SourceGetBuildStatusResponse {
    * Display name of the source file. Present when the build has been persisted.
    */
   file_name?: string | null;
+
+  /**
+   * True when the build has failed batch details available for retry.
+   */
+  has_failed_batches?: boolean;
 
   /**
    * Human-readable message (e.g. when status is not_found or processing).
