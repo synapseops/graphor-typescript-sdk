@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.18.0 (2026-04-07)
+
+Full Changelog: [v0.17.0...v0.18.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.17.0...v0.18.0)
+
+### Features
+
+* **api:** api update ([13931d5](https://github.com/synapseops/graphor-typescript-sdk/commit/13931d5fcedcac214f16126f7ca38d2f43808095))
+
+
+### Chores
+
+* **internal:** fix MCP server import ordering ([ad09a0c](https://github.com/synapseops/graphor-typescript-sdk/commit/ad09a0c7d01391008f1d6ac789d6981e00436e71))
+
 ## 0.17.0 (2026-04-06)
 
 Full Changelog: [v0.16.0...v0.17.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.16.0...v0.17.0)
