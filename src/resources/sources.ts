@@ -714,6 +714,11 @@ export interface SourceAskResponse {
   conversation_id?: string | null;
 
   /**
+   * Wall-clock time in seconds for the request.
+   */
+  elapsed_s?: number | null;
+
+  /**
    * Optional raw JSON-text produced by the sources model before
    * validation/correction.
    */
@@ -724,6 +729,30 @@ export interface SourceAskResponse {
    * output_schema.
    */
   structured_output?: { [key: string]: unknown } | null;
+
+  /**
+   * Token usage breakdown for this request.
+   */
+  usage?: SourceAskResponse.Usage | null;
+}
+
+export namespace SourceAskResponse {
+  /**
+   * Token usage breakdown for this request.
+   */
+  export interface Usage {
+    cache_read_tokens?: number;
+
+    cache_write_tokens?: number;
+
+    om_tokens_in?: number;
+
+    om_tokens_out?: number;
+
+    tokens_in?: number;
+
+    tokens_out?: number;
+  }
 }
 
 export interface SourceExtractResponse {
