@@ -25,7 +25,7 @@ For example:
 
 \`\`\`
 async function run(client) {
-  const response = await client.sources.ingestURL({ url: 'url' });
+  const response = await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });
 
   console.log(response.build_id);
 }

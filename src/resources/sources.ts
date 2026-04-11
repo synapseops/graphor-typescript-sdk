@@ -125,7 +125,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ask({
-   *   question: 'question',
+   *   question: "What was the company's revenue in 2025?",
    * });
    * ```
    */
@@ -169,8 +169,9 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.extract({
-   *   output_schema: { foo: 'bar' },
-   *   user_instruction: 'user_instruction',
+   *   output_schema: { properties: 'bar', type: 'bar' },
+   *   user_instruction:
+   *     'Extract all invoice line items including product name, quantity, unit price, and total.',
    * });
    * ```
    */
@@ -344,7 +345,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestGitHub({
-   *   url: 'url',
+   *   url: 'https://github.com/langchain-ai/langchain',
    * });
    * ```
    */
@@ -390,7 +391,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestURL({
-   *   url: 'url',
+   *   url: 'https://example.com/blog/ai-trends-2025',
    * });
    * ```
    */
@@ -415,7 +416,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestYoutube({
-   *   url: 'url',
+   *   url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
    * });
    * ```
    */
@@ -444,7 +445,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.reprocess({
-   *   file_id: 'file_id',
+   *   file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
    * });
    * ```
    */
@@ -484,7 +485,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.retrieveChunks({
-   *   query: 'query',
+   *   query: "What was the company's net income in 2025?",
    * });
    * ```
    */

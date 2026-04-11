@@ -35,7 +35,7 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const response = await client.sources.ingestURL({ url: 'url' });
+const response = await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });
 
 console.log(response.build_id);
 ```
@@ -52,7 +52,7 @@ const client = new Graphor({
   apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted
 });
 
-const params: Graphor.SourceIngestURLParams = { url: 'url' };
+const params: Graphor.SourceIngestURLParams = { url: 'https://example.com/blog/ai-trends-2025' };
 const response: Graphor.SourceIngestURLResponse = await client.sources.ingestURL(params);
 ```
 
@@ -95,15 +95,17 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-const response = await client.sources.ingestURL({ url: 'url' }).catch(async (err) => {
-  if (err instanceof Graphor.APIError) {
-    console.log(err.status); // 400
-    console.log(err.name); // BadRequestError
-    console.log(err.headers); // {server: 'nginx', ...}
-  } else {
-    throw err;
-  }
-});
+const response = await client.sources
+  .ingestURL({ url: 'https://example.com/blog/ai-trends-2025' })
+  .catch(async (err) => {
+    if (err instanceof Graphor.APIError) {
+      console.log(err.status); // 400
+      console.log(err.name); // BadRequestError
+      console.log(err.headers); // {server: 'nginx', ...}
+    } else {
+      throw err;
+    }
+  });
 ```
 
 Error codes are as follows:
@@ -135,7 +137,7 @@ const client = new Graphor({
 });
 
 // Or, configure per-request:
-await client.sources.ingestURL({ url: 'url' }, {
+await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' }, {
   maxRetries: 5,
 });
 ```
@@ -152,7 +154,7 @@ const client = new Graphor({
 });
 
 // Override per-request:
-await client.sources.ingestURL({ url: 'url' }, {
+await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -175,12 +177,14 @@ Unlike `.asResponse()` this method consumes the body, returning once it is parse
 ```ts
 const client = new Graphor();
 
-const response = await client.sources.ingestURL({ url: 'url' }).asResponse();
+const response = await client.sources
+  .ingestURL({ url: 'https://example.com/blog/ai-trends-2025' })
+  .asResponse();
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
 const { data: response, response: raw } = await client.sources
-  .ingestURL({ url: 'url' })
+  .ingestURL({ url: 'https://example.com/blog/ai-trends-2025' })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
 console.log(response.build_id);
