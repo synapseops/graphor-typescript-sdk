@@ -123,7 +123,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       typescript: {
         method: 'client.sources.ingestFile',
         example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestFile({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(response.build_id);",
+          "import fs from 'fs';\nimport Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestFile({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(response.build_id);",
       },
     },
   },
