@@ -608,10 +608,9 @@ export interface Element {
  * - fast → basic
  * - balanced → hi_res
  * - accurate → hi_res_ft
- * - vlm → mai
  * - agentic → graphorlm
  */
-export type Method = 'fast' | 'balanced' | 'accurate' | 'vlm' | 'agentic';
+export type Method = 'fast' | 'balanced' | 'accurate' | 'agentic';
 
 export interface PublicSource {
   /**
@@ -662,7 +661,7 @@ export interface PublicSource {
 
   /**
    * Partitioning strategy used during ingestion. V1 API: basic, hi_res, hi_res_ft,
-   * mai, graphorlm. V2 API: fast, balanced, accurate, vlm, agentic.
+   * mai, graphorlm. V2 API: fast, balanced, accurate, agentic.
    */
   method?: string | null;
 }
@@ -862,7 +861,6 @@ export interface SourceGetBuildStatusResponse {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -1221,7 +1219,6 @@ export interface SourceIngestFileParams {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -1253,7 +1250,6 @@ export interface SourceIngestURLParams {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -1274,7 +1270,7 @@ export interface SourceReprocessParams {
   file_id: string;
 
   /**
-   * Partitioning strategy. One of: fast, balanced, accurate, vlm, agentic.
+   * Partitioning strategy. One of: fast, balanced, accurate, agentic.
    */
   method?: Method;
 }
