@@ -71,6 +71,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## get_build_status\n\n`client.sources.getBuildStatus(build_id: string, page?: number, page_size?: number, suppress_elements?: boolean, suppress_img_base64?: boolean): { build_id: string; status: string; success: boolean; created_at?: string; document_annotation?: string; elements?: element[]; error?: string; failed_batches_count?: number; file_id?: string; file_name?: string; has_failed_batches?: boolean; message?: string; method?: method; page?: number; page_size?: number; total_elements?: number; total_pages?: number; total_pages_elements?: number; total_partitions?: number; updated_at?: string; }`\n\n**get** `/sources/builds/{build_id}`\n\nReturn the status and optional parsed elements for an async build identified by `build_id`.\n\nUse this endpoint to poll the result of an async ingestion or re-process request. The\n`build_id` is returned in the response of:\n\n- `POST /v2/sources/upload` (async file upload)\n- `POST /v2/sources/upload-url-source` (async URL ingestion)\n- `POST /v2/sources/upload-github-source` (async GitHub ingestion)\n- `POST /v2/sources/upload-youtube-source` (async YouTube ingestion)\n- `POST /v2/sources/process` (async re-process)\n\n**Path parameter:**\n- **build_id** (str, required): The build identifier returned when the job was scheduled.\n\n**Query parameters:**\n- **suppress_elements** (bool, default `false`): When `true`, elements are omitted from\n  the response. When `false` (default), the response includes\n  the parsed elements (chunks/partitions) for the build if it completed successfully.\n  Same structure as `POST /sources/elements` (each element has `page_content` and\n  `metadata`). If `page` and `page_size` are not passed, all elements are returned.\n- **suppress_img_base64** (bool, default `false`): When `true`, `img_base64` is omitted\n  from each element (useful to reduce payload size when images are not needed).\n- **page** (int, optional): 1-based page number. Only used when `suppress_elements=false`\n  and pagination is used (pass either `page` or `page_size` to enable pagination).\n- **page_size** (int, optional): Number of elements per page (max 100). Only used\n  when `suppress_elements=false` and pagination is used.\n\n**Response fields:**\n- **build_id**: The requested build identifier.\n- **status**: SourceNodeStatus value when history exists (e.g. Processed, Processing,\n  Processing failed). `not_found` when no history exists (build in progress or invalid id).\n- **success**: `true` when the build completed (status is \"Completed\" or \"Completed with errors\").\n- **file_id**, **file_name**: Source identifiers; present when the build has been\n  persisted (history exists).\n- **error**: Error message from the pipeline when the build failed.\n- **method**, **total_partitions**, **total_pages**: Build metadata when\n  history exists.\n- **created_at**, **updated_at**: ISO8601 timestamps when history exists.\n- **document_annotation**: Document-level summary/annotation from the build history when available.\n- **message**: Human-readable message (e.g. when status is `not_found`).\n- **elements**: List of `{ page_content, metadata }` when `suppress_elements=false`\n  and the build completed successfully.\n- **total_elements**, **page**, **page_size**, **total_pages_elements**: Pagination\n  metadata for `elements` when `suppress_elements=false`.\n\n**Error responses:**\n- `500` — Unexpected internal error.\n\n### Parameters\n\n- `build_id: string`\n\n- `page?: number`\n\n- `page_size?: number`\n\n- `suppress_elements?: boolean`\n\n- `suppress_img_base64?: boolean`\n\n### Returns\n\n- `{ build_id: string; status: string; success: boolean; created_at?: string; document_annotation?: string; elements?: { bounding_box?: object; element_id?: string; element_type?: string; html?: string; img_base64?: string; markdown?: string; metadata?: object; page_annotation?: string; page_keywords?: string[]; page_layout?: object; page_number?: number; page_topics?: string[]; position?: number; text?: string; }[]; error?: string; failed_batches_count?: number; file_id?: string; file_name?: string; has_failed_batches?: boolean; message?: string; method?: 'fast' | 'balanced' | 'accurate' | 'agentic'; page?: number; page_size?: number; total_elements?: number; total_pages?: number; total_pages_elements?: number; total_partitions?: number; updated_at?: string; }`\n  Status and optional result for an async build (ingestion/re-process) identified by build_id.\n\nReturned by GET /v2/sources/builds/{build_id}. When the build has completed successfully,\nincludes file_id, file_name, and optionally paginated elements (parsed chunks).\n\n  - `build_id: string`\n  - `status: string`\n  - `success: boolean`\n  - `created_at?: string`\n  - `document_annotation?: string`\n  - `elements?: { bounding_box?: object; element_id?: string; element_type?: string; html?: string; img_base64?: string; markdown?: string; metadata?: object; page_annotation?: string; page_keywords?: string[]; page_layout?: object; page_number?: number; page_topics?: string[]; position?: number; text?: string; }[]`\n  - `error?: string`\n  - `failed_batches_count?: number`\n  - `file_id?: string`\n  - `file_name?: string`\n  - `has_failed_batches?: boolean`\n  - `message?: string`\n  - `method?: 'fast' | 'balanced' | 'accurate' | 'agentic'`\n  - `page?: number`\n  - `page_size?: number`\n  - `total_elements?: number`\n  - `total_pages?: number`\n  - `total_pages_elements?: number`\n  - `total_partitions?: number`\n  - `updated_at?: string`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.getBuildStatus('build_id');\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.getBuildStatus',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.getBuildStatus('build_id');\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.get_build_status',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.get_build_status(\n    build_id="build_id",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.GetBuildStatus',
         example:
@@ -79,16 +89,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/builds/$BUILD_ID \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY"',
-      },
-      python: {
-        method: 'sources.get_build_status',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.get_build_status(\n    build_id="build_id",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.getBuildStatus',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.getBuildStatus('build_id');\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -106,6 +106,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## ingest_file\n\n`client.sources.ingestFile(file: string, method?: 'fast' | 'balanced' | 'accurate' | 'agentic'): { build_id: string; error?: string; success?: boolean; }`\n\n**post** `/sources/ingest-file`\n\nUpload a local file and schedule ingestion in the background.\n\nAccepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and\nextension, stores the file, then schedules the full data-ingestion pipeline in the\nbackground. Returns immediately with a `build_id` to poll for status.\n\n**Parameters:**\n- **file** (`multipart/form-data`): The file to upload. Must include `Content-Length`\n  and have a supported extension (pdf, doc, docx, csv, txt, md, etc.).\n- **method** (`form`, optional): Partitioning strategy. One of: `fast`,\n  `balanced`, `accurate`, `vlm`, `agentic`. Default when omitted.\n\n**Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing status.\n\n### Parameters\n\n- `file: string`\n\n- `method?: 'fast' | 'balanced' | 'accurate' | 'agentic'`\n  Public-facing partition method names for API v2.\n\nMaps to internal PartitionMethod as:\n- fast     → basic\n- balanced → hi_res\n- accurate → hi_res_ft\n- agentic  → graphorlm\n\n### Returns\n\n- `{ build_id: string; error?: string; success?: boolean; }`\n\n  - `build_id: string`\n  - `error?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.ingestFile({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.ingestFile',
+        example:
+          "import fs from 'fs';\nimport Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestFile({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.ingest_file',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_file(\n    file=b"Example data",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.IngestFile',
         example:
@@ -114,16 +124,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           "curl https://api.graphorlm.com/api/public/v1/sources/ingest-file \\\n    -H 'Content-Type: multipart/form-data' \\\n    -H \"Authorization: Bearer $GRAPHOR_API_KEY\" \\\n    -F 'file=@/path/to/file'",
-      },
-      python: {
-        method: 'sources.ingest_file',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_file(\n    file=b"Example data",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.ingestFile',
-        example:
-          "import fs from 'fs';\nimport Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestFile({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -145,6 +145,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## ingest_url\n\n`client.sources.ingestURL(url: string, crawlUrls?: boolean, method?: 'fast' | 'balanced' | 'accurate' | 'agentic'): { build_id: string; error?: string; success?: boolean; }`\n\n**post** `/sources/ingest-url`\n\nIngest a web page (or a set of crawled pages) as a source into the project's knowledge graph.\n\nUnlike the synchronous version, this endpoint schedules the ingestion in the background\nand returns immediately with a `processing` status. The source will be fully available\nonce background processing completes.\n\nIf the URL points directly to a downloadable file (detected via URL path extension or\nHTTP Content-Type), the file is first downloaded and uploaded to storage synchronously,\nthen the partition/embedding pipeline runs in the background.\n\n**Parameters (JSON body):**\n- **url** (str, required): The web page URL to ingest.\n- **crawlUrls** (bool, optional, default `false`): When `true`, the system will also\n  follow and ingest links found on the page. Ignored when the URL resolves to a file.\n- **method** (str, optional): The partitioning strategy to use.\n  One of: `fast`, `balanced`, `accurate`, `vlm`, `agentic`. When omitted the system default is applied.\n\n**Returns** a `PublicSourceResponse` with `status: \"processing\"` immediately.\nPoll the source status endpoint using the returned `file_id` to track completion.\n\n**Error responses:**\n- `400` — Unsupported file type detected from a file URL.\n- `500` — Unexpected internal error during URL processing.\n\n### Parameters\n\n- `url: string`\n  The web page URL to ingest\n\n- `crawlUrls?: boolean`\n  When true, also follows and ingests links found on the page\n\n- `method?: 'fast' | 'balanced' | 'accurate' | 'agentic'`\n  Public-facing partition method names for API v2.\n\nMaps to internal PartitionMethod as:\n- fast     → basic\n- balanced → hi_res\n- accurate → hi_res_ft\n- agentic  → graphorlm\n\n### Returns\n\n- `{ build_id: string; error?: string; success?: boolean; }`\n\n  - `build_id: string`\n  - `error?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.ingestURL',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.ingest_url',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_url(\n    url="https://example.com/blog/ai-trends-2025",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.IngestURL',
         example:
@@ -153,16 +163,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/ingest-url \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "url": "https://example.com/blog/ai-trends-2025"\n        }\'',
-      },
-      python: {
-        method: 'sources.ingest_url',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_url(\n    url="https://example.com/blog/ai-trends-2025",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.ingestURL',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -180,6 +180,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## ingest_github\n\n`client.sources.ingestGitHub(url: string): { build_id: string; error?: string; success?: boolean; }`\n\n**post** `/sources/ingest-github`\n\nIngest a GitHub repository as a source into the project's knowledge graph.\n\nSchedules the ingestion in the background and returns immediately with a `build_id`.\nUse the returned `build_id` to poll for processing status.\n\n**Parameters (JSON body):**\n- **url** (str, required): The GitHub repository URL to ingest\n  (e.g. `https://github.com/owner/repo`).\n\n**Returns** `AsyncIngestResponse` with `build_id`.\n\n### Parameters\n\n- `url: string`\n  The GitHub repository URL to ingest (e.g. https://github.com/owner/repo)\n\n### Returns\n\n- `{ build_id: string; error?: string; success?: boolean; }`\n\n  - `build_id: string`\n  - `error?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.ingestGitHub({ url: 'https://github.com/langchain-ai/langchain' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.ingestGitHub',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestGitHub({\n  url: 'https://github.com/langchain-ai/langchain',\n});\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.ingest_github',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_github(\n    url="https://github.com/langchain-ai/langchain",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.IngestGitHub',
         example:
@@ -188,16 +198,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/ingest-github \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "url": "https://github.com/langchain-ai/langchain"\n        }\'',
-      },
-      python: {
-        method: 'sources.ingest_github',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_github(\n    url="https://github.com/langchain-ai/langchain",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.ingestGitHub',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestGitHub({\n  url: 'https://github.com/langchain-ai/langchain',\n});\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -215,6 +215,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## ingest_youtube\n\n`client.sources.ingestYoutube(url: string): { build_id: string; error?: string; success?: boolean; }`\n\n**post** `/sources/ingest-youtube`\n\nIngest a YouTube video as a source into the project's knowledge graph.\n\nSchedules the ingestion in the background and returns immediately with a `build_id`.\nThe endpoint will download the transcript/captions and process them in the background.\nUse the returned `build_id` to poll for processing status.\n\n**Parameters (JSON body):**\n- **url** (str, required): The YouTube video URL to ingest\n  (e.g. `https://www.youtube.com/watch?v=...`).\n\n**Returns** `AsyncIngestResponse` with `build_id`.\n\n### Parameters\n\n- `url: string`\n  The YouTube video URL to ingest (e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ)\n\n### Returns\n\n- `{ build_id: string; error?: string; success?: boolean; }`\n\n  - `build_id: string`\n  - `error?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.ingestYoutube({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.ingestYoutube',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestYoutube({\n  url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n});\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.ingest_youtube',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_youtube(\n    url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.IngestYoutube',
         example:
@@ -223,16 +233,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/ingest-youtube \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"\n        }\'',
-      },
-      python: {
-        method: 'sources.ingest_youtube',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ingest_youtube(\n    url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.ingestYoutube',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ingestYoutube({\n  url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n});\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -250,6 +250,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## reprocess\n\n`client.sources.reprocess(file_id: string, method?: 'fast' | 'balanced' | 'accurate' | 'agentic'): { build_id: string; error?: string; success?: boolean; }`\n\n**post** `/sources/reprocess`\n\nRe-process (re-parse) an existing source in the background.\n\nSchedules the data-ingestion pipeline (partitioning, chunking, embedding) for an\nexisting source and returns immediately with a `build_id`. Use it to poll for status.\n\n**Parameters (JSON body):**\n- **file_id** (str, required): Unique identifier of the source to re-process.\n- **method** (str, default `\"fast\"`): Partitioning strategy. One of:\n  `fast`, `balanced`, `accurate`, `vlm`, `agentic`.\n\n**Returns** `AsyncIngestResponse` with `build_id`.\n\n### Parameters\n\n- `file_id: string`\n  Unique identifier of the source to re-process.\n\n- `method?: 'fast' | 'balanced' | 'accurate' | 'agentic'`\n  Partitioning strategy. One of: fast, balanced, accurate, agentic.\n\n### Returns\n\n- `{ build_id: string; error?: string; success?: boolean; }`\n\n  - `build_id: string`\n  - `error?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.reprocess({ file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.reprocess',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.reprocess({\n  file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',\n});\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.reprocess',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.reprocess(\n    file_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n)\nprint(response.build_id)',
+      },
       go: {
         method: 'client.Sources.Reprocess',
         example:
@@ -258,16 +268,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/reprocess \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "file_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"\n        }\'',
-      },
-      python: {
-        method: 'sources.reprocess',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.reprocess(\n    file_id="a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n)\nprint(response.build_id)',
-      },
-      typescript: {
-        method: 'client.sources.reprocess',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.reprocess({\n  file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',\n});\n\nconsole.log(response.build_id);",
       },
     },
   },
@@ -286,6 +286,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       '## list\n\n`client.sources.list(file_ids?: string[]): object[]`\n\n**get** `/sources`\n\nList all sources in the project\'s knowledge graph.\n\nReturns every source node currently stored in the knowledge graph for the\nauthenticated project. Each item includes the file metadata (ID, name, size, type,\norigin) along with its current processing status and a human-readable status message.\n\n**Query parameters:**\n- **file_ids** (list, optional): If provided, only sources whose file_id is in this\n  list are returned. Repeat the param for multiple IDs (e.g. ?file_ids=id1&file_ids=id2).\n\n**Status messages returned per source:**\n- `"completed"` → *"Source processed successfully"*\n- `"processing"` → *"Source is being processed"*\n- `"failed"` → *"Source processing failed"*\n\n**Returns** a JSON array of `PublicSourceResponse` objects.\n\n**Error responses:**\n- `500` — Unexpected internal error while retrieving sources.\n\n### Parameters\n\n- `file_ids?: string[]`\n  Optional list of file_id to filter by (only these sources are returned). Repeat the param for multiple IDs.\n\n### Returns\n\n- `{ file_name: string; file_size: number; file_source: string; file_type: string; message: string; project_id: string; project_name: string; status: string; file_id?: string; method?: string; }[]`\n\n### Example\n\n```typescript\nimport Graphor from \'graphor\';\n\nconst client = new Graphor();\n\nconst publicSources = await client.sources.list();\n\nconsole.log(publicSources);\n```',
     perLanguage: {
+      typescript: {
+        method: 'client.sources.list',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst publicSources = await client.sources.list();\n\nconsole.log(publicSources);",
+      },
+      python: {
+        method: 'sources.list',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\npublic_sources = client.sources.list()\nprint(public_sources)',
+      },
       go: {
         method: 'client.Sources.List',
         example:
@@ -294,16 +304,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY"',
-      },
-      python: {
-        method: 'sources.list',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\npublic_sources = client.sources.list()\nprint(public_sources)',
-      },
-      typescript: {
-        method: 'client.sources.list',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst publicSources = await client.sources.list();\n\nconsole.log(publicSources);",
       },
     },
   },
@@ -322,6 +322,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## delete\n\n`client.sources.delete(file_id?: string, file_name?: string): { file_name: string; message: string; project_id: string; project_name: string; status: string; file_id?: string; }`\n\n**delete** `/sources/delete`\n\nDelete a source from the project's knowledge graph and all associated data.\n\nRemoves the source node, its partitions/chunks, embeddings, and any stored files\nfrom the knowledge graph and object storage. The operation is irreversible.\n\n**Parameters (JSON body):**\n- **file_id** (str, optional — preferred): The unique identifier of the source to\n  delete.\n- **file_name** (str, optional — deprecated): The display name of the source. Use\n  `file_id` instead when possible. At least one of `file_id` or `file_name` must be\n  provided.\n\n**Returns** a `PublicDeleteSourceResponse` with the deletion status, file ID, file\nname, project ID, and project name.\n\n**Error responses:**\n- `400` — Invalid input (e.g. neither identifier provided).\n- `403` — Permission denied.\n- `404` — Source not found.\n- `500` — Unexpected internal error.\n\n### Parameters\n\n- `file_id?: string`\n  Unique identifier for the source (preferred)\n\n- `file_name?: string`\n  The name of the file to delete (deprecated, use file_id)\n\n### Returns\n\n- `{ file_name: string; message: string; project_id: string; project_name: string; status: string; file_id?: string; }`\n\n  - `file_name: string`\n  - `message: string`\n  - `project_id: string`\n  - `project_name: string`\n  - `status: string`\n  - `file_id?: string`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst source = await client.sources.delete();\n\nconsole.log(source);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.delete',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst source = await client.sources.delete();\n\nconsole.log(source.project_id);",
+      },
+      python: {
+        method: 'sources.delete',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nsource = client.sources.delete()\nprint(source.project_id)',
+      },
       go: {
         method: 'client.Sources.Delete',
         example:
@@ -330,16 +340,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/delete \\\n    -X DELETE \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY"',
-      },
-      python: {
-        method: 'sources.delete',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nsource = client.sources.delete()\nprint(source.project_id)',
-      },
-      typescript: {
-        method: 'client.sources.delete',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst source = await client.sources.delete();\n\nconsole.log(source.project_id);",
       },
     },
   },
@@ -363,6 +363,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## extract\n\n`client.sources.extract(output_schema: object, user_instruction: string, file_ids?: string[], file_names?: string[], thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max'): { file_names: string[]; file_ids?: string[]; raw_json?: string; structured_output?: object; }`\n\n**post** `/sources/run-extraction`\n\nRun a one-off structured data extraction against one or more sources.\n\nThis endpoint uses the GenAI File Search pipeline to read the specified sources,\napply the user-provided instruction, and return structured JSON output conforming\nto the supplied `output_schema`. Internally it builds a grounded prompt, queries\nthe model, and validates/corrects the raw JSON against the schema.\n\n**Parameters (JSON body):**\n- **file_ids** (list[str], optional — preferred): List of source file IDs to extract\n  from.\n- **file_names** (list[str], optional — deprecated): List of source file names to\n  extract from. Use `file_ids` when possible. At least one of the two lists must be\n  provided and non-empty.\n- **user_instruction** (str, required): A natural-language instruction that guides what\n  information to extract from the documents.\n- **output_schema** (dict, required): A JSON Schema object describing the desired\n  structured output shape. The model will produce data conforming to this schema.\n- **thinking_level** (str, optional, default `\"accurate\"`): Controls the model/thinking\n  budget — one of `\"fast\"`, `\"balanced\"`, or `\"accurate\"`.\n\n**Returns** a `PublicRunExtractionResultResponse` containing:\n- `structured_output` — the validated structured object.\n- `raw_json` — the raw JSON text produced by the model before validation.\n\n**Error responses:**\n- `500` — Unexpected internal error during extraction.\n\n### Parameters\n\n- `output_schema: object`\n  JSON Schema describing the desired structured output shape. The model will produce data conforming to this schema.\n\n- `user_instruction: string`\n  Natural-language instruction guiding what information to extract\n\n- `file_ids?: string[]`\n  List of file IDs to extract from (preferred)\n\n- `file_names?: string[]`\n  List of file names to extract from (deprecated, use file_ids)\n\n- `thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max'`\n  Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', 'accurate', or 'max' (most thorough)\n\n### Returns\n\n- `{ file_names: string[]; file_ids?: string[]; raw_json?: string; structured_output?: object; }`\n\n  - `file_names: string[]`\n  - `file_ids?: string[]`\n  - `raw_json?: string`\n  - `structured_output?: object`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.extract({\n  output_schema: { properties: 'bar', type: 'bar' },\n  user_instruction: 'Extract all invoice line items including product name, quantity, unit price, and total.',\n});\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.extract',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.extract({\n  output_schema: { properties: 'bar', type: 'bar' },\n  user_instruction:\n    'Extract all invoice line items including product name, quantity, unit price, and total.',\n});\n\nconsole.log(response.file_ids);",
+      },
+      python: {
+        method: 'sources.extract',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.extract(\n    output_schema={\n        "properties": "bar",\n        "type": "bar",\n    },\n    user_instruction="Extract all invoice line items including product name, quantity, unit price, and total.",\n)\nprint(response.file_ids)',
+      },
       go: {
         method: 'client.Sources.Extract',
         example:
@@ -371,16 +381,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/run-extraction \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "output_schema": {\n            "properties": "bar",\n            "type": "bar"\n          },\n          "user_instruction": "Extract all invoice line items including product name, quantity, unit price, and total."\n        }\'',
-      },
-      python: {
-        method: 'sources.extract',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.extract(\n    output_schema={\n        "properties": "bar",\n        "type": "bar",\n    },\n    user_instruction="Extract all invoice line items including product name, quantity, unit price, and total.",\n)\nprint(response.file_ids)',
-      },
-      typescript: {
-        method: 'client.sources.extract',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.extract({\n  output_schema: { properties: 'bar', type: 'bar' },\n  user_instruction:\n    'Extract all invoice line items including product name, quantity, unit price, and total.',\n});\n\nconsole.log(response.file_ids);",
       },
     },
   },
@@ -407,6 +407,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## ask\n\n`client.sources.ask(question: string, conversation_id?: string, file_ids?: string[], file_names?: string[], output_schema?: object, reset?: boolean, thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max'): { answer: string; conversation_id?: string; elapsed_s?: number; raw_json?: string; structured_output?: object; usage?: object; }`\n\n**post** `/sources/ask-sources`\n\nAsk a natural-language question grounded on the project's ingested sources.\n\nThis is the primary Q&A endpoint. It sends the question through the GenAI File Search\npipeline, which retrieves relevant chunks from the knowledge graph, grounds the answer\nin the source documents, and returns a natural-language response. Optionally, you can\nrequest a structured JSON output by supplying an `output_schema`.\n\nConversation memory is supported: pass a `conversation_id` to continue an existing\nconversation, or set `reset` to `true` to start fresh.\n\n**Parameters (JSON body):**\n- **question** (str, required): The question to ask about the sources.\n- **conversation_id** (str, optional): An existing conversation identifier to maintain\n  context across multiple turns.\n- **reset** (bool, optional, default `false`): When `true`, starts a new conversation\n  discarding any previous history.\n- **file_ids** (list[str], optional — preferred): Restrict the search scope to specific\n  source file IDs.\n- **file_names** (list[str], optional — deprecated): Restrict the search scope to\n  specific source file names. Use `file_ids` when possible.\n- **output_schema** (dict, optional): A JSON Schema for requesting structured output.\n  When provided, the response includes a `structured_output` field validated against\n  this schema and the `raw_json` produced by the model.\n- **thinking_level** (str, optional, default `\"accurate\"`): Controls the model/thinking\n  budget — one of `\"fast\"`, `\"balanced\"`, or `\"accurate\"`.\n\n**Returns** a `PublicAskSourcesResponse` containing:\n- `answer` — the natural-language answer (or a status message when `output_schema` is\n  provided).\n- `structured_output` — the validated structured object (when `output_schema` is\n  provided).\n- `raw_json` — the raw JSON text before validation (when `output_schema` is provided).\n- `conversation_id` — the conversation identifier for follow-up questions.\n\n**Error responses:**\n- `500` — Unexpected internal error while asking sources.\n\n### Parameters\n\n- `question: string`\n  The natural-language question to ask about the sources\n\n- `conversation_id?: string`\n  Conversation identifier to maintain memory context across multiple turns\n\n- `file_ids?: string[]`\n  Optional list of file IDs to restrict search scope (preferred)\n\n- `file_names?: string[]`\n  Optional list of file display names to restrict search scope (deprecated, use file_ids)\n\n- `output_schema?: object`\n  Optional JSON Schema for requesting structured output. When provided, the answer field will contain a short status message and the structured data will be in structured_output.\n\n- `reset?: boolean`\n  When true, starts a new conversation discarding any previous history\n\n- `thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max'`\n  Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', 'accurate', or 'max' (most thorough)\n\n### Returns\n\n- `{ answer: string; conversation_id?: string; elapsed_s?: number; raw_json?: string; structured_output?: object; usage?: { cache_read_tokens?: number; cache_write_tokens?: number; om_tokens_in?: number; om_tokens_out?: number; tokens_in?: number; tokens_out?: number; }; }`\n\n  - `answer: string`\n  - `conversation_id?: string`\n  - `elapsed_s?: number`\n  - `raw_json?: string`\n  - `structured_output?: object`\n  - `usage?: { cache_read_tokens?: number; cache_write_tokens?: number; om_tokens_in?: number; om_tokens_out?: number; tokens_in?: number; tokens_out?: number; }`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.ask({ question: 'What was the company\\'s revenue in 2025?' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.ask',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ask({ question: \"What was the company's revenue in 2025?\" });\n\nconsole.log(response.conversation_id);",
+      },
+      python: {
+        method: 'sources.ask',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ask(\n    question="What was the company\'s revenue in 2025?",\n)\nprint(response.conversation_id)',
+      },
       go: {
         method: 'client.Sources.Ask',
         example:
@@ -415,16 +425,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/ask-sources \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"question\\": \\"What was the company\'s revenue in 2025?\\"\n        }"',
-      },
-      python: {
-        method: 'sources.ask',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.ask(\n    question="What was the company\'s revenue in 2025?",\n)\nprint(response.conversation_id)',
-      },
-      typescript: {
-        method: 'client.sources.ask',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.ask({ question: \"What was the company's revenue in 2025?\" });\n\nconsole.log(response.conversation_id);",
       },
     },
   },
@@ -452,6 +452,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## get_elements\n\n`client.sources.getElements(file_id: string, element_ids?: string[], elementsToRemove?: string[], page?: number, page_numbers?: number[], page_size?: number, suppress_img_base64?: boolean, type?: string): { items: element[]; total: number; page?: number; page_size?: number; total_pages?: number; }`\n\n**get** `/sources/get-elements`\n\nRetrieve the parsed elements (chunks/partitions) of a source in the same format as get_build_status.\n\nReturns elements with explicit fields: element_id, element_type, text, markdown, html,\nimg_base64 (optional), position, page_number, bounding_box, page_layout, etc.\n\n**Query parameters:**\n- **file_id** (str, required): Unique identifier of the source.\n- **page** (int, optional): 1-based page number. Use with page_size to enable pagination.\n- **page_size** (int, optional): Number of elements per page (max 100).\n- **suppress_img_base64** (bool, default false): When true, img_base64 is omitted from each element.\n- **type** (str, optional): Filter by element type (e.g. NarrativeText, Title, Table).\n- **page_numbers** (list, optional): Restrict to specific page numbers (repeat param for multiple).\n- **element_ids** (list, optional): Restrict to specific partition element_ids (repeat param for multiple).\n- **elementsToRemove** (list, optional): Element types to exclude (repeat param for multiple).\n\n**Returns** Paginated response with items as BuildStatusElement list (same shape as GET /builds/{build_id} elements).\n\n### Parameters\n\n- `file_id: string`\n  Unique identifier of the source\n\n- `element_ids?: string[]`\n  Restrict to specific element IDs (repeat param for multiple)\n\n- `elementsToRemove?: string[]`\n  Element types to exclude\n\n- `page?: number`\n  1-based page number (use with page_size)\n\n- `page_numbers?: number[]`\n  Restrict to specific page numbers\n\n- `page_size?: number`\n  Number of elements per page\n\n- `suppress_img_base64?: boolean`\n  When true, img_base64 is omitted from each element\n\n- `type?: string`\n  Filter by element type (e.g. NarrativeText, Title)\n\n### Returns\n\n- `{ items: { bounding_box?: object; element_id?: string; element_type?: string; html?: string; img_base64?: string; markdown?: string; metadata?: object; page_annotation?: string; page_keywords?: string[]; page_layout?: object; page_number?: number; page_topics?: string[]; position?: number; text?: string; }[]; total: number; page?: number; page_size?: number; total_pages?: number; }`\n\n  - `items: { bounding_box?: object; element_id?: string; element_type?: string; html?: string; img_base64?: string; markdown?: string; metadata?: object; page_annotation?: string; page_keywords?: string[]; page_layout?: object; page_number?: number; page_topics?: string[]; position?: number; text?: string; }[]`\n  - `total: number`\n  - `page?: number`\n  - `page_size?: number`\n  - `total_pages?: number`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.getElements({ file_id: 'file_id' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.getElements',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.getElements({ file_id: 'file_id' });\n\nconsole.log(response.items);",
+      },
+      python: {
+        method: 'sources.get_elements',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.get_elements(\n    file_id="file_id",\n)\nprint(response.items)',
+      },
       go: {
         method: 'client.Sources.GetElements',
         example:
@@ -460,16 +470,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/get-elements \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY"',
-      },
-      python: {
-        method: 'sources.get_elements',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.get_elements(\n    file_id="file_id",\n)\nprint(response.items)',
-      },
-      typescript: {
-        method: 'client.sources.getElements',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.getElements({ file_id: 'file_id' });\n\nconsole.log(response.items);",
       },
     },
   },
@@ -488,6 +488,16 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     markdown:
       "## retrieve_chunks\n\n`client.sources.retrieveChunks(query: string, file_ids?: string[], file_names?: string[]): { query: string; total: number; chunks?: object[]; }`\n\n**post** `/sources/prebuilt-rag`\n\nRetrieve relevant document chunks from the prebuilt RAG vector store.\n\nPerforms a semantic similarity search over the project's prebuilt RAG store using\nGoogle File Search with grounding. Returns the most relevant text chunks along with\ntheir source metadata (file name, page number, relevance score). This is a pure\nretrieval endpoint — it does **not** generate an answer; use `/ask-sources` for Q&A.\n\n**Parameters (JSON body):**\n- **query** (str, required): The natural-language search query used to find relevant\n  chunks.\n- **file_ids** (list[str], optional — preferred): Restrict retrieval to specific source\n  file IDs.\n- **file_names** (list[str], optional — deprecated): Restrict retrieval to specific\n  source file names. Use `file_ids` when possible.\n\n**Returns** a `PublicRetrieveResponse` containing:\n- `query` — the original search query.\n- `chunks` — a list of `PublicRetrieveChunk` objects, each with `text`,\n  `file_name`, `page_number`, `score`, and additional `metadata`.\n- `total` — the total number of chunks returned.\n\n**Error responses:**\n- `500` — Unexpected internal error during retrieval.\n\n### Parameters\n\n- `query: string`\n  The natural-language search query to find relevant chunks\n\n- `file_ids?: string[]`\n  Optional list of file IDs to restrict retrieval scope (preferred)\n\n- `file_names?: string[]`\n  Optional list of file names to restrict retrieval scope (deprecated, use file_ids)\n\n### Returns\n\n- `{ query: string; total: number; chunks?: { text: string; file_id?: string; file_name?: string; metadata?: object; page_number?: number; score?: number; }[]; }`\n\n  - `query: string`\n  - `total: number`\n  - `chunks?: { text: string; file_id?: string; file_name?: string; metadata?: object; page_number?: number; score?: number; }[]`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.retrieveChunks({ query: 'What was the company\\'s net income in 2025?' });\n\nconsole.log(response);\n```",
     perLanguage: {
+      typescript: {
+        method: 'client.sources.retrieveChunks',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.retrieveChunks({\n  query: \"What was the company's net income in 2025?\",\n});\n\nconsole.log(response.query);",
+      },
+      python: {
+        method: 'sources.retrieve_chunks',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.retrieve_chunks(\n    query="What was the company\'s net income in 2025?",\n)\nprint(response.query)',
+      },
       go: {
         method: 'client.Sources.GetChunks',
         example:
@@ -496,16 +506,6 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       http: {
         example:
           'curl https://api.graphorlm.com/api/public/v1/sources/prebuilt-rag \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"query\\": \\"What was the company\'s net income in 2025?\\"\n        }"',
-      },
-      python: {
-        method: 'sources.retrieve_chunks',
-        example:
-          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.retrieve_chunks(\n    query="What was the company\'s net income in 2025?",\n)\nprint(response.query)',
-      },
-      typescript: {
-        method: 'client.sources.retrieveChunks',
-        example:
-          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.retrieveChunks({\n  query: \"What was the company's net income in 2025?\",\n});\n\nconsole.log(response.query);",
       },
     },
   },
