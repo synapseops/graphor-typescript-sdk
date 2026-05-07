@@ -704,9 +704,17 @@ export interface SourceAskResponse {
   /**
    * The answer to the question. When output_schema is provided, this will be a short
    * status message and the structured data will be in structured_output (and the raw
-   * JSON-text in raw_json).
+   * JSON-text in raw_json). Inline citations appear as `[N]` markers; use the
+   * `citations` field to resolve each marker to its source.
    */
   answer: string;
+
+  /**
+   * Structured citations extracted from the `[N]` markers in `answer`. When the
+   * request includes `include_citation_images=true`, each entry carries a
+   * base64-encoded PNG screenshot of the cited page in `image_base64`.
+   */
+  citations?: Array<SourceAskResponse.Citation> | null;
 
   /**
    * Conversation identifier used to maintain memory context
@@ -737,6 +745,57 @@ export interface SourceAskResponse {
 }
 
 export namespace SourceAskResponse {
+  /**
+   * A structured citation extracted from the inline `[N]` markers in the answer.
+   *
+   * Each citation corresponds to one `[N]` marker in the `answer` text. Use the
+   * `index` field to map between the marker and the citation entry.
+   */
+  export interface Citation {
+    /**
+     * Optional element identifier within the page/section (e.g. a specific paragraph
+     * or table).
+     */
+    element_id?: string | null;
+
+    /**
+     * The unique identifier of the source file the citation refers to.
+     */
+    file_id?: string | null;
+
+    /**
+     * Display name of the source file.
+     */
+    file_name?: string | null;
+
+    /**
+     * Base64-encoded PNG screenshot of the cited page. Only populated when the request
+     * was made with `include_citation_images=true`. May be null if the underlying
+     * source is not visualizable (e.g. plain text).
+     */
+    image_base64?: string | null;
+
+    /**
+     * The 1-based citation number that appears as `[N]` in the answer text.
+     */
+    index?: number | null;
+
+    /**
+     * 1-based page number where the cited content appears.
+     */
+    page_number?: number | null;
+
+    /**
+     * Optional section number within the page.
+     */
+    section_number?: number | null;
+
+    /**
+     * Short text excerpt around the cited content, useful for quick context.
+     */
+    text_preview?: string | null;
+  }
+
   /**
    * Token usage breakdown for this request.
    */
@@ -1107,6 +1166,25 @@ export interface SourceAskParams {
    * file_ids)
    */
   file_names?: Array<string> | null;
+
+  /**
+   * When true, the response's `citations` entries are populated with a
+   * base64-encoded PNG screenshot of each cited page in `image_base64`. Increases
+   * payload size and latency — leave false (the default) when not needed and fetch
+   * screenshots on demand via
+   * `GET /sources/{file_id}/pages/{page_number}/screenshot`.
+   */
+  include_citation_images?: boolean | null;
+
+  /**
+   * When true, the `answer` field keeps the structured citation markup
+   * `[N](file_id|pX|sY|eZ|fNAME)` emitted by the agent. When false (default), the
+   * markup is stripped to plain `[N]` markers and the structured data is exposed via
+   * `citations` instead. Note: the markup format is an implementation detail and may
+   * change in future versions — prefer the `citations` field for stable parsing. Has
+   * no effect when `output_schema` is set.
+   */
+  include_citation_markup?: boolean | null;
 
   /**
    * Optional JSON Schema for requesting structured output. When provided, the answer
