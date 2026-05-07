@@ -1121,10 +1121,10 @@ export interface SourceAskParams {
   reset?: boolean | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or
-   * 'accurate' (most thorough)
+   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * 'accurate', or 'max' (most thorough)
    */
-  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;
 }
 
 export interface SourceExtractParams {
@@ -1150,10 +1150,10 @@ export interface SourceExtractParams {
   file_names?: Array<string> | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or
-   * 'accurate' (most thorough)
+   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * 'accurate', or 'max' (most thorough)
    */
-  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;
 }
 
 export interface SourceGetBuildStatusParams {
