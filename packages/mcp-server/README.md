@@ -141,13 +141,13 @@ async with MultiServerMCPClient(
 **LangChain (TypeScript):**
 
 ```typescript
-import { MultiServerMCPClient } from "@langchain/mcp-adapters";
+import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 
 const client = new MultiServerMCPClient({
   graphor: {
-    url: "https://mcp.graphor.workers.dev/sse",
-    transport: "sse",
-  }
+    url: 'https://mcp.graphor.workers.dev/sse',
+    transport: 'sse',
+  },
 });
 
 const tools = await client.getTools();
