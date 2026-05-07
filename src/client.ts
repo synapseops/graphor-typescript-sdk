@@ -31,6 +31,8 @@ import {
   SourceGetBuildStatusResponse,
   SourceGetElementsParams,
   SourceGetElementsResponse,
+  SourceGetPageScreenshotParams,
+  SourceGetPageScreenshotResponse,
   SourceIngestFileParams,
   SourceIngestFileResponse,
   SourceIngestGitHubParams,
@@ -198,6 +200,18 @@ export class Graphor {
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#undiciDispatcher = null;
     this.#encoder = Opts.FallbackEncoder;
+
+    const customHeadersEnv = readEnv('GRAPHOR_CUSTOM_HEADERS');
+    if (customHeadersEnv) {
+      const parsed: Record<string, string> = {};
+      for (const line of customHeadersEnv.split('\n')) {
+        const colon = line.indexOf(':');
+        if (colon >= 0) {
+          parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
+        }
+      }
+      options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+    }
 
     this._options = options;
 
@@ -786,6 +800,7 @@ export declare namespace Graphor {
     type SourceExtractResponse as SourceExtractResponse,
     type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
+    type SourceGetPageScreenshotResponse as SourceGetPageScreenshotResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
     type SourceIngestURLResponse as SourceIngestURLResponse,
@@ -798,6 +813,7 @@ export declare namespace Graphor {
     type SourceExtractParams as SourceExtractParams,
     type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
+    type SourceGetPageScreenshotParams as SourceGetPageScreenshotParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,
     type SourceIngestURLParams as SourceIngestURLParams,

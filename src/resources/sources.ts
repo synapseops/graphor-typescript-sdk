@@ -125,7 +125,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ask({
-   *   question: 'question',
+   *   question: "What was the company's revenue in 2025?",
    * });
    * ```
    */
@@ -169,8 +169,9 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.extract({
-   *   output_schema: { foo: 'bar' },
-   *   user_instruction: 'user_instruction',
+   *   output_schema: { properties: 'bar', type: 'bar' },
+   *   user_instruction:
+   *     'Extract all invoice line items including product name, quantity, unit price, and total.',
    * });
    * ```
    */
@@ -297,6 +298,52 @@ export class Sources extends APIResource {
   }
 
   /**
+   * Render a single page of a source file as a base64-encoded PNG screenshot.
+   *
+   * Use this endpoint to lazily fetch the visual preview of a citation returned by
+   * `/ask-sources` without paying the payload cost of inlining base64 in the answer.
+   * Supports PDFs, image files (`page_number` must be 1), and Office documents
+   * (doc/docx/ppt/pptx/odt — rendered from the converted PDF).
+   *
+   * **Path parameters:**
+   *
+   * - **file_id** (str): UUID of the source file.
+   * - **page_number** (int): 1-based page number.
+   *
+   * **Query parameters:**
+   *
+   * - **max_width** (int, optional, default `900`): Pixel width cap. Clamped to the
+   *   300-1600 range.
+   *
+   * **Returns** a `PublicPageScreenshotResponse` containing:
+   *
+   * - `file_id`, `file_name`, `page_number` — identifying metadata.
+   * - `mime_type` — always `"image/png"`.
+   * - `width`, `height` — rendered image dimensions in pixels.
+   * - `image_base64` — the base64-encoded PNG bytes.
+   *
+   * **Error responses:**
+   *
+   * - `404` — File not found, unsupported file type, or invalid page number.
+   * - `500` — Unexpected internal error while rendering.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.getPageScreenshot(0, {
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  getPageScreenshot(
+    pageNumber: number,
+    params: SourceGetPageScreenshotParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceGetPageScreenshotResponse> {
+    const { file_id, ...query } = params;
+    return this._client.get(path`/sources/${file_id}/pages/${pageNumber}/screenshot`, { query, ...options });
+  }
+
+  /**
    * Upload a local file and schedule ingestion in the background.
    *
    * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
@@ -344,7 +391,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestGitHub({
-   *   url: 'url',
+   *   url: 'https://github.com/langchain-ai/langchain',
    * });
    * ```
    */
@@ -390,7 +437,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestURL({
-   *   url: 'url',
+   *   url: 'https://example.com/blog/ai-trends-2025',
    * });
    * ```
    */
@@ -415,7 +462,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.ingestYoutube({
-   *   url: 'url',
+   *   url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
    * });
    * ```
    */
@@ -444,7 +491,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.reprocess({
-   *   file_id: 'file_id',
+   *   file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
    * });
    * ```
    */
@@ -484,7 +531,7 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const response = await client.sources.retrieveChunks({
-   *   query: 'query',
+   *   query: "What was the company's net income in 2025?",
    * });
    * ```
    */
@@ -607,10 +654,9 @@ export interface Element {
  * - fast → basic
  * - balanced → hi_res
  * - accurate → hi_res_ft
- * - vlm → mai
  * - agentic → graphorlm
  */
-export type Method = 'fast' | 'balanced' | 'accurate' | 'vlm' | 'agentic';
+export type Method = 'fast' | 'balanced' | 'accurate' | 'agentic';
 
 export interface PublicSource {
   /**
@@ -661,7 +707,7 @@ export interface PublicSource {
 
   /**
    * Partitioning strategy used during ingestion. V1 API: basic, hi_res, hi_res_ft,
-   * mai, graphorlm. V2 API: fast, balanced, accurate, vlm, agentic.
+   * mai, graphorlm. V2 API: fast, balanced, accurate, agentic.
    */
   method?: string | null;
 }
@@ -704,9 +750,17 @@ export interface SourceAskResponse {
   /**
    * The answer to the question. When output_schema is provided, this will be a short
    * status message and the structured data will be in structured_output (and the raw
-   * JSON-text in raw_json).
+   * JSON-text in raw_json). Inline citations appear as `[N]` markers; use the
+   * `citations` field to resolve each marker to its source.
    */
   answer: string;
+
+  /**
+   * Structured citations extracted from the `[N]` markers in `answer`. When the
+   * request includes `include_citation_images=true`, each entry carries a
+   * base64-encoded PNG screenshot of the cited page in `image_base64`.
+   */
+  citations?: Array<SourceAskResponse.Citation> | null;
 
   /**
    * Conversation identifier used to maintain memory context
@@ -737,6 +791,57 @@ export interface SourceAskResponse {
 }
 
 export namespace SourceAskResponse {
+  /**
+   * A structured citation extracted from the inline `[N]` markers in the answer.
+   *
+   * Each citation corresponds to one `[N]` marker in the `answer` text. Use the
+   * `index` field to map between the marker and the citation entry.
+   */
+  export interface Citation {
+    /**
+     * Optional element identifier within the page/section (e.g. a specific paragraph
+     * or table).
+     */
+    element_id?: string | null;
+
+    /**
+     * The unique identifier of the source file the citation refers to.
+     */
+    file_id?: string | null;
+
+    /**
+     * Display name of the source file.
+     */
+    file_name?: string | null;
+
+    /**
+     * Base64-encoded PNG screenshot of the cited page. Only populated when the request
+     * was made with `include_citation_images=true`. May be null if the underlying
+     * source is not visualizable (e.g. plain text).
+     */
+    image_base64?: string | null;
+
+    /**
+     * The 1-based citation number that appears as `[N]` in the answer text.
+     */
+    index?: number | null;
+
+    /**
+     * 1-based page number where the cited content appears.
+     */
+    page_number?: number | null;
+
+    /**
+     * Optional section number within the page.
+     */
+    section_number?: number | null;
+
+    /**
+     * Short text excerpt around the cited content, useful for quick context.
+     */
+    text_preview?: string | null;
+  }
+
   /**
    * Token usage breakdown for this request.
    */
@@ -861,7 +966,6 @@ export interface SourceGetBuildStatusResponse {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -929,6 +1033,46 @@ export interface SourceGetElementsResponse {
    * Total number of pages
    */
   total_pages?: number | null;
+}
+
+/**
+ * Base64-encoded PNG screenshot of a page from a source file.
+ */
+export interface SourceGetPageScreenshotResponse {
+  /**
+   * The unique identifier of the source file.
+   */
+  file_id: string;
+
+  /**
+   * Base64-encoded PNG image bytes.
+   */
+  image_base64: string;
+
+  /**
+   * 1-based page number that was rendered.
+   */
+  page_number: number;
+
+  /**
+   * Display name of the source file.
+   */
+  file_name?: string | null;
+
+  /**
+   * Pixel height of the rendered image.
+   */
+  height?: number | null;
+
+  /**
+   * MIME type of the encoded image (always image/png).
+   */
+  mime_type?: string;
+
+  /**
+   * Pixel width of the rendered image.
+   */
+  width?: number | null;
 }
 
 export interface SourceIngestFileResponse {
@@ -1110,6 +1254,25 @@ export interface SourceAskParams {
   file_names?: Array<string> | null;
 
   /**
+   * When true, the response's `citations` entries are populated with a
+   * base64-encoded PNG screenshot of each cited page in `image_base64`. Increases
+   * payload size and latency — leave false (the default) when not needed and fetch
+   * screenshots on demand via
+   * `GET /sources/{file_id}/pages/{page_number}/screenshot`.
+   */
+  include_citation_images?: boolean | null;
+
+  /**
+   * When true, the `answer` field keeps the structured citation markup
+   * `[N](file_id|pX|sY|eZ|fNAME)` emitted by the agent. When false (default), the
+   * markup is stripped to plain `[N]` markers and the structured data is exposed via
+   * `citations` instead. Note: the markup format is an implementation detail and may
+   * change in future versions — prefer the `citations` field for stable parsing. Has
+   * no effect when `output_schema` is set.
+   */
+  include_citation_markup?: boolean | null;
+
+  /**
    * Optional JSON Schema for requesting structured output. When provided, the answer
    * field will contain a short status message and the structured data will be in
    * structured_output.
@@ -1122,10 +1285,10 @@ export interface SourceAskParams {
   reset?: boolean | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or
-   * 'accurate' (most thorough)
+   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * 'accurate', or 'max' (most thorough)
    */
-  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;
 }
 
 export interface SourceExtractParams {
@@ -1151,10 +1314,10 @@ export interface SourceExtractParams {
   file_names?: Array<string> | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or
-   * 'accurate' (most thorough)
+   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * 'accurate', or 'max' (most thorough)
    */
-  thinking_level?: 'fast' | 'balanced' | 'accurate' | null;
+  thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;
 }
 
 export interface SourceGetBuildStatusParams {
@@ -1209,6 +1372,18 @@ export interface SourceGetElementsParams {
   type?: string | null;
 }
 
+export interface SourceGetPageScreenshotParams {
+  /**
+   * Path param
+   */
+  file_id: string;
+
+  /**
+   * Query param: Pixel width cap for the rendered image (clamped to 300-1600).
+   */
+  max_width?: number;
+}
+
 export interface SourceIngestFileParams {
   file: Uploadable;
 
@@ -1220,7 +1395,6 @@ export interface SourceIngestFileParams {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -1252,7 +1426,6 @@ export interface SourceIngestURLParams {
    * - fast → basic
    * - balanced → hi_res
    * - accurate → hi_res_ft
-   * - vlm → mai
    * - agentic → graphorlm
    */
   method?: Method | null;
@@ -1273,7 +1446,7 @@ export interface SourceReprocessParams {
   file_id: string;
 
   /**
-   * Partitioning strategy. One of: fast, balanced, accurate, vlm, agentic.
+   * Partitioning strategy. One of: fast, balanced, accurate, agentic.
    */
   method?: Method;
 }
@@ -1307,6 +1480,7 @@ export declare namespace Sources {
     type SourceExtractResponse as SourceExtractResponse,
     type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
+    type SourceGetPageScreenshotResponse as SourceGetPageScreenshotResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
     type SourceIngestURLResponse as SourceIngestURLResponse,
@@ -1319,6 +1493,7 @@ export declare namespace Sources {
     type SourceExtractParams as SourceExtractParams,
     type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
+    type SourceGetPageScreenshotParams as SourceGetPageScreenshotParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,
     type SourceIngestURLParams as SourceIngestURLParams,
