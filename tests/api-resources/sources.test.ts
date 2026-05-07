@@ -42,7 +42,7 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('ask: only required params', async () => {
-    const responsePromise = client.sources.ask({ question: 'question' });
+    const responsePromise = client.sources.ask({ question: "What was the company's revenue in 2025?" });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -55,21 +55,22 @@ describe('resource sources', () => {
   // Mock server tests are disabled
   test.skip('ask: required and optional params', async () => {
     const response = await client.sources.ask({
-      question: 'question',
-      conversation_id: 'conversation_id',
-      file_ids: ['string'],
+      question: "What was the company's revenue in 2025?",
+      conversation_id: 'conv-9f8e7d6c-5b4a-3210-fedc-ba0987654321',
+      file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
       file_names: ['string'],
-      output_schema: { foo: 'bar' },
+      output_schema: { properties: 'bar', type: 'bar' },
       reset: true,
-      thinking_level: 'fast',
+      thinking_level: 'accurate',
     });
   });
 
   // Mock server tests are disabled
   test.skip('extract: only required params', async () => {
     const responsePromise = client.sources.extract({
-      output_schema: { foo: 'bar' },
-      user_instruction: 'user_instruction',
+      output_schema: { properties: 'bar', type: 'bar' },
+      user_instruction:
+        'Extract all invoice line items including product name, quantity, unit price, and total.',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -83,11 +84,12 @@ describe('resource sources', () => {
   // Mock server tests are disabled
   test.skip('extract: required and optional params', async () => {
     const response = await client.sources.extract({
-      output_schema: { foo: 'bar' },
-      user_instruction: 'user_instruction',
-      file_ids: ['string'],
-      file_names: ['string'],
-      thinking_level: 'fast',
+      output_schema: { properties: 'bar', type: 'bar' },
+      user_instruction:
+        'Extract all invoice line items including product name, quantity, unit price, and total.',
+      file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
+      file_names: ['contract-draft.docx'],
+      thinking_level: 'accurate',
     });
   });
 
@@ -170,7 +172,7 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('ingestGitHub: only required params', async () => {
-    const responsePromise = client.sources.ingestGitHub({ url: 'url' });
+    const responsePromise = client.sources.ingestGitHub({ url: 'https://github.com/langchain-ai/langchain' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -182,12 +184,12 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('ingestGitHub: required and optional params', async () => {
-    const response = await client.sources.ingestGitHub({ url: 'url' });
+    const response = await client.sources.ingestGitHub({ url: 'https://github.com/langchain-ai/langchain' });
   });
 
   // Mock server tests are disabled
   test.skip('ingestURL: only required params', async () => {
-    const responsePromise = client.sources.ingestURL({ url: 'url' });
+    const responsePromise = client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -200,15 +202,17 @@ describe('resource sources', () => {
   // Mock server tests are disabled
   test.skip('ingestURL: required and optional params', async () => {
     const response = await client.sources.ingestURL({
-      url: 'url',
-      crawlUrls: true,
-      method: 'fast',
+      url: 'https://example.com/blog/ai-trends-2025',
+      crawlUrls: false,
+      method: 'balanced',
     });
   });
 
   // Mock server tests are disabled
   test.skip('ingestYoutube: only required params', async () => {
-    const responsePromise = client.sources.ingestYoutube({ url: 'url' });
+    const responsePromise = client.sources.ingestYoutube({
+      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -220,12 +224,14 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('ingestYoutube: required and optional params', async () => {
-    const response = await client.sources.ingestYoutube({ url: 'url' });
+    const response = await client.sources.ingestYoutube({
+      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    });
   });
 
   // Mock server tests are disabled
   test.skip('reprocess: only required params', async () => {
-    const responsePromise = client.sources.reprocess({ file_id: 'file_id' });
+    const responsePromise = client.sources.reprocess({ file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -237,12 +243,17 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('reprocess: required and optional params', async () => {
-    const response = await client.sources.reprocess({ file_id: 'file_id', method: 'fast' });
+    const response = await client.sources.reprocess({
+      file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      method: 'balanced',
+    });
   });
 
   // Mock server tests are disabled
   test.skip('retrieveChunks: only required params', async () => {
-    const responsePromise = client.sources.retrieveChunks({ query: 'query' });
+    const responsePromise = client.sources.retrieveChunks({
+      query: "What was the company's net income in 2025?",
+    });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -255,8 +266,8 @@ describe('resource sources', () => {
   // Mock server tests are disabled
   test.skip('retrieveChunks: required and optional params', async () => {
     const response = await client.sources.retrieveChunks({
-      query: 'query',
-      file_ids: ['string'],
+      query: "What was the company's net income in 2025?",
+      file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'b2c3d4e5-f6a7-8901-bcde-f12345678901'],
       file_names: ['string'],
     });
   });
