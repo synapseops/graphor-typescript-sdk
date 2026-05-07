@@ -431,6 +431,42 @@ const EMBEDDED_METHODS: MethodEntry[] = [
     },
   },
   {
+    name: 'get_page_screenshot',
+    endpoint: '/sources/{file_id}/pages/{page_number}/screenshot',
+    httpMethod: 'get',
+    summary: 'Get a base64 screenshot of a source page',
+    description:
+      'Render a single page of a source file as a base64-encoded PNG screenshot.\n\nUse this endpoint to lazily fetch the visual preview of a citation returned\nby `/ask-sources` without paying the payload cost of inlining base64 in the\nanswer.  Supports PDFs, image files (`page_number` must be 1), and Office\ndocuments (doc/docx/ppt/pptx/odt — rendered from the converted PDF).\n\n**Path parameters:**\n- **file_id** (str): UUID of the source file.\n- **page_number** (int): 1-based page number.\n\n**Query parameters:**\n- **max_width** (int, optional, default `900`): Pixel width cap. Clamped to\n  the 300-1600 range.\n\n**Returns** a `PublicPageScreenshotResponse` containing:\n- `file_id`, `file_name`, `page_number` — identifying metadata.\n- `mime_type` — always `"image/png"`.\n- `width`, `height` — rendered image dimensions in pixels.\n- `image_base64` — the base64-encoded PNG bytes.\n\n**Error responses:**\n- `404` — File not found, unsupported file type, or invalid page number.\n- `500` — Unexpected internal error while rendering.',
+    stainlessPath: '(resource) sources > (method) get_page_screenshot',
+    qualified: 'client.sources.getPageScreenshot',
+    params: ['file_id: string;', 'page_number: number;', 'max_width?: number;'],
+    response:
+      '{ file_id: string; image_base64: string; page_number: number; file_name?: string; height?: number; mime_type?: string; width?: number; }',
+    markdown:
+      "## get_page_screenshot\n\n`client.sources.getPageScreenshot(file_id: string, page_number: number, max_width?: number): { file_id: string; image_base64: string; page_number: number; file_name?: string; height?: number; mime_type?: string; width?: number; }`\n\n**get** `/sources/{file_id}/pages/{page_number}/screenshot`\n\nRender a single page of a source file as a base64-encoded PNG screenshot.\n\nUse this endpoint to lazily fetch the visual preview of a citation returned\nby `/ask-sources` without paying the payload cost of inlining base64 in the\nanswer.  Supports PDFs, image files (`page_number` must be 1), and Office\ndocuments (doc/docx/ppt/pptx/odt — rendered from the converted PDF).\n\n**Path parameters:**\n- **file_id** (str): UUID of the source file.\n- **page_number** (int): 1-based page number.\n\n**Query parameters:**\n- **max_width** (int, optional, default `900`): Pixel width cap. Clamped to\n  the 300-1600 range.\n\n**Returns** a `PublicPageScreenshotResponse` containing:\n- `file_id`, `file_name`, `page_number` — identifying metadata.\n- `mime_type` — always `\"image/png\"`.\n- `width`, `height` — rendered image dimensions in pixels.\n- `image_base64` — the base64-encoded PNG bytes.\n\n**Error responses:**\n- `404` — File not found, unsupported file type, or invalid page number.\n- `500` — Unexpected internal error while rendering.\n\n### Parameters\n\n- `file_id: string`\n\n- `page_number: number`\n\n- `max_width?: number`\n  Pixel width cap for the rendered image (clamped to 300-1600).\n\n### Returns\n\n- `{ file_id: string; image_base64: string; page_number: number; file_name?: string; height?: number; mime_type?: string; width?: number; }`\n  Base64-encoded PNG screenshot of a page from a source file.\n\n  - `file_id: string`\n  - `image_base64: string`\n  - `page_number: number`\n  - `file_name?: string`\n  - `height?: number`\n  - `mime_type?: string`\n  - `width?: number`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.getPageScreenshot(0, { file_id: 'file_id' });\n\nconsole.log(response);\n```",
+    perLanguage: {
+      typescript: {
+        method: 'client.sources.getPageScreenshot',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.getPageScreenshot(0, { file_id: 'file_id' });\n\nconsole.log(response.file_id);",
+      },
+      python: {
+        method: 'sources.get_page_screenshot',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.get_page_screenshot(\n    page_number=0,\n    file_id="file_id",\n)\nprint(response.file_id)',
+      },
+      go: {
+        method: 'client.Sources.GetPageScreenshot',
+        example:
+          'package main\n\nimport (\n\t"context"\n\t"fmt"\n\n\t"github.com/stainless-sdks/graphor-prd-go"\n\t"github.com/stainless-sdks/graphor-prd-go/option"\n)\n\nfunc main() {\n\tclient := graphor.NewClient(\n\t\toption.WithAPIKey("My API Key"),\n\t)\n\tresponse, err := client.Sources.GetPageScreenshot(\n\t\tcontext.TODO(),\n\t\t0,\n\t\tgraphor.SourceGetPageScreenshotParams{\n\t\t\tFileID: "file_id",\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf("%+v\\n", response.FileID)\n}\n',
+      },
+      http: {
+        example:
+          'curl https://api.graphorlm.com/api/public/v1/sources/$FILE_ID/pages/$PAGE_NUMBER/screenshot \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY"',
+      },
+    },
+  },
+  {
     name: 'get_elements',
     endpoint: '/sources/get-elements',
     httpMethod: 'get',

@@ -113,6 +113,7 @@ const fuse = new Fuse(
     'client.sources.extract',
     'client.sources.getBuildStatus',
     'client.sources.getElements',
+    'client.sources.getPageScreenshot',
     'client.sources.ingestFile',
     'client.sources.ingestGitHub',
     'client.sources.ingestURL',

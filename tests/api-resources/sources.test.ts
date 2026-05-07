@@ -151,6 +151,23 @@ describe('resource sources', () => {
   });
 
   // Mock server tests are disabled
+  test.skip('getPageScreenshot: only required params', async () => {
+    const responsePromise = client.sources.getPageScreenshot(0, { file_id: 'file_id' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('getPageScreenshot: required and optional params', async () => {
+    const response = await client.sources.getPageScreenshot(0, { file_id: 'file_id', max_width: 300 });
+  });
+
+  // Mock server tests are disabled
   test.skip('ingestFile: only required params', async () => {
     const responsePromise = client.sources.ingestFile({
       file: await toFile(Buffer.from('Example data'), 'README.md'),

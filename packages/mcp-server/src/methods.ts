@@ -47,6 +47,12 @@ export const sdkMethods: SdkMethod[] = [
     httpPath: '/sources/get-elements',
   },
   {
+    clientCallName: 'client.sources.getPageScreenshot',
+    fullyQualifiedName: 'sources.getPageScreenshot',
+    httpMethod: 'get',
+    httpPath: '/sources/{file_id}/pages/{page_number}/screenshot',
+  },
+  {
     clientCallName: 'client.sources.ingestFile',
     fullyQualifiedName: 'sources.ingestFile',
     httpMethod: 'post',
