@@ -162,7 +162,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
       http: {
         example:
-          'curl https://api.graphorlm.com/api/public/v1/sources/ingest-url \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "url": "https://example.com/blog/ai-trends-2025"\n        }\'',
+          'curl https://api.graphorlm.com/api/public/v1/sources/ingest-url \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "url": "https://example.com/blog/ai-trends-2025",\n          "crawlUrls": false,\n          "method": "balanced"\n        }\'',
       },
     },
   },
@@ -267,7 +267,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
       http: {
         example:
-          'curl https://api.graphorlm.com/api/public/v1/sources/reprocess \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "file_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"\n        }\'',
+          'curl https://api.graphorlm.com/api/public/v1/sources/reprocess \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "file_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n          "method": "balanced"\n        }\'',
       },
     },
   },
@@ -380,7 +380,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
       http: {
         example:
-          'curl https://api.graphorlm.com/api/public/v1/sources/run-extraction \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "output_schema": {\n            "properties": "bar",\n            "type": "bar"\n          },\n          "user_instruction": "Extract all invoice line items including product name, quantity, unit price, and total."\n        }\'',
+          'curl https://api.graphorlm.com/api/public/v1/sources/run-extraction \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "output_schema": {\n            "properties": "bar",\n            "type": "bar"\n          },\n          "user_instruction": "Extract all invoice line items including product name, quantity, unit price, and total.",\n          "file_ids": [\n            "a1b2c3d4-e5f6-7890-abcd-ef1234567890"\n          ],\n          "file_names": [\n            "contract-draft.docx"\n          ],\n          "thinking_level": "accurate"\n        }\'',
       },
     },
   },
@@ -424,7 +424,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
       http: {
         example:
-          'curl https://api.graphorlm.com/api/public/v1/sources/ask-sources \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"question\\": \\"What was the company\'s revenue in 2025?\\"\n        }"',
+          'curl https://api.graphorlm.com/api/public/v1/sources/ask-sources \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"question\\": \\"What was the company\'s revenue in 2025?\\",\n          \\"conversation_id\\": \\"conv-9f8e7d6c-5b4a-3210-fedc-ba0987654321\\",\n          \\"file_ids\\": [\n            \\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\\"\n          ],\n          \\"output_schema\\": {\n            \\"properties\\": \\"bar\\",\n            \\"type\\": \\"bar\\"\n          },\n          \\"reset\\": true,\n          \\"thinking_level\\": \\"accurate\\"\n        }"',
       },
     },
   },
@@ -505,7 +505,7 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
       http: {
         example:
-          'curl https://api.graphorlm.com/api/public/v1/sources/prebuilt-rag \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"query\\": \\"What was the company\'s net income in 2025?\\"\n        }"',
+          'curl https://api.graphorlm.com/api/public/v1/sources/prebuilt-rag \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d "{\n          \\"query\\": \\"What was the company\'s net income in 2025?\\",\n          \\"file_ids\\": [\n            \\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\\",\n            \\"b2c3d4e5-f6a7-8901-bcde-f12345678901\\"\n          ]\n        }"',
       },
     },
   },
