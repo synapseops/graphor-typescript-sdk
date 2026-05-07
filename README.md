@@ -1,29 +1,34 @@
 <<<<<<< HEAD
-# Graphor TypeScript SDK
-=======
-# Graphor TypeScript API Library
->>>>>>> origin/generated--merge-conflict
 
-[![NPM version](https://img.shields.io/npm/v/graphor.svg?label=npm%20(stable))](https://npmjs.org/package/graphor)
+# Graphor TypeScript SDK
+
+=======
+
+# Graphor TypeScript API Library
+
+> > > > > > > origin/generated--merge-conflict
+
+[![NPM version](<https://img.shields.io/npm/v/graphor.svg?label=npm%20(stable)>)](https://npmjs.org/package/graphor)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-blue.svg)](https://www.typescriptlang.org/)
 
 <<<<<<< HEAD
 The official TypeScript SDK for the [Graphor](https://graphorlm.com) API. Build intelligent document applications with ease.
 
 **Features:**
+
 - 📄 **Document Ingestion** — Upload files, web pages, GitHub repos, and YouTube videos
 - 💬 **Document Chat** — Ask questions with conversational memory
 - 📊 **Structured Extraction** — Extract data using JSON Schema
 - 🔍 **Semantic Search** — Retrieve relevant chunks for custom RAG pipelines
 - 🔒 **Type Safety** — Complete TypeScript definitions for all params and responses
-- 🌐 **Multi-Runtime** — Works in Node.js, Deno, Bun, and browsers
-=======
-This library provides convenient access to the Graphor REST API from server-side TypeScript or JavaScript.
+- # 🌐 **Multi-Runtime** — Works in Node.js, Deno, Bun, and browsers
+  This library provides convenient access to the Graphor REST API from server-side TypeScript or JavaScript.
 
 The REST API documentation can be found on [docs.graphorlm.com](https://docs.graphorlm.com). The full API of this library can be found in [api.md](api.md).
 
 It is generated with [Stainless](https://www.stainless.com/).
->>>>>>> origin/generated--merge-conflict
+
+> > > > > > > origin/generated--merge-conflict
 
 ## MCP Server
 
@@ -47,7 +52,8 @@ npm install graphor
 Or with your preferred package manager:
 
 <<<<<<< HEAD
-```bash
+
+````bash
 yarn add graphor
 pnpm add graphor
 =======
@@ -65,11 +71,11 @@ const response = await client.sources.ingestURL({ url: 'https://example.com/blog
 
 console.log(response.build_id);
 >>>>>>> origin/generated--merge-conflict
-```
+````
 
 ## Quick Start
 
-```typescript
+````typescript
 import Graphor from 'graphor';
 import fs from 'fs';
 
@@ -95,7 +101,7 @@ const client = new Graphor({
 const params: Graphor.SourceIngestURLParams = { url: 'https://example.com/blog/ai-trends-2025' };
 const response: Graphor.SourceIngestURLResponse = await client.sources.ingestURL(params);
 >>>>>>> origin/generated--merge-conflict
-```
+````
 
 ## Authentication
 
@@ -108,7 +114,7 @@ export GRAPHOR_API_KEY="grlm_your_api_key_here"
 ```typescript
 import Graphor from 'graphor';
 
-const client = new Graphor();  // Automatically uses GRAPHOR_API_KEY
+const client = new Graphor(); // Automatically uses GRAPHOR_API_KEY
 ```
 
 Or pass it directly:
@@ -154,7 +160,7 @@ Reprocess documents with different OCR/parsing methods:
 // Reprocess with high-resolution parsing
 const source = await client.sources.parse({
   file_name: 'document.pdf',
-  partition_method: 'hi_res'  // Options: basic, hi_res, hi_res_ft, mai, graphorlm
+  partition_method: 'hi_res', // Options: basic, hi_res, hi_res_ft, mai, graphorlm
 });
 ```
 
@@ -167,21 +173,21 @@ Ask questions about your documents with conversational memory:
 ```typescript
 // Ask a question
 const response = await client.sources.ask({
-  question: 'What are the key findings?'
+  question: 'What are the key findings?',
 });
 console.log(response.answer);
 
 // Follow-up question (maintains context)
 const followUp = await client.sources.ask({
   question: 'Can you elaborate on the first point?',
-  conversation_id: response.conversation_id
+  conversation_id: response.conversation_id,
 });
 console.log(followUp.answer);
 
 // Scope to specific documents
 const scopedResponse = await client.sources.ask({
   question: 'Compare these two reports',
-  file_names: ['report-2023.pdf', 'report-2024.pdf']
+  file_names: ['report-2023.pdf', 'report-2024.pdf'],
 });
 ```
 
@@ -206,12 +212,12 @@ const result = await client.sources.extract({
           type: 'object',
           properties: {
             description: { type: 'string' },
-            amount: { type: 'number' }
-          }
-        }
-      }
-    }
-  }
+            amount: { type: 'number' },
+          },
+        },
+      },
+    },
+  },
 });
 
 console.log(result.structured_output);
@@ -227,7 +233,7 @@ Build custom RAG pipelines with semantic search:
 ```typescript
 // Retrieve relevant chunks
 const result = await client.sources.retrieveChunks({
-  query: 'What are the payment terms?'
+  query: 'What are the payment terms?',
 });
 
 for (const chunk of result.chunks) {
@@ -238,7 +244,7 @@ for (const chunk of result.chunks) {
 }
 
 // Use with your preferred LLM
-const context = result.chunks.map(c => c.text).join('\n');
+const context = result.chunks.map((c) => c.text).join('\n');
 // Pass context to OpenAI, Anthropic, etc.
 ```
 
@@ -259,7 +265,7 @@ for (const source of sources) {
 const elements = await client.sources.loadElements({
   file_name: 'document.pdf',
   page: 1,
-  page_size: 50
+  page_size: 50,
 });
 
 // Delete a source
@@ -306,7 +312,7 @@ await client.sources.ingestFile({ file: await toFile(new Uint8Array([0, 1, 2]), 
 
 ## Error Handling
 
-```typescript
+````typescript
 import Graphor from 'graphor';
 
 <<<<<<< HEAD
@@ -368,18 +374,18 @@ const response = await client.sources
     }
   });
 >>>>>>> origin/generated--merge-conflict
-```
+````
 
-| Status Code | Error Type |
-|-------------|------------|
-| 400 | `BadRequestError` |
-| 401 | `AuthenticationError` |
-| 403 | `PermissionDeniedError` |
-| 404 | `NotFoundError` |
-| 422 | `UnprocessableEntityError` |
-| 429 | `RateLimitError` |
-| ≥500 | `InternalServerError` |
-| N/A | `APIConnectionError` |
+| Status Code | Error Type                 |
+| ----------- | -------------------------- |
+| 400         | `BadRequestError`          |
+| 401         | `AuthenticationError`      |
+| 403         | `PermissionDeniedError`    |
+| 404         | `NotFoundError`            |
+| 422         | `UnprocessableEntityError` |
+| 429         | `RateLimitError`           |
+| ≥500        | `InternalServerError`      |
+| N/A         | `APIConnectionError`       |
 
 ## Configuration
 
@@ -391,9 +397,10 @@ Requests are automatically retried twice with exponential backoff:
 Certain errors will be automatically retried 0 times by default, with a short exponential backoff.
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
 429 Rate Limit, and >=500 Internal errors will all be retried by default.
->>>>>>> origin/generated--merge-conflict
 
-```typescript
+> > > > > > > origin/generated--merge-conflict
+
+````typescript
 // Configure default retries
 const client = new Graphor({ maxRetries: 5 });
 
@@ -413,7 +420,7 @@ await client.sources.ingestURL({ url: 'https://example.com/blog/ai-trends-2025' 
   maxRetries: 5,
 });
 >>>>>>> origin/generated--merge-conflict
-```
+````
 
 ### Timeouts
 
@@ -427,13 +434,13 @@ const client = new Graphor({ timeout: 120 * 1000 });
 // Or per-request
 await client.sources.parse(
   { file_name: 'large-document.pdf', partition_method: 'graphorlm' },
-  { timeout: 300 * 1000 }
+  { timeout: 300 * 1000 },
 );
 ```
 
 ## Complete Example
 
-```typescript
+````typescript
 import Graphor from 'graphor';
 import fs from 'fs';
 
@@ -516,7 +523,7 @@ const { data: response, response: raw } = await client.sources
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
 console.log(response.build_id);
-```
+````
 
 ### Logging
 
@@ -531,7 +538,7 @@ The log level can be configured in two ways:
 1. Via the `GRAPHOR_LOG` environment variable
 2. Using the `logLevel` client option (overrides the environment variable if set)
 
-```ts
+````ts
 import Graphor from 'graphor';
 
 const client = new Graphor({
@@ -578,30 +585,30 @@ const client = new Graphor({
 >>>>>>> origin/generated--merge-conflict
 });
 console.log(`🔍 Found ${chunks.total} relevant chunks`);
-```
+````
 
 ## API Reference
 
 ### Sources
 
-| Method | Description | Docs |
-|--------|-------------|------|
-| `sources.upload()` | Upload a local file | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file) |
-| `sources.uploadUrl()` | Upload from web URL | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url) |
-| `sources.uploadGithub()` | Upload from GitHub | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github) |
-| `sources.uploadYoutube()` | Upload from YouTube | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
-| `sources.parse()` | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process) |
-| `sources.list()` | List all sources | [📖](https://docs.graphorlm.com/sdk/sources/list) |
-| `sources.delete()` | Delete a source | [📖](https://docs.graphorlm.com/sdk/sources/delete) |
-| `sources.loadElements()` | Get parsed elements | [📖](https://docs.graphorlm.com/sdk/sources/list-elements) |
+| Method                    | Description                     | Docs                                                                    |
+| ------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `sources.upload()`        | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file)       |
+| `sources.uploadUrl()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url)     |
+| `sources.uploadGithub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github)  |
+| `sources.uploadYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
+| `sources.parse()`         | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)                    |
+| `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                       |
+| `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                     |
+| `sources.loadElements()`  | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)              |
 
 ### Chat & AI
 
-| Method | Description | Docs |
-|--------|-------------|------|
-| `sources.ask()` | Ask questions about documents | [📖](https://docs.graphorlm.com/sdk/chat) |
-| `sources.extract()` | Extract structured data | [📖](https://docs.graphorlm.com/sdk/extract) |
-| `sources.retrieveChunks()` | Retrieve chunks for RAG | [📖](https://docs.graphorlm.com/sdk/prebuilt-rag) |
+| Method                     | Description                   | Docs                                              |
+| -------------------------- | ----------------------------- | ------------------------------------------------- |
+| `sources.ask()`            | Ask questions about documents | [📖](https://docs.graphorlm.com/sdk/chat)         |
+| `sources.extract()`        | Extract structured data       | [📖](https://docs.graphorlm.com/sdk/extract)      |
+| `sources.retrieveChunks()` | Retrieve chunks for RAG       | [📖](https://docs.graphorlm.com/sdk/prebuilt-rag) |
 
 ## TypeScript Support
 
@@ -620,6 +627,7 @@ const source: Graphor.PublicSource = await client.sources.upload(params);
 <<<<<<< HEAD
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
 =======
+
 #### Undocumented request params
 
 To make requests using undocumented parameters, you may use `// @ts-expect-error` on the undocumented
@@ -738,7 +746,8 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
 We are keen for your feedback; please open an [issue](https://www.github.com/synapseops/graphor-typescript-sdk/issues) with questions, bugs, or suggestions.
->>>>>>> origin/generated--merge-conflict
+
+> > > > > > > origin/generated--merge-conflict
 
 ## Requirements
 
