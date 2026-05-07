@@ -298,6 +298,52 @@ export class Sources extends APIResource {
   }
 
   /**
+   * Render a single page of a source file as a base64-encoded PNG screenshot.
+   *
+   * Use this endpoint to lazily fetch the visual preview of a citation returned by
+   * `/ask-sources` without paying the payload cost of inlining base64 in the answer.
+   * Supports PDFs, image files (`page_number` must be 1), and Office documents
+   * (doc/docx/ppt/pptx/odt — rendered from the converted PDF).
+   *
+   * **Path parameters:**
+   *
+   * - **file_id** (str): UUID of the source file.
+   * - **page_number** (int): 1-based page number.
+   *
+   * **Query parameters:**
+   *
+   * - **max_width** (int, optional, default `900`): Pixel width cap. Clamped to the
+   *   300-1600 range.
+   *
+   * **Returns** a `PublicPageScreenshotResponse` containing:
+   *
+   * - `file_id`, `file_name`, `page_number` — identifying metadata.
+   * - `mime_type` — always `"image/png"`.
+   * - `width`, `height` — rendered image dimensions in pixels.
+   * - `image_base64` — the base64-encoded PNG bytes.
+   *
+   * **Error responses:**
+   *
+   * - `404` — File not found, unsupported file type, or invalid page number.
+   * - `500` — Unexpected internal error while rendering.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.getPageScreenshot(0, {
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  getPageScreenshot(
+    pageNumber: number,
+    params: SourceGetPageScreenshotParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceGetPageScreenshotResponse> {
+    const { file_id, ...query } = params;
+    return this._client.get(path`/sources/${file_id}/pages/${pageNumber}/screenshot`, { query, ...options });
+  }
+
+  /**
    * Upload a local file and schedule ingestion in the background.
    *
    * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
@@ -989,6 +1035,46 @@ export interface SourceGetElementsResponse {
   total_pages?: number | null;
 }
 
+/**
+ * Base64-encoded PNG screenshot of a page from a source file.
+ */
+export interface SourceGetPageScreenshotResponse {
+  /**
+   * The unique identifier of the source file.
+   */
+  file_id: string;
+
+  /**
+   * Base64-encoded PNG image bytes.
+   */
+  image_base64: string;
+
+  /**
+   * 1-based page number that was rendered.
+   */
+  page_number: number;
+
+  /**
+   * Display name of the source file.
+   */
+  file_name?: string | null;
+
+  /**
+   * Pixel height of the rendered image.
+   */
+  height?: number | null;
+
+  /**
+   * MIME type of the encoded image (always image/png).
+   */
+  mime_type?: string;
+
+  /**
+   * Pixel width of the rendered image.
+   */
+  width?: number | null;
+}
+
 export interface SourceIngestFileResponse {
   /**
    * The ID of the build. This ID can be used to check the status of the request.
@@ -1286,6 +1372,18 @@ export interface SourceGetElementsParams {
   type?: string | null;
 }
 
+export interface SourceGetPageScreenshotParams {
+  /**
+   * Path param
+   */
+  file_id: string;
+
+  /**
+   * Query param: Pixel width cap for the rendered image (clamped to 300-1600).
+   */
+  max_width?: number;
+}
+
 export interface SourceIngestFileParams {
   file: Uploadable;
 
@@ -1382,6 +1480,7 @@ export declare namespace Sources {
     type SourceExtractResponse as SourceExtractResponse,
     type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
+    type SourceGetPageScreenshotResponse as SourceGetPageScreenshotResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
     type SourceIngestURLResponse as SourceIngestURLResponse,
@@ -1394,6 +1493,7 @@ export declare namespace Sources {
     type SourceExtractParams as SourceExtractParams,
     type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
+    type SourceGetPageScreenshotParams as SourceGetPageScreenshotParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,
     type SourceIngestURLParams as SourceIngestURLParams,
