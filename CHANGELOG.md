@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.19.0 (2026-05-07)
+
+Full Changelog: [v0.18.0...v0.19.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.18.0...v0.19.0)
+
+### Features
+
+* **api:** api update ([ff86066](https://github.com/synapseops/graphor-typescript-sdk/commit/ff8606637fae39f890298be9b1de31c5f453f372))
+* **api:** api update ([2694856](https://github.com/synapseops/graphor-typescript-sdk/commit/26948562b29f9f68c529ba307707200ebbae9fa9))
+* **api:** api update ([1a524fe](https://github.com/synapseops/graphor-typescript-sdk/commit/1a524fe326bfc877477aafa540c4ae910f58f9aa))
+* **api:** manual updates ([c5fe3c0](https://github.com/synapseops/graphor-typescript-sdk/commit/c5fe3c040e2e9894f7cc4f17de3dc8e1328cf7c3))
+* support setting headers via env ([45efef7](https://github.com/synapseops/graphor-typescript-sdk/commit/45efef7be1b550ba15932a07c2aa84cf2b3d1e56))
+
+
+### Chores
+
+* avoid formatting file that gets changed during releases ([816bc37](https://github.com/synapseops/graphor-typescript-sdk/commit/816bc3771bc4fe9e730f50f732221b25d885d8ee))
+* fix example snippet imports ([06c358e](https://github.com/synapseops/graphor-typescript-sdk/commit/06c358e9e378d6d3bff2cd748d9b57dc955abc35))
+* **format:** run eslint and prettier separately ([03eb23a](https://github.com/synapseops/graphor-typescript-sdk/commit/03eb23ad8af0e770a004f04702a9929de9df4f30))
+* **internal:** codegen related update ([bda1256](https://github.com/synapseops/graphor-typescript-sdk/commit/bda125686e0e03bf56e48051c6927036ca009535))
+* **internal:** codegen related update ([ca80fae](https://github.com/synapseops/graphor-typescript-sdk/commit/ca80faee4f913a3be621685ab63c25877bfa4a74))
+* **internal:** fix MCP cloudflare worker builds ([5396ac3](https://github.com/synapseops/graphor-typescript-sdk/commit/5396ac38eabb1e3d9c26a20cfeafc4b74a147590))
+* **internal:** fix MCP cloudflare worker initialization ([f5f4275](https://github.com/synapseops/graphor-typescript-sdk/commit/f5f427594793fc9841db0a73ab14dbb9626c2353))
+* **internal:** more robust bootstrap script ([63a3c2e](https://github.com/synapseops/graphor-typescript-sdk/commit/63a3c2eaf8aeedcac0a4c3170f9a322fde85ce4b))
+* **internal:** show error causes in MCP servers when running in local mode ([86b4b4a](https://github.com/synapseops/graphor-typescript-sdk/commit/86b4b4ae0e88f2ef824036afe15958e2d67fbedd))
+* **internal:** update docs ordering ([d7b4f2d](https://github.com/synapseops/graphor-typescript-sdk/commit/d7b4f2d42bccb67b755944a515a187215adf16e6))
+* **mcp-server:** increase local docs search result count from 5 to 10 ([299b837](https://github.com/synapseops/graphor-typescript-sdk/commit/299b83778e49d3f83d5aef0d8580e90116212155))
+* restructure docs search code ([b32decb](https://github.com/synapseops/graphor-typescript-sdk/commit/b32decb404548b73340aab88f6862c7d377a0430))
+
+
+### Documentation
+
+* update examples ([a9af2da](https://github.com/synapseops/graphor-typescript-sdk/commit/a9af2da26407f12effcb2623200f15156386fede))
+* update http mcp docs ([784a240](https://github.com/synapseops/graphor-typescript-sdk/commit/784a240e877b952e9010089a1a909df5bdf65a6b))
+
 ## 0.18.0 (2026-04-07)
 
 Full Changelog: [v0.17.0...v0.18.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.17.0...v0.18.0)
