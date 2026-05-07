@@ -59,6 +59,8 @@ describe('resource sources', () => {
       conversation_id: 'conv-9f8e7d6c-5b4a-3210-fedc-ba0987654321',
       file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
       file_names: ['string'],
+      include_citation_images: true,
+      include_citation_markup: true,
       output_schema: { properties: 'bar', type: 'bar' },
       reset: true,
       thinking_level: 'accurate',
