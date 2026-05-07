@@ -1,11 +1,12 @@
 # Graphor TypeScript SDK
 
-[![NPM version](https://img.shields.io/npm/v/graphor.svg?label=npm%20(stable))](https://npmjs.org/package/graphor)
+[![NPM version](<https://img.shields.io/npm/v/graphor.svg?label=npm%20(stable)>)](https://npmjs.org/package/graphor)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.9+-blue.svg)](https://www.typescriptlang.org/)
 
 The official TypeScript SDK for the [Graphor](https://graphorlm.com) API. Build intelligent document applications with ease.
 
 **Features:**
+
 - 📄 **Document Ingestion** — Upload files, web pages, GitHub repos, and YouTube videos
 - 💬 **Document Chat** — Ask questions with conversational memory
 - 📊 **Structured Extraction** — Extract data using JSON Schema
@@ -36,7 +37,7 @@ pnpm add graphor
 import Graphor from 'graphor';
 import fs from 'fs';
 
-const client = new Graphor();  // Uses GRAPHOR_API_KEY env var
+const client = new Graphor(); // Uses GRAPHOR_API_KEY env var
 
 // Upload a document
 const source = await client.sources.upload({ file: fs.createReadStream('document.pdf') });
@@ -45,7 +46,7 @@ console.log(`Uploaded: ${source.file_name}`);
 // Process with a parsing strategy
 await client.sources.parse({
   file_name: source.file_name,
-  partition_method: 'graphorlm'  // Options: basic (Fast), hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
+  partition_method: 'graphorlm', // Options: basic (Fast), hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
 });
 
 // Ask questions about your documents
@@ -64,7 +65,7 @@ export GRAPHOR_API_KEY="grlm_your_api_key_here"
 ```typescript
 import Graphor from 'graphor';
 
-const client = new Graphor();  // Automatically uses GRAPHOR_API_KEY
+const client = new Graphor(); // Automatically uses GRAPHOR_API_KEY
 ```
 
 Or pass it directly:
@@ -110,7 +111,7 @@ Reprocess documents with different OCR/parsing methods:
 // Reprocess with high-resolution parsing
 const source = await client.sources.parse({
   file_name: 'document.pdf',
-  partition_method: 'hi_res'  // Options: basic, hi_res, hi_res_ft, mai, graphorlm
+  partition_method: 'hi_res', // Options: basic, hi_res, hi_res_ft, mai, graphorlm
 });
 ```
 
@@ -123,21 +124,21 @@ Ask questions about your documents with conversational memory:
 ```typescript
 // Ask a question
 const response = await client.sources.ask({
-  question: 'What are the key findings?'
+  question: 'What are the key findings?',
 });
 console.log(response.answer);
 
 // Follow-up question (maintains context)
 const followUp = await client.sources.ask({
   question: 'Can you elaborate on the first point?',
-  conversation_id: response.conversation_id
+  conversation_id: response.conversation_id,
 });
 console.log(followUp.answer);
 
 // Scope to specific documents
 const scopedResponse = await client.sources.ask({
   question: 'Compare these two reports',
-  file_names: ['report-2023.pdf', 'report-2024.pdf']
+  file_names: ['report-2023.pdf', 'report-2024.pdf'],
 });
 ```
 
@@ -162,12 +163,12 @@ const result = await client.sources.extract({
           type: 'object',
           properties: {
             description: { type: 'string' },
-            amount: { type: 'number' }
-          }
-        }
-      }
-    }
-  }
+            amount: { type: 'number' },
+          },
+        },
+      },
+    },
+  },
 });
 
 console.log(result.structured_output);
@@ -183,7 +184,7 @@ Build custom RAG pipelines with semantic search:
 ```typescript
 // Retrieve relevant chunks
 const result = await client.sources.retrieveChunks({
-  query: 'What are the payment terms?'
+  query: 'What are the payment terms?',
 });
 
 for (const chunk of result.chunks) {
@@ -194,7 +195,7 @@ for (const chunk of result.chunks) {
 }
 
 // Use with your preferred LLM
-const context = result.chunks.map(c => c.text).join('\n');
+const context = result.chunks.map((c) => c.text).join('\n');
 // Pass context to OpenAI, Anthropic, etc.
 ```
 
@@ -215,7 +216,7 @@ for (const source of sources) {
 const elements = await client.sources.loadElements({
   file_name: 'document.pdf',
   page: 1,
-  page_size: 50
+  page_size: 50,
 });
 
 // Delete a source
@@ -273,16 +274,16 @@ try {
 }
 ```
 
-| Status Code | Error Type |
-|-------------|------------|
-| 400 | `BadRequestError` |
-| 401 | `AuthenticationError` |
-| 403 | `PermissionDeniedError` |
-| 404 | `NotFoundError` |
-| 422 | `UnprocessableEntityError` |
-| 429 | `RateLimitError` |
-| ≥500 | `InternalServerError` |
-| N/A | `APIConnectionError` |
+| Status Code | Error Type                 |
+| ----------- | -------------------------- |
+| 400         | `BadRequestError`          |
+| 401         | `AuthenticationError`      |
+| 403         | `PermissionDeniedError`    |
+| 404         | `NotFoundError`            |
+| 422         | `UnprocessableEntityError` |
+| 429         | `RateLimitError`           |
+| ≥500        | `InternalServerError`      |
+| N/A         | `APIConnectionError`       |
 
 ## Configuration
 
@@ -309,7 +310,7 @@ const client = new Graphor({ timeout: 120 * 1000 });
 // Or per-request
 await client.sources.parse(
   { file_name: 'large-document.pdf', partition_method: 'graphorlm' },
-  { timeout: 300 * 1000 }
+  { timeout: 300 * 1000 },
 );
 ```
 
@@ -328,14 +329,14 @@ console.log(`✅ Uploaded: ${source.file_name}`);
 // 2. Process with advanced parsing
 const processed = await client.sources.parse({
   file_name: source.file_name,
-  partition_method: 'hi_res'
+  partition_method: 'hi_res',
 });
 console.log(`✅ Processed: ${processed.status}`);
 
 // 3. Ask questions
 const response = await client.sources.ask({
   question: 'What are the key terms of this contract?',
-  file_names: [source.file_name]
+  file_names: [source.file_name],
 });
 console.log(`📝 Answer: ${response.answer}`);
 
@@ -349,16 +350,16 @@ const extracted = await client.sources.extract({
       parties: { type: 'array', items: { type: 'string' } },
       effective_date: { type: 'string' },
       termination_date: { type: 'string' },
-      total_value: { type: 'number' }
-    }
-  }
+      total_value: { type: 'number' },
+    },
+  },
 });
 console.log(`📊 Extracted: ${JSON.stringify(extracted.structured_output)}`);
 
 // 5. Build custom RAG
 const chunks = await client.sources.retrieveChunks({
   query: 'payment obligations',
-  file_names: [source.file_name]
+  file_names: [source.file_name],
 });
 console.log(`🔍 Found ${chunks.total} relevant chunks`);
 ```
@@ -418,13 +419,13 @@ https://mcp.graphor.workers.dev/sse
 **Agentic workflows (e.g. LangChain)** — connect via SSE transport:
 
 ```typescript
-import { MultiServerMCPClient } from "@langchain/mcp-adapters";
+import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 
 const client = new MultiServerMCPClient({
   graphor: {
-    url: "https://mcp.graphor.workers.dev/sse",
-    transport: "sse",
-  }
+    url: 'https://mcp.graphor.workers.dev/sse',
+    transport: 'sse',
+  },
 });
 
 const tools = await client.getTools();
@@ -437,24 +438,24 @@ See the [MCP Server README](./packages/mcp-server/README.md) for more details.
 
 ### Sources
 
-| Method | Description | Docs |
-|--------|-------------|------|
-| `sources.upload()` | Upload a local file | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file) |
-| `sources.uploadUrl()` | Upload from web URL | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url) |
-| `sources.uploadGithub()` | Upload from GitHub | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github) |
-| `sources.uploadYoutube()` | Upload from YouTube | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
-| `sources.parse()` | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process) |
-| `sources.list()` | List all sources | [📖](https://docs.graphorlm.com/sdk/sources/list) |
-| `sources.delete()` | Delete a source | [📖](https://docs.graphorlm.com/sdk/sources/delete) |
-| `sources.loadElements()` | Get parsed elements | [📖](https://docs.graphorlm.com/sdk/sources/list-elements) |
+| Method                    | Description                     | Docs                                                                    |
+| ------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `sources.upload()`        | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file)       |
+| `sources.uploadUrl()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url)     |
+| `sources.uploadGithub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github)  |
+| `sources.uploadYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
+| `sources.parse()`         | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)                    |
+| `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                       |
+| `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                     |
+| `sources.loadElements()`  | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)              |
 
 ### Chat & AI
 
-| Method | Description | Docs |
-|--------|-------------|------|
-| `sources.ask()` | Ask questions about documents | [📖](https://docs.graphorlm.com/sdk/chat) |
-| `sources.extract()` | Extract structured data | [📖](https://docs.graphorlm.com/sdk/extract) |
-| `sources.retrieveChunks()` | Retrieve chunks for RAG | [📖](https://docs.graphorlm.com/sdk/prebuilt-rag) |
+| Method                     | Description                   | Docs                                              |
+| -------------------------- | ----------------------------- | ------------------------------------------------- |
+| `sources.ask()`            | Ask questions about documents | [📖](https://docs.graphorlm.com/sdk/chat)         |
+| `sources.extract()`        | Extract structured data       | [📖](https://docs.graphorlm.com/sdk/extract)      |
+| `sources.retrieveChunks()` | Retrieve chunks for RAG       | [📖](https://docs.graphorlm.com/sdk/prebuilt-rag) |
 
 ## TypeScript Support
 
