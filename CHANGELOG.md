@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.20.0 (2026-05-21)
+
+Full Changelog: [v0.19.1...v0.20.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.19.1...v0.20.0)
+
+### Features
+
+* **api:** api update ([b5110ba](https://github.com/synapseops/graphor-typescript-sdk/commit/b5110ba6fee1fa1932a307224be94fe097e40e7d))
+* **api:** api update ([273205b](https://github.com/synapseops/graphor-typescript-sdk/commit/273205b296ab6975980aefb26fbb338fda23e271))
+
+
+### Bug Fixes
+
+* **mcp-server:** align tsc-multi version with lockfile ([a8d0b64](https://github.com/synapseops/graphor-typescript-sdk/commit/a8d0b6432fb330f3d7e7d2f83ec95d94bf8d8f35))
+* **typescript:** upgrade tsc-multi so that it works with Node 26 ([94f4c7a](https://github.com/synapseops/graphor-typescript-sdk/commit/94f4c7a4dbbc97b94b9cd3a95f6f68b5b641b29b))
+
+
+### Chores
+
+* redact api-key headers in debug logs ([cacd2cf](https://github.com/synapseops/graphor-typescript-sdk/commit/cacd2cf19aa2666b37cd7d997ff42fea31e07d8f))
+* **tests:** remove redundant File import ([ed76d45](https://github.com/synapseops/graphor-typescript-sdk/commit/ed76d45618c5a4a59abe169cc4dd493b41dcf178))
+
 ## 0.19.1 (2026-05-07)
 
 Full Changelog: [v0.19.0...v0.19.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.19.0...v0.19.1)
