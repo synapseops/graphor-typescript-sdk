@@ -740,4 +740,64 @@ describe('retries', () => {
     ).toEqual(JSON.stringify({ a: 1 }));
     expect(count).toEqual(3);
   });
+
+  describe('runtime-specific fetch options', () => {
+    afterEach(() => {
+      delete (globalThis as any).Bun;
+    });
+
+    test('Bun runtime: sets timeout=false on fetch options', async () => {
+      (globalThis as any).Bun = { version: '1.3.0' };
+
+      let capturedInit: RequestInit | undefined;
+      const testFetch = async (_url: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
+        capturedInit = init;
+        return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+      };
+
+      const client = new Graphor({ apiKey: 'My API Key', fetch: testFetch });
+      await client.request({ path: '/foo', method: 'get' });
+
+      // Bun-specific: SDK disables Bun's internal body timeout so the
+      // AbortController is the only deadline.
+      expect((capturedInit as any).timeout).toBe(false);
+      // Sanity: the standard timeout signal is still set.
+      expect(capturedInit?.signal).toBeDefined();
+    });
+
+    test('Bun runtime: does NOT override an explicitly-set timeout in fetchOptions', async () => {
+      (globalThis as any).Bun = { version: '1.3.0' };
+
+      let capturedInit: RequestInit | undefined;
+      const testFetch = async (_url: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
+        capturedInit = init;
+        return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+      };
+
+      const client = new Graphor({
+        apiKey: 'My API Key',
+        fetch: testFetch,
+        // User explicitly set a timeout — SDK must respect it.
+        fetchOptions: { timeout: 30000 } as any,
+      });
+      await client.request({ path: '/foo', method: 'get' });
+
+      expect((capturedInit as any).timeout).toBe(30000);
+    });
+
+    test('Bun runtime: does NOT install undici dispatcher (Bun has no undici)', async () => {
+      (globalThis as any).Bun = { version: '1.3.0' };
+
+      let capturedInit: RequestInit | undefined;
+      const testFetch = async (_url: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
+        capturedInit = init;
+        return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+      };
+
+      const client = new Graphor({ apiKey: 'My API Key', fetch: testFetch });
+      await client.request({ path: '/foo', method: 'get' });
+
+      expect((capturedInit as any).dispatcher).toBeUndefined();
+    });
+  });
 });
