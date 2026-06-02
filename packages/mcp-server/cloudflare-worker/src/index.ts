@@ -49,7 +49,7 @@ const INSTRUCTIONS_FETCH_TIMEOUT_MS = 5000;
 
 function fallbackMcpServer(): McpServer {
   return new McpServer(
-    { name: 'graphor_api', version: '0.20.0' },
+    { name: 'graphor_api', version: '0.20.1' },
     { capabilities: { tools: {}, logging: {} } },
   );
 }
