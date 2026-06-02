@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.20.1 (2026-06-02)
+
+Full Changelog: [v0.20.0...v0.20.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.20.0...v0.20.1)
+
+### Bug Fixes
+
+* **bun:** disable fetch body timeout so SDK AbortController is the only deadline ([07fbfce](https://github.com/synapseops/graphor-typescript-sdk/commit/07fbfce7a49958ef0f9b62768365a0ffe04ab17b))
+
+
+### Chores
+
+* update SDK settings ([60ca5c2](https://github.com/synapseops/graphor-typescript-sdk/commit/60ca5c20c873561eaa31da7880ebda108d46aca6))
+* update SDK settings ([518deae](https://github.com/synapseops/graphor-typescript-sdk/commit/518deaeaf8d323001f901da82f3638bdd5676751))
+
 ## 0.20.0 (2026-05-21)
 
 Full Changelog: [v0.19.1...v0.20.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.19.1...v0.20.0)

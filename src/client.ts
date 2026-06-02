@@ -541,11 +541,31 @@ export class Graphor {
       fetchOptions.method = method.toUpperCase();
     }
 
-    // Node.js uses undici for fetch, which has its own bodyTimeout/headersTimeout
-    // defaults (300s). These can expire before the SDK's AbortController timeout,
-    // causing unexpected early timeouts. Sync undici's timeouts with the SDK timeout
-    // unless the user already provided a custom dispatcher.
-    if (!(fetchOptions as any).dispatcher && typeof (globalThis as any).process !== 'undefined') {
+    // Different runtimes have different fetch timeout defaults that can fire
+    // BEFORE the SDK's AbortController-based `this.timeout` deadline, surfacing
+    // as APIConnectionError / APIConnectionTimeoutError when the request was
+    // actually still in flight. Each runtime needs its own workaround:
+    //
+    //   - Node.js: undici has 300s `bodyTimeout`/`headersTimeout` defaults.
+    //     We construct an undici Agent with timeouts synced to `this.timeout`
+    //     and pass it via `dispatcher`.
+    //   - Bun: its native fetch has an internal body timeout (~5 min). The
+    //     Bun-specific `timeout: false` option disables it so the SDK's
+    //     AbortController is the only deadline.
+    //   - Deno / browser: fetch is implemented natively; no per-runtime knob
+    //     known to misbehave today, so no workaround.
+    //
+    // Detect Bun BEFORE Node — Bun polyfills `process` so the Node check
+    // matches it too, but Bun doesn't ship undici (the import would fail
+    // silently as it did before this branch existed).
+    const isBun = typeof (globalThis as any).Bun !== 'undefined';
+    if (isBun) {
+      if ((fetchOptions as any).timeout === undefined) {
+        // Bun-specific: `false` disables Bun's internal body timeout. The SDK's
+        // AbortController (signal set above) remains the only deadline.
+        (fetchOptions as any).timeout = false;
+      }
+    } else if (!(fetchOptions as any).dispatcher && typeof (globalThis as any).process !== 'undefined') {
       if (!this.#undiciDispatcher) {
         try {
           const undici: any = await (Function('return import("undici")')() as Promise<any>);
@@ -554,7 +574,7 @@ export class Graphor {
             headersTimeout: this.timeout,
           });
         } catch {
-          // undici not available (browser, Deno, Bun) — no-op
+          // undici not available (browser, Deno) — no-op
         }
       }
       if (this.#undiciDispatcher) {
