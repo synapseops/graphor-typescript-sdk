@@ -711,6 +711,14 @@ export interface PublicSource {
    * mai, graphorlm, auto. V2 API: fast, balanced, accurate, agentic, auto.
    */
   method?: string | null;
+
+  /**
+   * Whether this source has a retrieval index. False means it was ingested with
+   * indexing=none: `ask`, `extract` and `retrieve` will return nothing for it, while
+   * reading its elements, `grep` and page reads all still work. Null when unknown
+   * (pre-existing sources).
+   */
+  searchable?: boolean | null;
 }
 
 export type SourceListResponse = Array<PublicSource>;
