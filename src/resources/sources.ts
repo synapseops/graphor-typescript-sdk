@@ -357,6 +357,11 @@ export class Sources extends APIResource {
    *   etc.).
    * - **method** (`form`, optional): Partitioning strategy. One of: `fast`,
    *   `balanced`, `accurate`, `vlm`, `agentic`, `auto`. Default when omitted.
+   * - **enrichment** (`form`, optional): `full` (default) or `none`. `none` skips
+   *   LLM page/section/document annotation for faster, cheaper parsing.
+   * - **indexing** (`form`, optional): `full` (default) or `none`. `none` skips
+   *   chunking/embedding/indexing — the source is parsed but not searchable via
+   *   ask/extract/retrieve. Check `GET /v2/sources/config` for availability.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing
    * status.
@@ -937,6 +942,11 @@ export interface SourceGetBuildStatusResponse {
   elements?: Array<Element> | null;
 
   /**
+   * LLM enrichment level used for this build.
+   */
+  enrichment?: string | null;
+
+  /**
    * Error message from the pipeline, if the build failed (e.g. processing_failed).
    */
   error?: string | null;
@@ -961,6 +971,11 @@ export interface SourceGetBuildStatusResponse {
    * True when the build has failed batch details available for retry.
    */
   has_failed_batches?: boolean;
+
+  /**
+   * Retrieval indexing level used for this build.
+   */
+  indexing?: string | null;
 
   /**
    * Human-readable message (e.g. when status is not_found or processing).
@@ -990,6 +1005,14 @@ export interface SourceGetBuildStatusResponse {
    * Number of elements per page. Null when no pagination was requested.
    */
   page_size?: number | null;
+
+  /**
+   * Whether this build's retrieval index is currently serving queries: the build
+   * completed, was indexed (indexing=full), and is still the source's active build.
+   * False for unindexed, failed, in-progress, or superseded builds —
+   * ask/extract/retrieve will return nothing for those.
+   */
+  searchable?: boolean | null;
 
   /**
    * Total number of elements for this build. Present when suppress_elements=false.
@@ -1185,6 +1208,13 @@ export interface SourceRetrieveChunksResponse {
    * List of retrieved chunks ordered by relevance
    */
   chunks?: Array<SourceRetrieveChunksResponse.Chunk>;
+
+  /**
+   * Present only when the result needs explaining — e.g. every source in scope was
+   * ingested with indexing=none, so an empty chunk list means 'nothing is indexed',
+   * not 'nothing matched'.
+   */
+  message?: string | null;
 }
 
 export namespace SourceRetrieveChunksResponse {
@@ -1398,6 +1428,19 @@ export interface SourceIngestFileParams {
   file: Uploadable;
 
   /**
+   * LLM enrichment level: 'full' (default) or 'none' to skip page/section/document
+   * annotation for faster parsing.
+   */
+  enrichment?: string | null;
+
+  /**
+   * Retrieval indexing level: 'full' (default) or 'none' to skip
+   * chunking/embedding/indexing — the source is parsed but not searchable. Requires
+   * Temporal ingestion.
+   */
+  indexing?: string | null;
+
+  /**
    * Public-facing partition method names for API v2.
    *
    * Maps to internal PartitionMethod as:
@@ -1416,6 +1459,21 @@ export interface SourceIngestGitHubParams {
    * The GitHub repository URL to ingest (e.g. https://github.com/owner/repo)
    */
   url: string;
+
+  /**
+   * LLM enrichment level. `full` (default) runs page/section and document
+   * annotation; `none` returns parsing results only and is faster, at the cost of
+   * weaker retrieval context.
+   */
+  enrichment?: string | null;
+
+  /**
+   * Retrieval indexing level. `full` (default) chunks, embeds and indexes the
+   * source; `none` skips it — the source will NOT be searchable via
+   * ask/extract/retrieve, though its parsed elements remain readable. Reversible by
+   * re-processing.
+   */
+  indexing?: string | null;
 }
 
 export interface SourceIngestURLParams {
@@ -1428,6 +1486,21 @@ export interface SourceIngestURLParams {
    * When true, also follows and ingests links found on the page
    */
   crawlUrls?: boolean;
+
+  /**
+   * LLM enrichment level. `full` (default) runs page/section and document
+   * annotation; `none` returns parsing results only and is faster, at the cost of
+   * weaker retrieval context.
+   */
+  enrichment?: string | null;
+
+  /**
+   * Retrieval indexing level. `full` (default) chunks, embeds and indexes the
+   * source; `none` skips it — the source will NOT be searchable via
+   * ask/extract/retrieve, though its parsed elements remain readable. Reversible by
+   * re-processing.
+   */
+  indexing?: string | null;
 
   /**
    * Public-facing partition method names for API v2.
@@ -1449,6 +1522,21 @@ export interface SourceIngestYoutubeParams {
    * https://www.youtube.com/watch?v=dQw4w9WgXcQ)
    */
   url: string;
+
+  /**
+   * LLM enrichment level. `full` (default) runs page/section and document
+   * annotation; `none` returns parsing results only and is faster, at the cost of
+   * weaker retrieval context.
+   */
+  enrichment?: string | null;
+
+  /**
+   * Retrieval indexing level. `full` (default) chunks, embeds and indexes the
+   * source; `none` skips it — the source will NOT be searchable via
+   * ask/extract/retrieve, though its parsed elements remain readable. Reversible by
+   * re-processing.
+   */
+  indexing?: string | null;
 }
 
 export interface SourceReprocessParams {
@@ -1456,6 +1544,21 @@ export interface SourceReprocessParams {
    * Unique identifier of the source to re-process.
    */
   file_id: string;
+
+  /**
+   * LLM enrichment level. `full` (default) runs page/section and document
+   * annotation; `none` returns parsing results only and is faster, at the cost of
+   * weaker retrieval context.
+   */
+  enrichment?: string | null;
+
+  /**
+   * Retrieval indexing level. `full` (default) chunks, embeds and indexes the
+   * source; `none` skips it — the source will NOT be searchable via
+   * ask/extract/retrieve, though its parsed elements remain readable. Reversible by
+   * re-processing.
+   */
+  indexing?: string | null;
 
   /**
    * Partitioning strategy. One of: fast, balanced, accurate, agentic, auto.
