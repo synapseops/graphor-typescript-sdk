@@ -344,6 +344,39 @@ export class Sources extends APIResource {
   }
 
   /**
+   * Build the retrieval index for an existing build from its already-parsed
+   * partitions — the way out of `indexing=none` without paying for a re-parse.
+   *
+   * Chunks, embeds and indexes the build's persisted partitions, makes it the file's
+   * active build, and flips the persisted `indexing` level to `full`. After it
+   * returns, `ask-sources`, `run-extraction` and `prebuilt-rag` see the source, and
+   * build status reports `searchable: true`.
+   *
+   * **Parameters (JSON body):**
+   *
+   * - **file_id** (str, required): Unique identifier of the source file.
+   * - **build_id** (str, optional): Build to index. Omitted → the file's active
+   *   build. A non-active build becomes active (only the active build can serve
+   *   retrieval).
+   *
+   * Synchronous: the response arrives when indexing finishes. For large documents
+   * the connection is kept alive with whitespace heartbeats — JSON parsers ignore
+   * them, no client change needed.
+   *
+   * **Returns** `PublicIndexBuildResponse` with `chunks_indexed`.
+   *
+   * @example
+   * ```ts
+   * const response = await client.sources.indexBuild({
+   *   file_id: 'file_id',
+   * });
+   * ```
+   */
+  indexBuild(body: SourceIndexBuildParams, options?: RequestOptions): APIPromise<SourceIndexBuildResponse> {
+    return this._client.post('/sources/index', { body, ...options });
+  }
+
+  /**
    * Upload a local file and schedule ingestion in the background.
    *
    * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
@@ -1108,6 +1141,36 @@ export interface SourceGetPageScreenshotResponse {
   width?: number | null;
 }
 
+/**
+ * Response for `POST /v2/sources/index`.
+ */
+export interface SourceIndexBuildResponse {
+  /**
+   * The build that was indexed.
+   */
+  build_id: string;
+
+  /**
+   * Number of chunks embedded and stored for the build.
+   */
+  chunks_indexed: number;
+
+  /**
+   * Unique identifier of the source file.
+   */
+  file_id: string;
+
+  /**
+   * Persisted indexing level after the operation (always 'full').
+   */
+  indexing?: string;
+
+  /**
+   * Whether the operation succeeded.
+   */
+  success?: boolean;
+}
+
 export interface SourceIngestFileResponse {
   /**
    * The ID of the build. This ID can be used to check the status of the request.
@@ -1424,6 +1487,19 @@ export interface SourceGetPageScreenshotParams {
   max_width?: number;
 }
 
+export interface SourceIndexBuildParams {
+  /**
+   * Unique identifier of the source file.
+   */
+  file_id: string;
+
+  /**
+   * Build to index. Omitted → the file's active build. When given, that build
+   * becomes the active one (only the active build can serve retrieval).
+   */
+  build_id?: string | null;
+}
+
 export interface SourceIngestFileParams {
   file: Uploadable;
 
@@ -1596,6 +1672,7 @@ export declare namespace Sources {
     type SourceGetBuildStatusResponse as SourceGetBuildStatusResponse,
     type SourceGetElementsResponse as SourceGetElementsResponse,
     type SourceGetPageScreenshotResponse as SourceGetPageScreenshotResponse,
+    type SourceIndexBuildResponse as SourceIndexBuildResponse,
     type SourceIngestFileResponse as SourceIngestFileResponse,
     type SourceIngestGitHubResponse as SourceIngestGitHubResponse,
     type SourceIngestURLResponse as SourceIngestURLResponse,
@@ -1609,6 +1686,7 @@ export declare namespace Sources {
     type SourceGetBuildStatusParams as SourceGetBuildStatusParams,
     type SourceGetElementsParams as SourceGetElementsParams,
     type SourceGetPageScreenshotParams as SourceGetPageScreenshotParams,
+    type SourceIndexBuildParams as SourceIndexBuildParams,
     type SourceIngestFileParams as SourceIngestFileParams,
     type SourceIngestGitHubParams as SourceIngestGitHubParams,
     type SourceIngestURLParams as SourceIngestURLParams,

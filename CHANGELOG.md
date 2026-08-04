@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 (2026-08-04)
+
+Full Changelog: [v0.21.0...v0.22.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.21.0...v0.22.0)
+
+### Features
+
+* **api:** index build endpoint ([8135dc3](https://github.com/synapseops/graphor-typescript-sdk/commit/8135dc3f2b9723bb8820720ef9269da932f5c6b5))
+
 ## 0.21.0 (2026-08-04)
 
 Full Changelog: [v0.20.1...v0.21.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.20.1...v0.21.0)
