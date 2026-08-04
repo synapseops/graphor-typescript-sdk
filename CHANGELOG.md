@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.0 (2026-08-04)
+
+Full Changelog: [v0.20.1...v0.21.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.20.1...v0.21.0)
+
+### Features
+
+* **api:** api update ([d23793d](https://github.com/synapseops/graphor-typescript-sdk/commit/d23793d83b72307442657806b3f4dfbd0fa48a44))
+* **api:** api update ([e12bf89](https://github.com/synapseops/graphor-typescript-sdk/commit/e12bf893bc5d21c0e038f947f8de613ef4bd6d0d))
+* **stlc:** configurable CI runner and private-production-repo support in workflow templates ([1e1c13c](https://github.com/synapseops/graphor-typescript-sdk/commit/1e1c13c8a5a12f280138ece8e75d690e760d4d41))
+
+
+### Bug Fixes
+
+* **ci:** bump @arethetypeswrong/cli to ^0.18.0 and run CI workflows on Node 24 ([83178d8](https://github.com/synapseops/graphor-typescript-sdk/commit/83178d853d8d7ea84e7cb3b451f08422ebeb3687))
+* **client:** send content-type header for requests with an omitted optional body ([a10a9bd](https://github.com/synapseops/graphor-typescript-sdk/commit/a10a9bd2d9fedf8ca445f5693b8d23deb05f1906))
+
 ## 0.20.1 (2026-06-02)
 
 Full Changelog: [v0.20.0...v0.20.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.20.0...v0.20.1)
