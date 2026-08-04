@@ -559,6 +559,42 @@ const EMBEDDED_METHODS: MethodEntry[] = [
       },
     },
   },
+  {
+    name: 'index_build',
+    endpoint: '/sources/index',
+    httpMethod: 'post',
+    summary: 'Index an existing build without re-parsing',
+    description:
+      "Build the retrieval index for an existing build from its already-parsed\npartitions — the way out of `indexing=none` without paying for a re-parse.\n\nChunks, embeds and indexes the build's persisted partitions, makes it the\nfile's active build, and flips the persisted `indexing` level to `full`.\nAfter it returns, `ask-sources`, `run-extraction` and `prebuilt-rag` see\nthe source, and build status reports `searchable: true`.\n\n**Parameters (JSON body):**\n- **file_id** (str, required): Unique identifier of the source file.\n- **build_id** (str, optional): Build to index. Omitted → the file's\n  active build. A non-active build becomes active (only the active build\n  can serve retrieval).\n\nSynchronous: the response arrives when indexing finishes. For large\ndocuments the connection is kept alive with whitespace heartbeats —\nJSON parsers ignore them, no client change needed.\n\n**Returns** `PublicIndexBuildResponse` with `chunks_indexed`.",
+    stainlessPath: '(resource) sources > (method) index_build',
+    qualified: 'client.sources.indexBuild',
+    params: ['file_id: string;', 'build_id?: string;'],
+    response:
+      '{ build_id: string; chunks_indexed: number; file_id: string; indexing?: string; success?: boolean; }',
+    markdown:
+      "## index_build\n\n`client.sources.indexBuild(file_id: string, build_id?: string): { build_id: string; chunks_indexed: number; file_id: string; indexing?: string; success?: boolean; }`\n\n**post** `/sources/index`\n\nBuild the retrieval index for an existing build from its already-parsed\npartitions — the way out of `indexing=none` without paying for a re-parse.\n\nChunks, embeds and indexes the build's persisted partitions, makes it the\nfile's active build, and flips the persisted `indexing` level to `full`.\nAfter it returns, `ask-sources`, `run-extraction` and `prebuilt-rag` see\nthe source, and build status reports `searchable: true`.\n\n**Parameters (JSON body):**\n- **file_id** (str, required): Unique identifier of the source file.\n- **build_id** (str, optional): Build to index. Omitted → the file's\n  active build. A non-active build becomes active (only the active build\n  can serve retrieval).\n\nSynchronous: the response arrives when indexing finishes. For large\ndocuments the connection is kept alive with whitespace heartbeats —\nJSON parsers ignore them, no client change needed.\n\n**Returns** `PublicIndexBuildResponse` with `chunks_indexed`.\n\n### Parameters\n\n- `file_id: string`\n  Unique identifier of the source file.\n\n- `build_id?: string`\n  Build to index. Omitted → the file's active build. When given, that build becomes the active one (only the active build can serve retrieval).\n\n### Returns\n\n- `{ build_id: string; chunks_indexed: number; file_id: string; indexing?: string; success?: boolean; }`\n  Response for ``POST /v2/sources/index``.\n\n  - `build_id: string`\n  - `chunks_indexed: number`\n  - `file_id: string`\n  - `indexing?: string`\n  - `success?: boolean`\n\n### Example\n\n```typescript\nimport Graphor from 'graphor';\n\nconst client = new Graphor();\n\nconst response = await client.sources.indexBuild({ file_id: 'file_id' });\n\nconsole.log(response);\n```",
+    perLanguage: {
+      typescript: {
+        method: 'client.sources.indexBuild',
+        example:
+          "import Graphor from 'graphor';\n\nconst client = new Graphor({\n  apiKey: process.env['GRAPHOR_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.sources.indexBuild({ file_id: 'file_id' });\n\nconsole.log(response.build_id);",
+      },
+      python: {
+        method: 'sources.index_build',
+        example:
+          'import os\nfrom graphor import Graphor\n\nclient = Graphor(\n    api_key=os.environ.get("GRAPHOR_API_KEY"),  # This is the default and can be omitted\n)\nresponse = client.sources.index_build(\n    file_id="file_id",\n)\nprint(response.build_id)',
+      },
+      go: {
+        method: 'client.Sources.IndexBuild',
+        example:
+          'package main\n\nimport (\n\t"context"\n\t"fmt"\n\n\t"github.com/stainless-sdks/graphor-prd-go"\n\t"github.com/stainless-sdks/graphor-prd-go/option"\n)\n\nfunc main() {\n\tclient := graphor.NewClient(\n\t\toption.WithAPIKey("My API Key"),\n\t)\n\tresponse, err := client.Sources.IndexBuild(context.TODO(), graphor.SourceIndexBuildParams{\n\t\tFileID: "file_id",\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf("%+v\\n", response.BuildID)\n}\n',
+      },
+      http: {
+        example:
+          'curl https://api.graphorlm.com/api/public/v1/sources/index \\\n    -H \'Content-Type: application/json\' \\\n    -H "Authorization: Bearer $GRAPHOR_API_KEY" \\\n    -d \'{\n          "file_id": "file_id"\n        }\'',
+      },
+    },
+  },
 ];
 
 const EMBEDDED_READMES: { language: string; content: string }[] = [

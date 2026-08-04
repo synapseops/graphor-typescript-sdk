@@ -53,6 +53,12 @@ export const sdkMethods: SdkMethod[] = [
     httpPath: '/sources/{file_id}/pages/{page_number}/screenshot',
   },
   {
+    clientCallName: 'client.sources.indexBuild',
+    fullyQualifiedName: 'sources.indexBuild',
+    httpMethod: 'post',
+    httpPath: '/sources/index',
+  },
+  {
     clientCallName: 'client.sources.ingestFile',
     fullyQualifiedName: 'sources.ingestFile',
     httpMethod: 'post',
