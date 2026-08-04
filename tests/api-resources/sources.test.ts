@@ -185,6 +185,8 @@ describe('resource sources', () => {
   test.skip('ingestFile: required and optional params', async () => {
     const response = await client.sources.ingestFile({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
+      enrichment: 'enrichment',
+      indexing: 'indexing',
       method: 'fast',
     });
   });
@@ -203,7 +205,11 @@ describe('resource sources', () => {
 
   // Mock server tests are disabled
   test.skip('ingestGitHub: required and optional params', async () => {
-    const response = await client.sources.ingestGitHub({ url: 'https://github.com/langchain-ai/langchain' });
+    const response = await client.sources.ingestGitHub({
+      url: 'https://github.com/langchain-ai/langchain',
+      enrichment: 'enrichment',
+      indexing: 'indexing',
+    });
   });
 
   // Mock server tests are disabled
@@ -223,6 +229,8 @@ describe('resource sources', () => {
     const response = await client.sources.ingestURL({
       url: 'https://example.com/blog/ai-trends-2025',
       crawlUrls: false,
+      enrichment: 'enrichment',
+      indexing: 'indexing',
       method: 'balanced',
     });
   });
@@ -245,6 +253,8 @@ describe('resource sources', () => {
   test.skip('ingestYoutube: required and optional params', async () => {
     const response = await client.sources.ingestYoutube({
       url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      enrichment: 'enrichment',
+      indexing: 'indexing',
     });
   });
 
@@ -264,6 +274,8 @@ describe('resource sources', () => {
   test.skip('reprocess: required and optional params', async () => {
     const response = await client.sources.reprocess({
       file_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      enrichment: 'enrichment',
+      indexing: 'indexing',
       method: 'balanced',
     });
   });
