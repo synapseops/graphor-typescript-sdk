@@ -13,7 +13,7 @@ const tool: McpTool = {
     name: 'list_sources',
     description:
       "List all sources in the project's knowledge graph. " +
-      'Returns every source with file metadata (file_id, name, size, type, origin) ' +
+      'Returns every source with file metadata (file_id, name, size, type, origin, method, searchable) ' +
       'and its current processing status. ' +
       'Use file_ids to filter by specific sources. ' +
       'The file_id from each result can be used in get_elements, reprocess, delete_source, ask, extract, and retrieve_chunks.',

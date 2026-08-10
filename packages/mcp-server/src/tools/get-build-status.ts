@@ -14,6 +14,9 @@ const tool: McpTool = {
     description:
       'Check the status of an async ingestion or reprocess operation. ' +
       'Pass the build_id returned by ingest_file, ingest_url, ingest_github, ingest_youtube, or reprocess.\n\n' +
+      "The response also reports the build's ingestion levels — enrichment and indexing (each 'full' or 'none') — " +
+      'and `searchable`: true only when the build completed, was indexed and is still the active build. ' +
+      'An unsearchable source can be indexed later with index_build.\n\n' +
       'When the build completes successfully, the response includes:\n' +
       '- **success: true** — the build finished without errors\n' +
       '- **file_id** — use this in subsequent calls (ask, extract, retrieve_chunks, get_elements, delete_source, reprocess)\n' +

@@ -12,6 +12,8 @@ const tool: McpTool = {
   tool: {
     name: 'retrieve_chunks',
     description:
+      'Note: sources ingested with indexing="none" have no chunks and return nothing here ' +
+      'until indexed via index_build (check searchable in get_build_status or list_sources).\n\n' +
       'Retrieve relevant document chunks via semantic search. ' +
       'Returns the most relevant text chunks with source metadata (file name, page number, relevance score). ' +
       'This is a pure retrieval endpoint — it does not generate an answer. Use the "ask" tool for Q&A.',

@@ -40,6 +40,12 @@ const tool: McpTool = {
           items: { type: 'string' },
           description: 'Restrict the search scope to specific source file names.',
         },
+        include_citation_markup: {
+          type: 'boolean',
+          description:
+            'When true, the answer keeps the raw citation markup [N](file_id|pX|sY|eZ|fNAME) emitted by the agent ' +
+            'instead of stripped [N] markers. Prefer the citations field for stable parsing. No effect when output_schema is set.',
+        },
         output_schema: {
           type: 'object',
           description:
@@ -47,9 +53,9 @@ const tool: McpTool = {
         },
         thinking_level: {
           type: 'string',
-          enum: ['fast', 'balanced', 'accurate'],
+          enum: ['fast', 'balanced', 'accurate', 'max'],
           description:
-            "Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or 'accurate' (most thorough).",
+            "Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', 'accurate', or 'max' (most thorough — exhaustive investigation).",
         },
       },
       required: ['question'],
@@ -66,10 +72,13 @@ const tool: McpTool = {
         output_schema: args['output_schema'] as Record<string, unknown>,
       }),
       ...(args['thinking_level'] != null && {
-        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate',
+        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate' | 'max',
       }),
     };
 
+    if (args['include_citation_markup'] != null) {
+      params.include_citation_markup = args['include_citation_markup'] as boolean;
+    }
     const result = await client.sources.ask(params);
     return asTextContentResult(result);
   },
