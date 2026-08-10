@@ -90,9 +90,9 @@ const tool: McpTool = {
       // individually and merge.
       const { element_ids: _ignored, ...rest } = params;
       const results = await Promise.all(
-        elementIds.map(id => client.sources.getElements({ ...rest, element_ids: [id] })),
+        elementIds.map((id) => client.sources.getElements({ ...rest, element_ids: [id] })),
       );
-      const items = results.flatMap(r => r.items);
+      const items = results.flatMap((r) => r.items);
       return asTextContentResult({ ...results[0], items, total: items.length });
     }
 

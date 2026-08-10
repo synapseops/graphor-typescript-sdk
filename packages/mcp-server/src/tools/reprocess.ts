@@ -69,7 +69,6 @@ const tool: McpTool = {
       params.indexing = args['indexing'] as string;
     }
 
-
     const result = await client.sources.reprocess(params);
     return asTextContentResult(result);
   },
