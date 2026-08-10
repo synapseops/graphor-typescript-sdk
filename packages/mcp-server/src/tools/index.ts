@@ -12,6 +12,8 @@ import listSourcesTool from './list-sources';
 import deleteSourceTool from './delete-source';
 import reprocessTool from './reprocess';
 import getElementsTool from './get-elements';
+import indexBuildTool from './index-build';
+import getPageScreenshotTool from './get-page-screenshot';
 
 export {
   askTool,
@@ -26,6 +28,8 @@ export {
   deleteSourceTool,
   reprocessTool,
   getElementsTool,
+  indexBuildTool,
+  getPageScreenshotTool,
 };
 
 export const allTools: McpTool[] = [
@@ -41,4 +45,6 @@ export const allTools: McpTool[] = [
   deleteSourceTool,
   reprocessTool,
   getElementsTool,
+  indexBuildTool,
+  getPageScreenshotTool,
 ];

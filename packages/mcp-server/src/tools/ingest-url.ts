@@ -32,14 +32,29 @@ const tool: McpTool = {
         },
         method: {
           type: 'string',
-          enum: ['fast', 'balanced', 'accurate', 'vlm', 'agentic'],
+          enum: ['auto', 'fast', 'balanced', 'accurate', 'agentic'],
           description:
             'The partitioning strategy to apply. When omitted, the system default is used.\n' +
             '- "fast" — Fastest, rule-based partitioning with minimal overhead.\n' +
             '- "balanced" — Balanced speed and accuracy using layout-aware parsing.\n' +
             '- "accurate" — High-accuracy parsing with fine-tuned models.\n' +
-            '- "vlm" — Vision-language model for complex visual documents.\n' +
-            '- "agentic" — Agentic pipeline with the highest accuracy.',
+            '- "agentic" — Agentic pipeline with the highest accuracy.\n' +
+            '- "auto" — Classifies each page and routes it to the cheapest method that can read it (PDFs only).',
+        },
+        enrichment: {
+          type: 'string',
+          enum: ['full', 'none'],
+          description:
+            "LLM enrichment level. 'full' (default) annotates pages, sections and the document for better retrieval. " +
+            "'none' skips LLM annotation for faster, cheaper parsing.",
+        },
+        indexing: {
+          type: 'string',
+          enum: ['full', 'none'],
+          description:
+            "Retrieval indexing level. 'full' (default) chunks, embeds and indexes the source. " +
+            "'none' parses only — the source is NOT searchable (ask, extract and retrieve_chunks return nothing for it) " +
+            'until indexed later via index_build. Rejected with 400 on deployments without indexing support.',
         },
       },
       required: ['url'],
@@ -52,6 +67,12 @@ const tool: McpTool = {
     };
     if (args['method'] != null) {
       params.method = args['method'] as Graphor.Method;
+    }
+    if (args['enrichment'] != null) {
+      params.enrichment = args['enrichment'] as string;
+    }
+    if (args['indexing'] != null) {
+      params.indexing = args['indexing'] as string;
     }
 
     const result = await client.sources.ingestURL(params);

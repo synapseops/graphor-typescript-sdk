@@ -38,9 +38,9 @@ const tool: McpTool = {
         },
         thinking_level: {
           type: 'string',
-          enum: ['fast', 'balanced', 'accurate'],
+          enum: ['fast', 'balanced', 'accurate', 'max'],
           description:
-            "Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', or 'accurate' (most thorough).",
+            "Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', 'accurate', or 'max' (most thorough — exhaustive investigation).",
         },
       },
       required: ['user_instruction', 'output_schema'],
@@ -53,7 +53,7 @@ const tool: McpTool = {
       ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
       ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
       ...(args['thinking_level'] != null && {
-        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate',
+        thinking_level: args['thinking_level'] as 'fast' | 'balanced' | 'accurate' | 'max',
       }),
     };
 

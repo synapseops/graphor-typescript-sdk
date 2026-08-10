@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 (2026-08-10)
+
+Full Changelog: [v0.22.0...v0.23.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.22.0...v0.23.0)
+
+### Features
+
+* **mcp:** sync tools and instructions with the current API ([76d4b62](https://github.com/synapseops/graphor-typescript-sdk/commit/76d4b62d1829e29c4e146175dc5c9ec0a81998c4))
+
+
+### Styles
+
+* **mcp:** prettier formatting ([bf63407](https://github.com/synapseops/graphor-typescript-sdk/commit/bf63407cb9df27abf3582dade6fdfdb4b9ab913d))
+
 ## 0.22.0 (2026-08-04)
 
 Full Changelog: [v0.21.0...v0.22.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.21.0...v0.22.0)

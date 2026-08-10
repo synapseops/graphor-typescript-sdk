@@ -42,6 +42,12 @@ const tool: McpTool = {
           type: 'string',
           description: 'Filter by element type (e.g. NarrativeText, Title, Table, Image).',
         },
+        element_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Restrict results to specific element IDs. Each ID is fetched individually and the results are merged.',
+        },
         page_numbers: {
           type: 'array',
           items: { type: 'number' },
@@ -71,10 +77,24 @@ const tool: McpTool = {
       }),
       ...(args['type'] != null && { type: args['type'] as string }),
       ...(args['page_numbers'] != null && { page_numbers: args['page_numbers'] as number[] }),
+      ...(args['element_ids'] != null && { element_ids: args['element_ids'] as string[] }),
       ...(args['elementsToRemove'] != null && {
         elementsToRemove: args['elementsToRemove'] as string[],
       }),
     };
+
+    const elementIds = args['element_ids'] as string[] | undefined;
+    if (elementIds && elementIds.length > 1) {
+      // The SDK comma-joins array query params, but the API expects repeated
+      // params — a multi-ID request silently returns nothing. Fetch each ID
+      // individually and merge.
+      const { element_ids: _ignored, ...rest } = params;
+      const results = await Promise.all(
+        elementIds.map((id) => client.sources.getElements({ ...rest, element_ids: [id] })),
+      );
+      const items = results.flatMap((r) => r.items);
+      return asTextContentResult({ ...results[0], items, total: items.length });
+    }
 
     const result = await client.sources.getElements(params);
     return asTextContentResult(result);

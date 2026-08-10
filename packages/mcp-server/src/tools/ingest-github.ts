@@ -24,12 +24,34 @@ const tool: McpTool = {
           type: 'string',
           description: 'The GitHub repository URL to ingest (e.g. https://github.com/owner/repo).',
         },
+        enrichment: {
+          type: 'string',
+          enum: ['full', 'none'],
+          description:
+            "LLM enrichment level. 'full' (default) annotates pages, sections and the document for better retrieval. " +
+            "'none' skips LLM annotation for faster, cheaper parsing.",
+        },
+        indexing: {
+          type: 'string',
+          enum: ['full', 'none'],
+          description:
+            "Retrieval indexing level. 'full' (default) chunks, embeds and indexes the source. " +
+            "'none' parses only — the source is NOT searchable (ask, extract and retrieve_chunks return nothing for it) " +
+            'until indexed later via index_build. Rejected with 400 on deployments without indexing support.',
+        },
       },
       required: ['url'],
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
-    const result = await client.sources.ingestGitHub({ url: args['url'] as string });
+    const params: Graphor.SourceIngestGitHubParams = { url: args['url'] as string };
+    if (args['enrichment'] != null) {
+      params.enrichment = args['enrichment'] as string;
+    }
+    if (args['indexing'] != null) {
+      params.indexing = args['indexing'] as string;
+    }
+    const result = await client.sources.ingestGitHub(params);
     return asTextContentResult(result);
   },
 };

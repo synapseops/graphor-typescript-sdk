@@ -87,6 +87,12 @@ export async function asBinaryContentResult(response: Response): Promise<ToolCal
   }
 }
 
+export function asImageContentResult(base64Data: string, mimeType: string): ToolCallResult {
+  return {
+    content: [{ type: 'image', mimeType, data: base64Data }],
+  };
+}
+
 export function asErrorResult(message: string): ToolCallResult {
   return {
     content: [
