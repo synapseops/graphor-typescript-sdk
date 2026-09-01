@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.1 (2026-09-01)
+
+Full Changelog: [v0.23.0...v0.23.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.23.0...v0.23.1)
+
+### Documentation
+
+* **mcp:** document code execution modes and the local code runner ([64fd1f9](https://github.com/synapseops/graphor-typescript-sdk/commit/64fd1f9837f49572d740cbbcdc92f04cbb32bec4))
+
 ## 0.23.0 (2026-08-10)
 
 Full Changelog: [v0.22.0...v0.23.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.22.0...v0.23.0)
