@@ -82,11 +82,11 @@ export class Sources extends APIResource {
   /**
    * Ask a natural-language question grounded on the project's ingested sources.
    *
-   * This is the primary Q&A endpoint. It sends the question through the GenAI File
-   * Search pipeline, which retrieves relevant chunks from the knowledge graph,
-   * grounds the answer in the source documents, and returns a natural-language
-   * response. Optionally, you can request a structured JSON output by supplying an
-   * `output_schema`.
+   * This is the primary Q&A endpoint. It sends the question through native RAG
+   * retrieval (legacy builds indexed with Google File Search still use that engine),
+   * which retrieves relevant chunks from the knowledge graph, grounds the answer in
+   * the source documents, and returns a natural-language response. Optionally, you
+   * can request a structured JSON output by supplying an `output_schema`.
    *
    * Conversation memory is supported: pass a `conversation_id` to continue an
    * existing conversation, or set `reset` to `true` to start fresh.
@@ -136,11 +136,11 @@ export class Sources extends APIResource {
   /**
    * Run a one-off structured data extraction against one or more sources.
    *
-   * This endpoint uses the GenAI File Search pipeline to read the specified sources,
-   * apply the user-provided instruction, and return structured JSON output
-   * conforming to the supplied `output_schema`. Internally it builds a grounded
-   * prompt, queries the model, and validates/corrects the raw JSON against the
-   * schema.
+   * This endpoint uses native RAG retrieval (legacy builds indexed with Google File
+   * Search still use that engine) to read the specified sources, apply the
+   * user-provided instruction, and return structured JSON output conforming to the
+   * supplied `output_schema`. Internally it builds a grounded prompt, queries the
+   * model, and validates/corrects the raw JSON against the schema.
    *
    * **Parameters (JSON body):**
    *
@@ -1388,7 +1388,7 @@ export interface SourceAskParams {
   reset?: boolean | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * Controls model and thinking budget: 'fast' (premium output speed), 'balanced',
    * 'accurate', or 'max' (most thorough)
    */
   thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;
@@ -1417,7 +1417,7 @@ export interface SourceExtractParams {
   file_names?: Array<string> | null;
 
   /**
-   * Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced',
+   * Controls model and thinking budget: 'fast' (premium output speed), 'balanced',
    * 'accurate', or 'max' (most thorough)
    */
   thinking_level?: 'fast' | 'balanced' | 'accurate' | 'max' | null;

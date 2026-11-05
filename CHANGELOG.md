@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.23.1 (2026-11-05)
+
+Full Changelog: [v0.23.0...v0.23.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.23.0...v0.23.1)
+
+### Documentation
+
+* describe `thinking_level: 'fast'` correctly, also in the MCP tools: it is no longer the cheapest level
+* describe the current retrieval in `ask` and `extract`
+
 ## 0.23.0 (2026-08-10)
 
 Full Changelog: [v0.22.0...v0.23.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.22.0...v0.23.0)
