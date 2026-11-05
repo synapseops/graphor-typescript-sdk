@@ -55,7 +55,7 @@ const tool: McpTool = {
           type: 'string',
           enum: ['fast', 'balanced', 'accurate', 'max'],
           description:
-            "Controls model and thinking budget: 'fast' (cheapest/fastest), 'balanced', 'accurate', or 'max' (most thorough — exhaustive investigation).",
+            "Controls model and thinking budget: 'fast' (premium output speed), 'balanced', 'accurate', or 'max' (most thorough — exhaustive investigation).",
         },
       },
       required: ['question'],
