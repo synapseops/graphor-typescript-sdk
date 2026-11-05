@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Fails unless every place that holds the version says the given one.
+# Usage: bin/check-release-version X.Y.Z
+set -euo pipefail
+
+version="${1:?usage: bin/check-release-version X.Y.Z}"
+errors=0
+
+check() {
+  if ! grep -qE "$2" "$1"; then
+    echo "ERROR: $1 does not say $version"
+    errors=1
+  fi
+}
+
+check package.json "^  \"version\": \"$version\","
+check src/version.ts "^export const VERSION = '$version';"
+check packages/mcp-server/package.json "^  \"version\": \"$version\","
+check packages/mcp-server/manifest.json "^  \"version\": \"$version\","
+check packages/mcp-server/src/server.ts "^      version: '$version',"
+
+if [[ "$errors" -ne 0 ]]; then
+  exit 1
+fi
+echo "All version locations say $version"
