@@ -5,6 +5,7 @@ import { APIPromise } from '../core/api-promise';
 import { type Uploadable } from '../core/uploads';
 import { RequestOptions } from '../internal/request-options';
 import { multipartFormRequestOptions } from '../internal/uploads';
+import { ingestFileProps, isSmallBlob, responseProps } from '../internal/large-upload';
 import { path } from '../internal/utils/path';
 
 export class Sources extends APIResource {
@@ -379,9 +380,11 @@ export class Sources extends APIResource {
   /**
    * Upload a local file and schedule ingestion in the background.
    *
-   * Accepts **`multipart/form-data`** with the file. Validates size (max 100 MB) and
-   * extension, stores the file, then schedules the full data-ingestion pipeline in
-   * the background. Returns immediately with a `build_id` to poll for status.
+   * Validates the file's size and extension, stores it, then schedules the full
+   * data-ingestion pipeline in the background. Returns with a `build_id` to poll
+   * for status. Files above the direct upload limit (30 MiB) are sent in chunks
+   * that resume after a network error, which can take a while for a large file;
+   * `timeout` then applies to each request, not to the whole upload.
    *
    * **Parameters:**
    *
@@ -407,9 +410,26 @@ export class Sources extends APIResource {
    * ```
    */
   ingestFile(body: SourceIngestFileParams, options?: RequestOptions): APIPromise<SourceIngestFileResponse> {
-    return this._client.post(
-      '/sources/ingest-file',
-      multipartFormRequestOptions({ body, ...options }, this._client),
+    if (isSmallBlob(body.file)) {
+      return this._client.post(
+        '/sources/ingest-file',
+        multipartFormRequestOptions({ body, ...options }, this._client),
+      );
+    }
+    // Possibly above the direct upload limit: see `internal/large-upload`.
+    const direct = async (directBody: SourceIngestFileParams) => {
+      const startTime = Date.now();
+      const response = await this._client
+        .post(
+          '/sources/ingest-file',
+          multipartFormRequestOptions({ body: directBody, ...options }, this._client),
+        )
+        .asResponse();
+      return responseProps(response, '/sources/ingest-file', options, startTime);
+    };
+    return new APIPromise<SourceIngestFileResponse>(
+      this._client,
+      ingestFileProps(this._client, body, options, direct),
     );
   }
 

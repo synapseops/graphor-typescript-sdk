@@ -43,7 +43,11 @@ const tool: McpTool = {
       '2. **file_content** + **file_name** — provide the file content as a string and a file name ' +
       '(works in both local and remote MCP; suitable for text-based files like .md, .txt, .csv, .html).\n\n' +
       'At least one mode must be used. For binary files (PDF, DOCX, images, etc.), use file_path.\n\n' +
-      '**Fallback for binary files when file_path is not available** (e.g. remote MCP on Cloudflare):\n' +
+      'Files above 30 MiB are uploaded in chunks, which can take several minutes for a large file. ' +
+      'If the call times out on the client side, the upload may still finish: check get_build_status ' +
+      'or list_sources before uploading the same file again.\n\n' +
+      '**Fallback for binary files when file_path is not available** (e.g. remote MCP on Cloudflare), ' +
+      'for files up to 30 MiB:\n' +
       'If the MCP client has shell/terminal access, you can upload binary files directly via curl:\n' +
       '```\n' +
       'curl -s -X POST "{base_url}/sources/ingest-file" \\\n' +
