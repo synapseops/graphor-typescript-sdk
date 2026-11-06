@@ -11,6 +11,7 @@ export {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIUserAbortError,
+  UploadError,
   NotFoundError,
   ConflictError,
   RateLimitError,

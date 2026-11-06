@@ -92,6 +92,31 @@ export class APIError<
   }
 }
 
+/**
+ * Thrown when the bytes of a large file could not be uploaded or completed.
+ *
+ * `offset` is how many bytes the upload had stored when it stopped (`-1` when
+ * the bytes were all sent and completing them failed). `buildId` is set when
+ * the upload may still finish: check that build before uploading again.
+ */
+export class UploadError extends APIError<number | undefined, undefined, undefined> {
+  readonly offset: number;
+  readonly buildId: string | undefined;
+
+  constructor(
+    message: string,
+    {
+      offset,
+      status,
+      buildId,
+    }: { offset: number; status?: number | undefined; buildId?: string | undefined },
+  ) {
+    super(status, undefined, message, undefined);
+    this.offset = offset;
+    this.buildId = buildId;
+  }
+}
+
 export class APIUserAbortError extends APIError<undefined, undefined, undefined> {
   constructor({ message }: { message?: string } = {}) {
     super(undefined, undefined, message || 'Request was aborted.', undefined);

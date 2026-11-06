@@ -39,15 +39,15 @@ import fs from 'fs';
 
 const client = new Graphor(); // Uses GRAPHOR_API_KEY env var
 
-// Upload a document
-const source = await client.sources.upload({ file: fs.createReadStream('document.pdf') });
-console.log(`Uploaded: ${source.file_name}`);
-
-// Process with a parsing strategy
-await client.sources.parse({
-  file_name: source.file_name,
-  partition_method: 'graphorlm', // Options: basic (Fast), hi_res (Balanced), hi_res_ft (Accurate), mai (VLM), graphorlm (Agentic)
+// Upload a document; it is parsed in the background
+const build = await client.sources.ingestFile({
+  file: fs.createReadStream('document.pdf'),
+  method: 'agentic', // Options: fast, balanced, accurate, agentic, auto
 });
+
+// Check the build
+const status = await client.sources.getBuildStatus(build.build_id);
+console.log(`${status.file_name}: ${status.status}`);
 
 // Ask questions about your documents
 const response = await client.sources.ask({ question: 'What are the main topics?' });
@@ -87,19 +87,21 @@ import fs from 'fs';
 const client = new Graphor();
 
 // Upload a local file
-const source = await client.sources.upload({ file: fs.createReadStream('report.pdf') });
+const build = await client.sources.ingestFile({ file: fs.createReadStream('report.pdf') });
 
 // Upload from URL
-const urlSource = await client.sources.uploadUrl({ url: 'https://example.com/article' });
+const urlSource = await client.sources.ingestURL({ url: 'https://example.com/article' });
 
 // Upload from GitHub
-const githubSource = await client.sources.uploadGithub({ url: 'https://github.com/org/repo' });
+const githubSource = await client.sources.ingestGitHub({ url: 'https://github.com/org/repo' });
 
 // Upload from YouTube
-const youtubeSource = await client.sources.uploadYoutube({ url: 'https://youtube.com/watch?v=...' });
+const youtubeSource = await client.sources.ingestYoutube({ url: 'https://youtube.com/watch?v=...' });
 ```
 
 **Supported formats:** PDF, DOCX, TXT, MD, HTML, CSV, XLSX, PNG, JPG, MP3, MP4, and more.
+
+Large files work the same way: above 30 MiB, `ingestFile` sends the file in chunks that resume after a network error, then returns the same `build_id`. A large upload can take a while, and `timeout` applies to each request rather than to the whole upload. Large files need Node.js, Bun or Deno; a `File` or `fs.createReadStream` is read a chunk at a time, while a `Response` or another stream is read into memory first.
 
 📖 [Full upload documentation](https://docs.graphorlm.com/sdk/sources/upload)
 
@@ -109,9 +111,9 @@ Reprocess documents with different OCR/parsing methods:
 
 ```typescript
 // Reprocess with high-resolution parsing
-const source = await client.sources.parse({
-  file_name: 'document.pdf',
-  partition_method: 'hi_res', // Options: basic, hi_res, hi_res_ft, mai, graphorlm
+const source = await client.sources.reprocess({
+  file_id: '<file_id>',
+  method: 'balanced', // Options: fast, balanced, accurate, agentic, auto
 });
 ```
 
@@ -234,16 +236,16 @@ import Graphor, { toFile } from 'graphor';
 const client = new Graphor();
 
 // Using fs.createReadStream (Node.js)
-await client.sources.upload({ file: fs.createReadStream('/path/to/file') });
+await client.sources.ingestFile({ file: fs.createReadStream('/path/to/file') });
 
 // Using File API (browsers)
-await client.sources.upload({ file: new File(['my bytes'], 'file') });
+await client.sources.ingestFile({ file: new File(['my bytes'], 'file.txt') });
 
 // Using fetch Response
-await client.sources.upload({ file: await fetch('https://somesite/file') });
+await client.sources.ingestFile({ file: await fetch('https://somesite/file.pdf') });
 
 // Using toFile helper
-await client.sources.upload({ file: await toFile(Buffer.from('my bytes'), 'file') });
+await client.sources.ingestFile({ file: await toFile(Buffer.from('my bytes'), 'file.txt') });
 ```
 
 ## Error Handling
@@ -289,7 +291,7 @@ try {
 
 ### Retries
 
-Requests are automatically retried twice with exponential backoff:
+Requests are not retried by default (`maxRetries: 0`). With retries enabled, connection errors, 408, 409, 429 and 5xx responses are retried with a short exponential backoff. Large file uploads retry their own chunks regardless of this setting, and throw `UploadError` if they cannot finish; when its `buildId` is set, the file was sent and its build may still complete, so check that build before uploading again.
 
 ```typescript
 // Configure default retries
@@ -308,10 +310,7 @@ Default timeout is 60 seconds:
 const client = new Graphor({ timeout: 120 * 1000 });
 
 // Or per-request
-await client.sources.parse(
-  { file_name: 'large-document.pdf', partition_method: 'graphorlm' },
-  { timeout: 300 * 1000 },
-);
+await client.sources.reprocess({ file_id: '<file_id>', method: 'agentic' }, { timeout: 300 * 1000 });
 ```
 
 ## Complete Example
@@ -322,16 +321,15 @@ import fs from 'fs';
 
 const client = new Graphor();
 
-// 1. Upload a document
-const source = await client.sources.upload({ file: fs.createReadStream('contract.pdf') });
-console.log(`✅ Uploaded: ${source.file_name}`);
-
-// 2. Process with advanced parsing
-const processed = await client.sources.parse({
-  file_name: source.file_name,
-  partition_method: 'hi_res',
+// 1. Upload a document, parsed in the background
+const build = await client.sources.ingestFile({
+  file: fs.createReadStream('contract.pdf'),
+  method: 'balanced',
 });
-console.log(`✅ Processed: ${processed.status}`);
+
+// 2. Check the build
+const source = await client.sources.getBuildStatus(build.build_id);
+console.log(`✅ ${source.file_name}: ${source.status}`);
 
 // 3. Ask questions
 const response = await client.sources.ask({
@@ -439,11 +437,11 @@ See the [MCP Server README](./packages/mcp-server/README.md) for more details.
 
 | Method                    | Description                     | Docs                                                                    |
 | ------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
-| `sources.upload()`        | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file)       |
-| `sources.uploadUrl()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url)     |
-| `sources.uploadGithub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github)  |
-| `sources.uploadYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
-| `sources.parse()`         | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)                    |
+| `sources.ingestFile()`    | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file)       |
+| `sources.ingestURL()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url)     |
+| `sources.ingestGitHub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github)  |
+| `sources.ingestYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
+| `sources.reprocess()`     | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)                    |
 | `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                       |
 | `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                     |
 | `sources.loadElements()`  | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)              |
@@ -466,8 +464,8 @@ import Graphor from 'graphor';
 const client = new Graphor();
 
 // Type-safe params and responses
-const params: Graphor.SourceUploadParams = { file: fs.createReadStream('path/to/file') };
-const source: Graphor.PublicSource = await client.sources.upload(params);
+const params: Graphor.SourceIngestFileParams = { file: fs.createReadStream('path/to/file') };
+const build: Graphor.SourceIngestFileResponse = await client.sources.ingestFile(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
