@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.24.0 (2026-11-06)
+
+Full Changelog: [v0.23.1...v0.24.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.23.1...v0.24.0)
+
+### Features
+
+* `sources.ingestFile` uploads files above 30 MiB: the file is sent in chunks that resume after a network error, checked with an MD5, and the call returns the same `build_id`. Files up to 30 MiB are sent as before, and the SDK falls back to the single request when the API does not offer upload sessions. A `File` or an `fs.createReadStream` is read a chunk at a time; files above 30 MiB need Node.js, Bun or Deno.
+* New `UploadError` when a large upload cannot finish; its `buildId` is set when the file was sent and the build may still complete.
+* MCP `ingest_file`: large files upload through the same path, and the description says they take a while and that the curl fallback is for files up to 30 MiB.
+
+### Documentation
+
+* the README examples call methods that exist, and the retry section matches the default of no retries
+
 ## 0.23.1 (2026-11-05)
 
 Full Changelog: [v0.23.0...v0.23.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.23.0...v0.23.1)
