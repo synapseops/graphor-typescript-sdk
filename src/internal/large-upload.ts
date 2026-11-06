@@ -40,6 +40,7 @@ const COMPLETE_PATH = '/sources/upload-sessions/complete';
 export const limits = {
   direct: DIRECT_UPLOAD_MAX_BYTES,
   fallback: DIRECT_FALLBACK_MAX_BYTES,
+  watchdog: BODY_WATCHDOG_MS,
   sleep,
 };
 
@@ -54,6 +55,8 @@ type Source = {
   name: string;
   size: number;
   read(offset: number, length: number): Promise<Uint8Array>;
+  /** Whether the file grew past the end it was measured with. */
+  grew(): Promise<boolean>;
   close(): Promise<void>;
 };
 
@@ -114,6 +117,7 @@ function blobSource(blob: Blob, name: string): Source {
     name,
     size: blob.size,
     read: async (offset, length) => new Uint8Array(await blob.slice(offset, offset + length).arrayBuffer()),
+    grew: async () => false,
     close: async () => {},
   };
 }
@@ -132,7 +136,13 @@ async function prepare(file: Uploadable): Promise<[Uploadable, Source | null]> {
     const fs = await builtin('fs');
     if (!fs) return [file, null];
     const path = String(file.path);
-    const stat = await fs.promises.stat(path);
+    let stat: { size: number };
+    try {
+      stat = await fs.promises.stat(path);
+    } catch {
+      // Renamed or removed since it was opened: the direct request reads its fd.
+      return [file, null];
+    }
     const start = file.start ?? 0;
     const end =
       file.end !== undefined && file.end !== Infinity ? Math.min(file.end + 1, stat.size) : stat.size;
@@ -154,9 +164,10 @@ async function prepare(file: Uploadable): Promise<[Uploadable, Source | null]> {
           }
           return buffer.subarray(0, filled);
         },
+        // Only a range that runs to the end of the file can grow.
+        grew: async () => end === stat.size && (await handle.stat()).size > end,
         close: async () => {
           await handle.close();
-          (file as any).destroy?.();
         },
       },
     ];
@@ -308,10 +319,16 @@ async function sendChunks(
     } catch (error) {
       if (error instanceof APIUserAbortError || options?.signal?.aborted) throw new APIUserAbortError();
       response = undefined;
+      status = undefined;
     }
 
     if (response && (status === 200 || status === 201 || status === 308)) {
       if (advance(persisted(response))) break;
+      if (attempts) {
+        // A 308 that stored nothing new spends the budget too.
+        if (attempts >= UPLOAD_MAX_ATTEMPTS) throw uploadError('The upload made no progress.', offset);
+        await limits.sleep(backoff(attempts));
+      }
       continue;
     }
     if (response && status !== undefined && (status === 404 || status === 410)) {
@@ -338,6 +355,9 @@ async function sendChunks(
       throw uploadError('The upload failed after several attempts.', offset, { status });
     }
   }
+  if (await source.grew()) {
+    throw uploadError('The file changed while it was being uploaded.', source.size);
+  }
   return md5 && hashedUpto === source.size ? md5.digest('base64') : undefined;
 }
 
@@ -354,11 +374,11 @@ async function readWithWatchdog(response: Response): Promise<string> {
   for (;;) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const silent = new Promise<'silent'>((resolve) => {
-      timer = setTimeout(() => resolve('silent'), BODY_WATCHDOG_MS);
+      timer = setTimeout(() => resolve('silent'), limits.watchdog);
     });
     const next = await Promise.race([reader.read(), silent]).finally(() => clearTimeout(timer));
     if (next === 'silent') {
-      await reader.cancel().catch(() => {});
+      void reader.cancel().catch(() => {});
       throw new GraphorError('The upload completion stopped responding.');
     }
     if (next.done) return text + decoder.decode();
@@ -400,9 +420,14 @@ async function complete(
     let delay: number | undefined;
     const startTime = Date.now();
     try {
-      const response = await client.post(COMPLETE_PATH, { ...options, body, maxRetries: 0 }).asResponse();
-      const text = await readWithWatchdog(response.clone());
-      waited = 0;
+      const received = await client.post(COMPLETE_PATH, { ...options, body, maxRetries: 0 }).asResponse();
+      // Read the response itself, not a clone: a clone's cancel waits on the original.
+      const text = await readWithWatchdog(received);
+      const response = new Response(text, {
+        status: received.status,
+        statusText: received.statusText,
+        headers: received.headers,
+      });
       let data: any;
       try {
         data = JSON.parse(text);
@@ -430,16 +455,14 @@ async function complete(
       last = error;
     }
 
+    if (verdict !== 'free') waited = 0;
     if (verdict === 'free') {
       delay = delay || 20_000;
       waited += delay;
       if (waited > COMPLETE_DEADLINE_MS) throw gaveUp(session, last);
     } else {
       attempts += 1;
-      if (attempts >= budget) {
-        if (last instanceof APIError && last.status !== undefined) throw last;
-        throw gaveUp(session, last);
-      }
+      if (attempts >= budget) throw gaveUp(session, last);
       delay = delay || backoff(attempts);
     }
     await limits.sleep(delay);
@@ -475,6 +498,7 @@ export async function ingestFileProps<B extends IngestFileBody>(
   const directBody = { ...body, file };
   if (!source) return direct(directBody);
 
+  let handedOff = false;
   try {
     if (!(await builtin('fs'))) {
       throw new GraphorError(
@@ -488,9 +512,14 @@ export async function ingestFileProps<B extends IngestFileBody>(
         const value = (body as Record<string, unknown>)[key];
         if (value != null) createBody[key] = value;
       }
-      session = (await client.post(CREATE_PATH, { ...options, body: createBody })) as UploadSession;
+      // Parsed here: the client's debug log of parsed bodies would print the upload URL.
+      const created = await client.post(CREATE_PATH, { ...options, body: createBody }).asResponse();
+      session = (await created.json()) as UploadSession;
     } catch (error) {
-      if (fallsBack(error, source.size)) return direct(directBody);
+      if (fallsBack(error, source.size)) {
+        handedOff = true;
+        return await direct(directBody);
+      }
       throw error;
     }
     checkSession(session);
@@ -498,12 +527,18 @@ export async function ingestFileProps<B extends IngestFileBody>(
     try {
       md5 = await sendChunks(client, session, source, options);
     } catch (error) {
-      if (error instanceof UploadError && source.size <= limits.fallback) return direct(directBody);
+      if (error instanceof UploadError && source.size <= limits.fallback) {
+        handedOff = true;
+        return await direct(directBody);
+      }
       throw error;
     }
     return await complete(client, session, md5, options);
   } finally {
     await source.close();
+    // The caller's read stream was never read; release it, unless the direct
+    // request is reading it.
+    if (!handedOff) (body.file as any)?.destroy?.();
   }
 }
 
