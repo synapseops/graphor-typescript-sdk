@@ -1,5 +1,5 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
-import { Graphor } from 'graphor';
+import { Graphor, UploadError } from 'graphor';
 
 /**
  * Try to dynamically import 'fs' and 'path' modules.
@@ -140,8 +140,16 @@ const tool: McpTool = {
       params.indexing = args['indexing'] as string;
     }
 
-    const result = await client.sources.ingestFile(params);
-    return asTextContentResult(result);
+    try {
+      const result = await client.sources.ingestFile(params);
+      return asTextContentResult(result);
+    } catch (error) {
+      // The file may have been sent: give the agent the build to check.
+      if (error instanceof UploadError && error.buildId) {
+        return asErrorResult(`${error.message} build_id: ${error.buildId}`);
+      }
+      throw error;
+    }
   },
 };
 

@@ -51,6 +51,8 @@ class FakeServer {
       return next ? next() : json(200, { build_id: 'bid', success: true });
     }
     if (url.endsWith('/sources/ingest-file')) {
+      // Read the multipart body, as a real server does, so a broken stream shows.
+      await new Response(init.body).arrayBuffer();
       this.directCalls += 1;
       return json(200, { build_id: 'direct', success: true });
     }
@@ -317,5 +319,150 @@ describe('complete', () => {
     const result = await client(server).sources.ingestFile({ file: new File([data()], 'a.pdf') });
     expect(result.build_id).toBe('bid');
     expect(server.completeBodies.length).toBe(2);
+  });
+});
+
+describe('review fixes', () => {
+  const tmpFile = (bytes: Uint8Array, name = 'big.pdf') => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'graphor-upload-'));
+    const file = path.join(dir, name);
+    fs.writeFileSync(file, bytes);
+    return { dir, file };
+  };
+
+  test('a silent complete body is cut by the watchdog and retried', async () => {
+    limits.watchdog = 50;
+    server.completeScript = [
+      () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('\n')); // then nothing
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+    ];
+    try {
+      const result = await client(server).sources.ingestFile({ file: new File([data()], 'a.pdf') });
+      expect(result.build_id).toBe('bid');
+      expect(server.completeBodies.length).toBe(2);
+    } finally {
+      limits.watchdog = original.watchdog;
+    }
+  });
+
+  test('a 308 without progress spends the budget', async () => {
+    let calls = 0;
+    server.onPut = () => {
+      calls += 1;
+      if (calls > 50) throw new Error('no budget'); // a regression would loop forever
+      return new Response(null, { status: 308 });
+    };
+    await expect(
+      client(server).sources.ingestFile({ file: new File([data()], 'a.pdf') }),
+    ).rejects.toBeInstanceOf(UploadError);
+    const sends = puts(server).filter((r) => !r.headers.get('content-range')!.startsWith('bytes */'));
+    expect(sends.length).toBe(UPLOAD_MAX_ATTEMPTS);
+  });
+
+  test.each([
+    [
+      'a failed upload near the limit',
+      150 * KIB,
+      () => (server.onPut = () => new Response(null, { status: 403 })),
+    ],
+    ['a 501 above the limit', 600 * KIB, () => (server.createStatus = 501)],
+  ])('a read stream falls back directly after %s', async (_label, size, setup) => {
+    setup();
+    const { dir, file } = tmpFile(data(size));
+    const result = await client(server).sources.ingestFile({ file: fs.createReadStream(file) });
+    expect(result.build_id).toBe('direct');
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test('a small read stream whose file was removed still goes directly', async () => {
+    const { dir, file } = tmpFile(data(10 * KIB), 'gone.pdf');
+    const stream = fs.createReadStream(file);
+    await new Promise((resolve) => stream.once('open', resolve));
+    fs.unlinkSync(file);
+    const result = await client(server).sources.ingestFile({ file: stream });
+    expect(result.build_id).toBe('direct');
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test('busy envelopes end at the deadline with the build', async () => {
+    server.completeScript = Array(100).fill(
+      () =>
+        new Response(
+          JSON.stringify({ detail: 'busy', status_code: 503, retryable: true, retry_after: 60, busy: true }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+    );
+    const error = await client(server)
+      .sources.ingestFile({ file: new File([data()], 'a.pdf') })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UploadError);
+    expect(error.buildId).toBe('bid');
+    expect(server.completeBodies.length).toBe(16);
+  });
+
+  test('running out of attempts keeps the build', async () => {
+    server.completeScript = Array(10).fill(() => json(503, { detail: 'down' }));
+    const error = await client(server)
+      .sources.ingestFile({ file: new File([data()], 'a.pdf') })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UploadError);
+    expect(error.buildId).toBe('bid');
+  });
+
+  test('the debug log never shows the upload URL', async () => {
+    const lines: string[] = [];
+    const capture = (...args: unknown[]) => lines.push(JSON.stringify(args));
+    await client(server, {
+      logLevel: 'debug',
+      logger: { debug: capture, info: capture, warn: capture, error: capture },
+    }).sources.ingestFile({ file: new File([data()], 'a.pdf') });
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.join('\n')).not.toContain('secret-session');
+  });
+
+  test('a file that grows during the upload throws', async () => {
+    const { dir, file } = tmpFile(data());
+    let grown = false;
+    server.onPut = ({ start }) => {
+      if (start === 0 && !grown) {
+        grown = true;
+        fs.appendFileSync(file, 'more');
+      }
+      return undefined;
+    };
+    const error = await client(server)
+      .sources.ingestFile({ file: fs.createReadStream(file) })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UploadError);
+    expect(String(error)).toContain('changed');
+    expect(server.completeBodies).toEqual([]);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test('a range read stream that ends before the file does uploads', async () => {
+    const bytes = data(2000 * KIB);
+    const { dir, file } = tmpFile(bytes);
+    const result = await client(server).sources.ingestFile({
+      file: fs.createReadStream(file, { start: 500 * KIB, end: 1500 * KIB - 1 }),
+    });
+    expect(result.build_id).toBe('bid');
+    expect(Buffer.from(server.stored).equals(Buffer.from(bytes.subarray(500 * KIB, 1500 * KIB)))).toBe(true);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a failed upload closes the caller's read stream", async () => {
+    server.onPut = () => new Response(null, { status: 403 });
+    const { dir, file } = tmpFile(data());
+    const stream = fs.createReadStream(file);
+    await expect(client(server).sources.ingestFile({ file: stream })).rejects.toBeInstanceOf(UploadError);
+    expect(stream.destroyed).toBe(true);
+    fs.rmSync(dir, { recursive: true });
   });
 });
