@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.24.1 (2026-11-06)
+
+Full Changelog: [v0.24.0...v0.24.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.24.0...v0.24.1)
+
+### Bug Fixes
+
+* large uploads: the final step's 60 s watchdog now fires, so a silent server no longer holds the call for minutes, or forever on Bun
+* large uploads: a `308` answer that stores nothing new now counts against the retry budget instead of looping
+* large uploads from `fs.createReadStream`: the fallback to a single request works, the stream is closed when the upload fails, a path removed after opening works, and a file that grows during the upload throws
+* completing a large upload: a busy server is waited on for at most 15 minutes, and running out of attempts throws `UploadError` with `buildId`
+* the upload URL no longer appears in the client's debug log
+* MCP `ingest_file`: when an upload may still finish, the error carries the `build_id` to check
+
 ## 0.24.0 (2026-11-06)
 
 Full Changelog: [v0.23.1...v0.24.0](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.23.1...v0.24.0)
