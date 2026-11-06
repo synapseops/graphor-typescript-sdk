@@ -162,7 +162,8 @@ describe('which path', () => {
   test('no client header reaches the upload URL', async () => {
     await client(server).sources.ingestFile(
       { file: new File([data()], 'a.pdf') },
-      { headers: { 'X-Extra': '1' }, fetchOptions: { headers: { 'X-Fetch': '1' } } },
+      // fetchOptions may carry headers at runtime though its type omits them.
+      { headers: { 'X-Extra': '1' }, fetchOptions: { headers: { 'X-Fetch': '1' } } as any },
     );
     for (const request of puts(server)) {
       expect(request.headers.get('authorization')).toBeNull();
@@ -177,7 +178,7 @@ describe('which path', () => {
     const response = await client(server)
       .sources.ingestFile({ file: new File([data()], 'a.pdf') })
       .asResponse();
-    expect((await response.json()).build_id).toBe('bid');
+    expect(((await response.json()) as { build_id: string }).build_id).toBe('bid');
   });
 });
 
