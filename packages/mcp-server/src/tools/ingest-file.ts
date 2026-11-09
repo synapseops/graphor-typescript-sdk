@@ -38,6 +38,10 @@ const tool: McpTool = {
       'Upload a local file and schedule ingestion in the background. ' +
       'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
       'and obtain the file_id for subsequent calls.\n\n' +
+      'If the project already has a source with the same name, the file is stored as "name (1).ext" ' +
+      '(the lowest free number) and the existing source is not changed. To replace a source and keep its name, ' +
+      'delete it with delete_source before uploading. Refer to the new source by the file_id from ' +
+      'get_build_status, not by its name.\n\n' +
       'Supports two modes:\n' +
       '1. **file_path** — provide an absolute path to a file on the local filesystem (works in local/stdio MCP).\n' +
       '2. **file_content** + **file_name** — provide the file content as a string and a file name ' +

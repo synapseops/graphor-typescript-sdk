@@ -32,7 +32,8 @@ const tool: McpTool = {
         file_names: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Restrict retrieval to specific source file names.',
+          description:
+            'Restrict retrieval to specific source file names. Deprecated: names match exactly; prefer file_ids.',
         },
       },
       required: ['query'],
