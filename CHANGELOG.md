@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.24.2 (2026-11-09)
+
+Full Changelog: [v0.24.1...v0.24.2](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.24.1...v0.24.2)
+
+### Documentation
+
+* MCP `ingest_file`: the description says that a file uploaded under a name already in the project is stored as `name (n).ext` with the lowest free number and the existing source is not changed; to replace a source and keep its name, delete it first, and refer to the new source by its `file_id`
+* MCP `ask`, `extract` and `retrieve_chunks`: `file_names` is described as deprecated in favour of `file_ids`
+
 ## 0.24.1 (2026-11-06)
 
 Full Changelog: [v0.24.0...v0.24.1](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.24.0...v0.24.1)
