@@ -38,7 +38,8 @@ const tool: McpTool = {
         file_names: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Restrict the search scope to specific source file names.',
+          description:
+            'Restrict the search scope to specific source file names. Deprecated: names match exactly; prefer file_ids.',
         },
         include_citation_markup: {
           type: 'boolean',

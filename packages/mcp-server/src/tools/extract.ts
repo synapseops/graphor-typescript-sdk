@@ -34,7 +34,8 @@ const tool: McpTool = {
         file_names: {
           type: 'array',
           items: { type: 'string' },
-          description: 'List of source file names to extract from.',
+          description:
+            'List of source file names to extract from. Deprecated: names match exactly; prefer file_ids.',
         },
         thinking_level: {
           type: 'string',
