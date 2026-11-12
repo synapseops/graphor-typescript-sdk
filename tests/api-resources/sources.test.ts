@@ -59,6 +59,7 @@ describe('resource sources', () => {
       conversation_id: 'conv-9f8e7d6c-5b4a-3210-fedc-ba0987654321',
       file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
       file_names: ['string'],
+      folders: ['Contracts'],
       include_citation_images: true,
       include_citation_markup: true,
       output_schema: { properties: 'bar', type: 'bar' },
@@ -91,6 +92,7 @@ describe('resource sources', () => {
         'Extract all invoice line items including product name, quantity, unit price, and total.',
       file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
       file_names: ['contract-draft.docx'],
+      folders: ['Contracts'],
       thinking_level: 'accurate',
     });
   });
@@ -317,6 +319,98 @@ describe('resource sources', () => {
       query: "What was the company's net income in 2025?",
       file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'b2c3d4e5-f6a7-8901-bcde-f12345678901'],
       file_names: ['string'],
+      folders: ['Contracts'],
     });
+  });
+  // Mock server tests are disabled
+  test.skip('listFolders', async () => {
+    const responsePromise = client.sources.listFolders();
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('createFolder', async () => {
+    const responsePromise = client.sources.createFolder({ folder: 'Contracts/2026' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('renameFolder: only required params', async () => {
+    const responsePromise = client.sources.renameFolder({
+      folder: 'Contracts',
+      new_folder: 'Legal/Contracts',
+    });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('renameFolder: required and optional params', async () => {
+    const response = await client.sources.renameFolder({
+      folder: 'Contracts',
+      new_folder: 'Legal/Contracts',
+      merge: true,
+    });
+  });
+
+  // Mock server tests are disabled
+  test.skip('removeFolder', async () => {
+    const responsePromise = client.sources.removeFolder({ folder: 'Contracts/Drafts', merge: true });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('deleteFolder', async () => {
+    const responsePromise = client.sources.deleteFolder({ folder: 'Old' });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('move', async () => {
+    const responsePromise = client.sources.move({
+      file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
+      folder: 'Contracts',
+    });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  // Mock server tests are disabled
+  test.skip('list: folder params', async () => {
+    const response = await client.sources.list({ folder: 'Contracts', recursive: false });
   });
 });

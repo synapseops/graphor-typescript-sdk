@@ -3,6 +3,7 @@
 Types:
 
 - <code><a href="./src/resources/sources.ts">Element</a></code>
+- <code><a href="./src/resources/sources.ts">Folder</a></code>
 - <code><a href="./src/resources/sources.ts">Method</a></code>
 - <code><a href="./src/resources/sources.ts">PublicSource</a></code>
 - <code><a href="./src/resources/sources.ts">SourceListResponse</a></code>
@@ -19,6 +20,12 @@ Types:
 - <code><a href="./src/resources/sources.ts">SourceIngestYoutubeResponse</a></code>
 - <code><a href="./src/resources/sources.ts">SourceReprocessResponse</a></code>
 - <code><a href="./src/resources/sources.ts">SourceRetrieveChunksResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceListFoldersResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceCreateFolderResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceRenameFolderResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceRemoveFolderResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceDeleteFolderResponse</a></code>
+- <code><a href="./src/resources/sources.ts">SourceMoveResponse</a></code>
 
 Methods:
 
@@ -36,3 +43,9 @@ Methods:
 - <code title="post /sources/ingest-youtube">client.sources.<a href="./src/resources/sources.ts">ingestYoutube</a>({ ...params }) -> SourceIngestYoutubeResponse</code>
 - <code title="post /sources/reprocess">client.sources.<a href="./src/resources/sources.ts">reprocess</a>({ ...params }) -> SourceReprocessResponse</code>
 - <code title="post /sources/prebuilt-rag">client.sources.<a href="./src/resources/sources.ts">retrieveChunks</a>({ ...params }) -> SourceRetrieveChunksResponse</code>
+- <code title="get /sources/folders">client.sources.<a href="./src/resources/sources.ts">listFolders</a>() -> SourceListFoldersResponse</code>
+- <code title="post /sources/create-folder">client.sources.<a href="./src/resources/sources.ts">createFolder</a>({ ...params }) -> SourceCreateFolderResponse</code>
+- <code title="post /sources/rename-folder">client.sources.<a href="./src/resources/sources.ts">renameFolder</a>({ ...params }) -> SourceRenameFolderResponse</code>
+- <code title="post /sources/remove-folder">client.sources.<a href="./src/resources/sources.ts">removeFolder</a>({ ...params }) -> SourceRemoveFolderResponse</code>
+- <code title="post /sources/delete-folder">client.sources.<a href="./src/resources/sources.ts">deleteFolder</a>({ ...params }) -> SourceDeleteFolderResponse</code>
+- <code title="post /sources/move-sources">client.sources.<a href="./src/resources/sources.ts">move</a>({ ...params }) -> SourceMoveResponse</code>

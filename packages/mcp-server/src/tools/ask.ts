@@ -1,5 +1,6 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
+import { FOLDERS_SCOPE_DESCRIPTION, foldersInputError, withFolderCheck } from '../folders';
 
 const tool: McpTool = {
   metadata: {
@@ -13,7 +14,7 @@ const tool: McpTool = {
     name: 'ask',
     description:
       "Ask a natural-language question grounded on the project's ingested sources. " +
-      'Supports conversation memory via conversation_id, scoping to specific files, ' +
+      'Supports conversation memory via conversation_id, scoping to specific files or folders, ' +
       'and optional structured JSON output via output_schema.',
     inputSchema: {
       type: 'object',
@@ -41,6 +42,11 @@ const tool: McpTool = {
           description:
             'Restrict the search scope to specific source file names. Deprecated: names match exactly; prefer file_ids.',
         },
+        folders: {
+          type: 'array',
+          items: { type: 'string' },
+          description: FOLDERS_SCOPE_DESCRIPTION,
+        },
         include_citation_markup: {
           type: 'boolean',
           description:
@@ -63,12 +69,15 @@ const tool: McpTool = {
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
+    const invalid = foldersInputError(args);
+    if (invalid) return invalid;
     const params: Graphor.SourceAskParams = {
       question: args['question'] as string,
       ...(args['conversation_id'] != null && { conversation_id: args['conversation_id'] as string }),
       ...(args['reset'] != null && { reset: args['reset'] as boolean }),
       ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
       ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
+      ...(args['folders'] != null && { folders: args['folders'] as string[] }),
       ...(args['output_schema'] != null && {
         output_schema: args['output_schema'] as Record<string, unknown>,
       }),
@@ -80,8 +89,7 @@ const tool: McpTool = {
     if (args['include_citation_markup'] != null) {
       params.include_citation_markup = args['include_citation_markup'] as boolean;
     }
-    const result = await client.sources.ask(params);
-    return asTextContentResult(result);
+    return withFolderCheck(async () => asTextContentResult(await client.sources.ask(params)));
   },
 };
 

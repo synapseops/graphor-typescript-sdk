@@ -225,6 +225,38 @@ const elements = await client.sources.loadElements({
 const result = await client.sources.delete({ file_name: 'document.pdf' });
 ```
 
+### 📁 Organize Sources in Folders
+
+A folder is a `/`-separated path such as `Contracts/2026`; `''` is the top level. Every source carries its `folder`, and a folder comes into being when a source is uploaded or moved into it.
+
+```typescript
+// Upload into a folder (links take `folder` too)
+await client.sources.ingestFile({ file: fs.createReadStream('nda.pdf'), folder: 'Contracts/2026' });
+
+// List a folder and everything below it; `recursive: false` lists only the folder itself
+const contracts = await client.sources.list({ folder: 'Contracts' });
+// `''` or `'/'` lists only the sources at the top level
+const topLevel = await client.sources.list({ folder: '' });
+
+// Ask, extract or retrieve over every source at or below each folder
+const answer = await client.sources.ask({
+  question: 'Which contracts renew in 2026?',
+  folders: ['Contracts'],
+});
+
+// Manage folders
+const { folders, truncated } = await client.sources.listFolders();
+await client.sources.createFolder({ folder: 'Invoices' });
+await client.sources.move({ file_ids: ['<file_id>'], folder: 'Invoices' });
+await client.sources.renameFolder({ folder: 'Invoices', new_folder: 'Finance/Invoices' });
+await client.sources.removeFolder({ folder: 'Finance' }); // its content moves up a level
+await client.sources.deleteFolder({ folder: 'Old' }); // only an empty folder
+```
+
+An empty `folders` list is no folder scope, so when you build the list in code, check that it is not empty. `renameFolder`, `removeFolder` and `deleteFolder` are not safe to repeat blindly and never retry on their own, whatever `maxRetries` says: after a failure, read `listFolders()` before repeating one of them.
+
+When the API does not apply a folder filter or scope that a call sent, the SDK throws `FolderScopeNotAppliedError` instead of returning a result that may cover the whole project. The check runs on `await` and `.withResponse()`, not on `.asResponse()`. A file above 30 MiB uploaded with a `folder` is not sent at all when the API does not echo the folder or does not offer upload sessions; a smaller file goes in one request, which is not checked, so list the folder to confirm where it landed.
+
 ## File Uploads
 
 Request parameters that correspond to file uploads can be passed in many different forms:
@@ -286,6 +318,8 @@ try {
 | 429         | `RateLimitError`           |
 | ≥500        | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
+
+`FolderScopeNotAppliedError` (not an HTTP status error) is thrown when the API did not apply a folder filter or scope that the call sent, or does not offer a folder method. It is never retried. After it on `ask`, the turn was still recorded in its conversation: ask again with `reset: true` or without a `conversation_id`.
 
 ## Configuration
 
@@ -445,6 +479,17 @@ See the [MCP Server README](./packages/mcp-server/README.md) for more details.
 | `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                       |
 | `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                     |
 | `sources.loadElements()`  | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)              |
+
+### Folders
+
+| Method                   | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `sources.listFolders()`  | List the folders of the project          |
+| `sources.createFolder()` | Create an empty folder                   |
+| `sources.renameFolder()` | Rename a folder or move it under another |
+| `sources.removeFolder()` | Remove a folder, moving its content up   |
+| `sources.deleteFolder()` | Delete an empty folder                   |
+| `sources.move()`         | Move sources to a folder                 |
 
 ### Chat & AI
 

@@ -11,7 +11,13 @@
  */
 
 import type { Graphor } from '../client';
-import { APIError, APIUserAbortError, GraphorError, UploadError } from '../core/error';
+import {
+  APIError,
+  APIUserAbortError,
+  FolderScopeNotAppliedError,
+  GraphorError,
+  UploadError,
+} from '../core/error';
 import type { APIResponseProps } from './parse';
 import type { FinalRequestOptions, RequestOptions } from './request-options';
 import { ReadableStreamFrom } from './shims';
@@ -49,6 +55,8 @@ type UploadSession = {
   build_id: string;
   upload_url: string;
   chunk_size: number;
+  /** The folder the source will be stored in; `""` is the top level. */
+  folder?: unknown;
 };
 
 type Source = {
@@ -186,14 +194,21 @@ async function prepare(file: Uploadable): Promise<[Uploadable, Source | null]> {
 // ---------------------------------------------------------------------------
 
 function fallsBack(error: unknown, size: number): boolean {
+  // A server that ignores the folder must never get the file through another path.
+  if (error instanceof FolderScopeNotAppliedError) return false;
   if (size <= limits.fallback) return !(error instanceof APIUserAbortError);
   if (error instanceof APIError) {
     if (error.status === 501) return true;
-    // A server without sessions answers the framework's own 404.
-    const body = error.error as any;
-    return error.status === 404 && body?.detail === 'Not Found' && Object.keys(body).length === 1;
+    return isMissingSessions(error);
   }
   return false;
+}
+
+/** A server without sessions answers the framework's own 404. */
+function isMissingSessions(error: unknown): boolean {
+  if (!(error instanceof APIError) || error.status !== 404) return false;
+  const body = error.error as any;
+  return body?.detail === 'Not Found' && Object.keys(body).length === 1;
 }
 
 function uploadError(
@@ -204,6 +219,20 @@ function uploadError(
   const error = new UploadError(message, { offset, status: extra.status, buildId: extra.buildId });
   if (extra.cause !== undefined) (error as any).cause = extra.cause;
   return error;
+}
+
+/**
+ * A session created with a folder must echo it (a string, `""` for the top
+ * level); a server that ignored the folder would store the file elsewhere.
+ */
+function checkSessionFolder(session: UploadSession): void {
+  if (typeof session.folder !== 'string') {
+    throw new FolderScopeNotAppliedError(
+      'folder',
+      'The API did not apply the `folder` of this upload: the upload session carries no folder. ' +
+        'The SDK did not send the file.',
+    );
+  }
 }
 
 function checkSession(session: UploadSession): void {
@@ -508,7 +537,7 @@ export async function ingestFileProps<B extends IngestFileBody>(
     let session: UploadSession;
     try {
       const createBody: Record<string, unknown> = { file_name: source.name, file_size: source.size };
-      for (const key of ['method', 'enrichment', 'indexing'] as const) {
+      for (const key of ['method', 'enrichment', 'indexing', 'folder'] as const) {
         const value = (body as Record<string, unknown>)[key];
         if (value != null) createBody[key] = value;
       }
@@ -516,12 +545,23 @@ export async function ingestFileProps<B extends IngestFileBody>(
       const created = await client.post(CREATE_PATH, { ...options, body: createBody }).asResponse();
       session = (await created.json()) as UploadSession;
     } catch (error) {
+      // A server without sessions predates folders: the direct request would
+      // store the file at the top level, so it gets no byte.
+      if ((body as Record<string, unknown>)['folder'] != null && isMissingSessions(error)) {
+        throw new FolderScopeNotAppliedError(
+          'folder',
+          'The API did not apply the `folder` of this upload: it does not offer upload sessions, ' +
+            'so it does not support folders. The SDK did not send the file.',
+        );
+      }
       if (fallsBack(error, source.size)) {
         handedOff = true;
         return await direct(directBody);
       }
       throw error;
     }
+    // Outside the fallback above: a missing echo never sends the file directly.
+    if ((body as Record<string, unknown>)['folder'] != null) checkSessionFolder(session);
     checkSession(session);
     let md5: string | undefined;
     try {
@@ -548,10 +588,11 @@ export function responseProps(
   path: string,
   options: RequestOptions | undefined,
   startTime: number,
+  method: 'get' | 'post' = 'post',
 ): APIResponseProps {
   return {
     response,
-    options: { method: 'post', path, ...options } as FinalRequestOptions,
+    options: { method, path, ...options } as FinalRequestOptions,
     controller: new AbortController(),
     requestLogID: 'upload',
     retryOfRequestLogID: undefined,
