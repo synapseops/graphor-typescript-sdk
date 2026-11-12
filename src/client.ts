@@ -19,10 +19,15 @@ import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
   Element,
+  Folder,
   Method,
   PublicSource,
   SourceAskParams,
   SourceAskResponse,
+  SourceCreateFolderParams,
+  SourceCreateFolderResponse,
+  SourceDeleteFolderParams,
+  SourceDeleteFolderResponse,
   SourceDeleteParams,
   SourceDeleteResponse,
   SourceExtractParams,
@@ -43,8 +48,15 @@ import {
   SourceIngestURLResponse,
   SourceIngestYoutubeParams,
   SourceIngestYoutubeResponse,
+  SourceListFoldersResponse,
   SourceListParams,
   SourceListResponse,
+  SourceMoveParams,
+  SourceMoveResponse,
+  SourceRemoveFolderParams,
+  SourceRemoveFolderResponse,
+  SourceRenameFolderParams,
+  SourceRenameFolderResponse,
   SourceReprocessParams,
   SourceReprocessResponse,
   SourceRetrieveChunksParams,
@@ -796,6 +808,7 @@ export class Graphor {
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static GraphorError = Errors.GraphorError;
+  static FolderScopeNotAppliedError = Errors.FolderScopeNotAppliedError;
   static APIError = Errors.APIError;
   static APIConnectionError = Errors.APIConnectionError;
   static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
@@ -822,6 +835,7 @@ export declare namespace Graphor {
   export {
     Sources as Sources,
     type Element as Element,
+    type Folder as Folder,
     type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
@@ -838,6 +852,12 @@ export declare namespace Graphor {
     type SourceIngestYoutubeResponse as SourceIngestYoutubeResponse,
     type SourceReprocessResponse as SourceReprocessResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
+    type SourceListFoldersResponse as SourceListFoldersResponse,
+    type SourceCreateFolderResponse as SourceCreateFolderResponse,
+    type SourceRenameFolderResponse as SourceRenameFolderResponse,
+    type SourceRemoveFolderResponse as SourceRemoveFolderResponse,
+    type SourceDeleteFolderResponse as SourceDeleteFolderResponse,
+    type SourceMoveResponse as SourceMoveResponse,
     type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
@@ -852,5 +872,10 @@ export declare namespace Graphor {
     type SourceIngestYoutubeParams as SourceIngestYoutubeParams,
     type SourceReprocessParams as SourceReprocessParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
+    type SourceCreateFolderParams as SourceCreateFolderParams,
+    type SourceRenameFolderParams as SourceRenameFolderParams,
+    type SourceRemoveFolderParams as SourceRemoveFolderParams,
+    type SourceDeleteFolderParams as SourceDeleteFolderParams,
+    type SourceMoveParams as SourceMoveParams,
   };
 }

@@ -7,6 +7,7 @@ export { APIPromise } from './core/api-promise';
 export { Graphor, type ClientOptions } from './client';
 export {
   GraphorError,
+  FolderScopeNotAppliedError,
   APIError,
   APIConnectionError,
   APIConnectionTimeoutError,

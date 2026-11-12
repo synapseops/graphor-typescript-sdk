@@ -61,13 +61,23 @@ All ingest tools return a \`build_id\` — poll \`get_build_status\` until compl
 - Inspect parsed elements: \`get_elements\`
 - Render a page as an image: \`get_page_screenshot\`
 
+### 6. Organize Sources in Folders
+
+- See the folders: \`list_folders\`
+- Create an empty folder: \`create_folder\` (uploading or moving a source into a folder also creates it)
+- Move sources: \`move_sources\` (\`folder: ""\` is the top level)
+- List one folder: \`list_sources\` with \`folder\`
+- Upload into a folder: pass \`folder\` to any ingest tool
+
 ---
 
 ## Special Features
 
 **Conversation Memory**: Pass \`conversation_id\` from a previous \`ask\` response to maintain context across multiple turns.
 
-**Scoped Queries**: Use \`file_names\` or \`file_ids\` in \`ask\`, \`extract\`, and \`retrieve_chunks\` to restrict searches to specific documents.
+**Scoped Queries**: Use \`file_ids\` or \`folders\` in \`ask\`, \`extract\`, and \`retrieve_chunks\` to restrict searches to specific documents (\`file_names\` is deprecated).
+
+**Folders**: A folder is a \`/\`-separated path such as \`Contracts/2026\`; \`""\` is the top level, and every source carries its \`folder\`. \`folders\` scopes a question to every source at or below each folder; an empty \`folders\` is no folder scope, and a folder that holds no source refuses the call. On \`list_sources\`, a path lists that folder and everything below it, \`recursive: false\` lists only that folder, and \`""\` or \`/\` lists only the top level. Names stay unique in the project whatever the folder. Renaming, removing and deleting folders are not tools: use the SDK or the web app.
 
 **Thinking Levels**: Control cost/depth with \`thinking_level: "fast" | "balanced" | "accurate" | "max"\` in \`ask\` and \`extract\` — each level is a real search budget, from bounded lookup to exhaustive investigation.
 
@@ -101,12 +111,15 @@ Use the GRAPHOR_BASE_URL and GRAPHOR_API_KEY environment variables for the base_
 | \`ingest_github\` | Ingest a GitHub repository (async → build_id) |
 | \`ingest_youtube\` | Ingest a YouTube video (async → build_id) |
 | \`get_build_status\` | Poll an ingestion build; reports enrichment, indexing and searchable |
-| \`list_sources\` | List all ingested sources |
+| \`list_sources\` | List ingested sources, or the sources of one folder |
 | \`delete_source\` | Delete a source |
 | \`reprocess\` | Re-process a source with a different strategy (async → build_id) |
 | \`get_elements\` | Get parsed elements of a source |
 | \`index_build\` | Index an existing build without re-parsing (the way out of indexing: "none") |
 | \`get_page_screenshot\` | Render a page of a source as a PNG image |
+| \`list_folders\` | List the folders of the project |
+| \`create_folder\` | Create an empty folder |
+| \`move_sources\` | Move sources to a folder |
 `;
 }
 

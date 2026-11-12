@@ -6,6 +6,14 @@ import { type Uploadable } from '../core/uploads';
 import { RequestOptions } from '../internal/request-options';
 import { multipartFormRequestOptions } from '../internal/uploads';
 import { ingestFileProps, isSmallBlob, responseProps } from '../internal/large-upload';
+import {
+  checkFoldersType,
+  checkListed,
+  checkScoped,
+  folderRequest,
+  isTopLevelFolder,
+  refused,
+} from '../internal/folders';
 import { path } from '../internal/utils/path';
 
 export class Sources extends APIResource {
@@ -20,8 +28,20 @@ export class Sources extends APIResource {
    * **Query parameters:**
    *
    * - **file_ids** (list, optional): If provided, only sources whose file_id is in
-   *   this list are returned. Repeat the param for multiple IDs (e.g.
-   *   ?file_ids=id1&file_ids=id2).
+   *   this list are returned.
+   * - **folder** (str, optional): Only the sources in this folder, a `/`-separated
+   *   path, and (with `recursive`, the default) in the folders below it. A value
+   *   made only of spaces and `/` (`""`, `"/"`) lists only the sources at the top
+   *   level, whatever `recursive` says.
+   * - **recursive** (bool, optional, default `true`): With `folder`, `false` lists
+   *   only the sources directly in it. Without `folder`, `false` lists only the
+   *   sources at the top level.
+   *
+   * Each source carries its `folder` (`""` at the top level). When `folder` or
+   * `recursive` is given and a returned source has no `folder`, the API did not
+   * apply the filter, and the call throws `FolderScopeNotAppliedError` instead of
+   * returning what may be every source of the project. The check runs on `await`
+   * and `.withResponse()`; `.asResponse()` returns the raw response unchecked.
    *
    * **Status messages returned per source:**
    *
@@ -38,13 +58,205 @@ export class Sources extends APIResource {
    * @example
    * ```ts
    * const publicSources = await client.sources.list();
+   * const inContracts = await client.sources.list({ folder: 'Contracts' });
+   * const topLevel = await client.sources.list({ folder: '' });
    * ```
    */
   list(
     query: SourceListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<SourceListResponse> {
-    return this._client.get('/sources', { query, ...options });
+    const { folder, recursive, ...rest } = query ?? {};
+    const params: Record<string, unknown> = { ...rest };
+    const filtered = folder != null || recursive != null;
+    if (folder != null && isTopLevelFolder(String(folder))) {
+      // The top level is sent as `recursive=false` with no folder.
+      params['recursive'] = false;
+    } else {
+      if (folder != null) params['folder'] = folder;
+      if (recursive != null) params['recursive'] = recursive;
+    }
+    const request = this._client.get<SourceListResponse>('/sources', { query: params, ...options });
+    if (!filtered) return request;
+    return request._thenUnwrap(checkListed<SourceListResponse>(folder != null ? 'folder' : 'recursive'));
+  }
+
+  /**
+   * List every folder of the project: folders created empty, folders that hold
+   * sources and folders uploads are on their way to, each with the folders above
+   * it, sorted.
+   *
+   * A folder is a `/`-separated path, such as `Contracts/2026`; the top level is
+   * not listed. At most 10,000 folders are returned; `truncated` is `true` when
+   * the project has more.
+   *
+   * Throws `FolderScopeNotAppliedError` when the API does not offer folders.
+   *
+   * @example
+   * ```ts
+   * const { folders, truncated } = await client.sources.listFolders();
+   * ```
+   */
+  listFolders(options?: RequestOptions): APIPromise<SourceListFoldersResponse> {
+    const request = this._client.get<SourceListFoldersResponse>('/sources/folders', options);
+    return folderRequest(this._client, request, 'get', '/sources/folders', options);
+  }
+
+  /**
+   * Create a folder that stays listed while it is empty, with the folders above
+   * it. A folder also comes into being when a source is uploaded or moved into it,
+   * so this call is only needed for an empty folder.
+   *
+   * Safe to repeat: `created` is `false` when the folder already existed.
+   *
+   * **Errors:** `422` (an invalid path, or the top level), `409`
+   * `folder.too_many` (the project has too many folders), `503` (temporarily
+   * unavailable). Throws `FolderScopeNotAppliedError` when the API does not offer
+   * folders.
+   *
+   * @example
+   * ```ts
+   * const { folder, created } = await client.sources.createFolder({
+   *   folder: 'Contracts/2026',
+   * });
+   * ```
+   */
+  createFolder(
+    body: SourceCreateFolderParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceCreateFolderResponse> {
+    const request = this._client.post<SourceCreateFolderResponse>('/sources/create-folder', {
+      body,
+      ...options,
+    });
+    return folderRequest(this._client, request, 'post', '/sources/create-folder', options);
+  }
+
+  /**
+   * Rename a folder, or move it under another folder, with everything in it.
+   *
+   * Not safe to repeat blindly: after a `503`, a timeout or a lost answer the
+   * change may have been saved, and a repeat would answer `404`
+   * `folder.not_found`. So this method never retries on its own, whatever
+   * `maxRetries` the client or the call sets; read `listFolders()` before
+   * repeating it. Only a `NotFoundError` whose body has `code: "folder.not_found"`
+   * may mean an earlier call worked.
+   *
+   * **Errors:** `422` (an invalid path, or the top level), `404`
+   * `folder.not_found`, `400` `folder.into_itself` or `folder.path_too_long`,
+   * `409` `folder.exists` (the new path is a folder; pass `merge: true` to merge
+   * into it), `503` (temporarily unavailable; the change may have been saved).
+   * Throws `FolderScopeNotAppliedError` when the API does not offer folders.
+   *
+   * @example
+   * ```ts
+   * const { moved } = await client.sources.renameFolder({
+   *   folder: 'Contracts',
+   *   new_folder: 'Legal/Contracts',
+   * });
+   * ```
+   */
+  renameFolder(
+    body: SourceRenameFolderParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceRenameFolderResponse> {
+    const request = this._client.post<SourceRenameFolderResponse>('/sources/rename-folder', {
+      body,
+      ...options,
+      maxRetries: 0,
+    });
+    return folderRequest(this._client, request, 'post', '/sources/rename-folder', options);
+  }
+
+  /**
+   * Remove a folder and move its sources and subfolders into the folder above it
+   * (the top level for a top-level folder).
+   *
+   * Not safe to repeat blindly, so this method never retries on its own, whatever
+   * `maxRetries` the client or the call sets; read `listFolders()` before
+   * repeating it. Only a `NotFoundError` whose body has `code: "folder.not_found"`
+   * may mean an earlier call worked.
+   *
+   * **Errors:** `422` (an invalid path, or the top level), `404`
+   * `folder.not_found`, `409` `folder.exists` (a subfolder would land on a folder
+   * of the same name; pass `merge: true` to merge them), `503` (temporarily
+   * unavailable; the change may have been saved). Throws
+   * `FolderScopeNotAppliedError` when the API does not offer folders.
+   *
+   * @example
+   * ```ts
+   * const { parent, moved } = await client.sources.removeFolder({
+   *   folder: 'Contracts/Drafts',
+   * });
+   * ```
+   */
+  removeFolder(
+    body: SourceRemoveFolderParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceRemoveFolderResponse> {
+    const request = this._client.post<SourceRemoveFolderResponse>('/sources/remove-folder', {
+      body,
+      ...options,
+      maxRetries: 0,
+    });
+    return folderRequest(this._client, request, 'post', '/sources/remove-folder', options);
+  }
+
+  /**
+   * Delete an empty folder and the empty folders below it. Move or delete its
+   * sources first.
+   *
+   * Not safe to repeat blindly, so this method never retries on its own, whatever
+   * `maxRetries` the client or the call sets; read `listFolders()` before
+   * repeating it. Only a `NotFoundError` whose body has `code: "folder.not_found"`
+   * may mean an earlier call worked.
+   *
+   * **Errors:** `422` (an invalid path, or the top level), `404`
+   * `folder.not_found`, `409` `folder.not_empty` (it holds a source) or
+   * `folder.uploads_pending` (uploads into it are not stored yet), `503`
+   * (temporarily unavailable; the change may have been saved). Throws
+   * `FolderScopeNotAppliedError` when the API does not offer folders.
+   *
+   * @example
+   * ```ts
+   * const { deleted } = await client.sources.deleteFolder({ folder: 'Old' });
+   * ```
+   */
+  deleteFolder(
+    body: SourceDeleteFolderParams,
+    options?: RequestOptions,
+  ): APIPromise<SourceDeleteFolderResponse> {
+    const request = this._client.post<SourceDeleteFolderResponse>('/sources/delete-folder', {
+      body,
+      ...options,
+      maxRetries: 0,
+    });
+    return folderRequest(this._client, request, 'post', '/sources/delete-folder', options);
+  }
+
+  /**
+   * Move up to 1,000 sources to a folder; `""` or `"/"` is the top level. A
+   * folder that does not exist is created. Ids that match no source of the
+   * project come back in `not_found`.
+   *
+   * Safe to repeat.
+   *
+   * **Errors:** `422` (an invalid path, or more than 1,000 ids), `409`
+   * `folder.too_many` (the project has too many folders), `503` (temporarily
+   * unavailable). Throws `FolderScopeNotAppliedError` when the API does not offer
+   * folders.
+   *
+   * @example
+   * ```ts
+   * const { moved, not_found } = await client.sources.move({
+   *   file_ids: ['a1b2c3d4-e5f6-7890-abcd-ef1234567890'],
+   *   folder: 'Contracts/2026',
+   * });
+   * ```
+   */
+  move(body: SourceMoveParams, options?: RequestOptions): APIPromise<SourceMoveResponse> {
+    const request = this._client.post<SourceMoveResponse>('/sources/move-sources', { body, ...options });
+    return folderRequest(this._client, request, 'post', '/sources/move-sources', options);
   }
 
   /**
@@ -103,6 +315,13 @@ export class Sources extends APIResource {
    *   specific source file IDs.
    * - **file_names** (list[str], optional — deprecated): Restrict the search scope
    *   to specific source file names. Use `file_ids` when possible.
+   * - **folders** (list[str], optional): Restrict the scope to every source at or
+   *   below each folder, read when the request arrives, together with any
+   *   `file_ids`. An empty list is no folder scope: when you build the list in
+   *   code, check it is not empty. A folder that holds no source refuses the call
+   *   (`400` `chat.folder_scope_empty`); the top level, an invalid path, or
+   *   `folders` together with `file_names` answers `422`. A value that is not an
+   *   array is refused with `GraphorError` before anything is sent.
    * - **output_schema** (dict, optional): A JSON Schema for requesting structured
    *   output. When provided, the response includes a `structured_output` field
    *   validated against this schema and the `raw_json` produced by the model.
@@ -118,9 +337,22 @@ export class Sources extends APIResource {
    * - `raw_json` — the raw JSON text before validation (when `output_schema` is
    *   provided).
    * - `conversation_id` — the conversation identifier for follow-up questions.
+   * - `folders` — the folders the scope was resolved from (`null` without
+   *   `folders`).
+   *
+   * When `folders` is not empty and the answer carries no `folders`, the API did
+   * not apply the scope: the call throws `FolderScopeNotAppliedError` instead of
+   * returning an answer that may draw on every source. The turn was still recorded
+   * in its conversation, so repeat the question with `reset: true` or without a
+   * `conversation_id`. A failure after the answer has started streaming throws its
+   * status error. The checks run on `await` and `.withResponse()`;
+   * `.asResponse()` returns the raw response unchecked.
    *
    * **Error responses:**
    *
+   * - `400` — `chat.folder_scope_empty`: a folder in `folders` holds no source.
+   * - `422` — Invalid input.
+   * - `503` — Temporarily unavailable.
    * - `500` — Unexpected internal error while asking sources.
    *
    * @example
@@ -131,7 +363,13 @@ export class Sources extends APIResource {
    * ```
    */
   ask(body: SourceAskParams, options?: RequestOptions): APIPromise<SourceAskResponse> {
-    return this._client.post('/sources/ask-sources', { body, ...options });
+    try {
+      checkFoldersType(body);
+    } catch (error) {
+      return refused(this._client, error);
+    }
+    const request = this._client.post<SourceAskResponse>('/sources/ask-sources', { body, ...options });
+    return hasFolders(body) ? request._thenUnwrap(checkScoped<SourceAskResponse>(this._client)) : request;
   }
 
   /**
@@ -148,8 +386,17 @@ export class Sources extends APIResource {
    * - **file_ids** (list[str], optional — preferred): List of source file IDs to
    *   extract from.
    * - **file_names** (list[str], optional — deprecated): List of source file names
-   *   to extract from. Use `file_ids` when possible. At least one of the two lists
-   *   must be provided and non-empty.
+   *   to extract from. Use `file_ids` when possible.
+   * - **folders** (list[str], optional): Restrict the scope to every source at or
+   *   below each folder, read when the request arrives, together with any
+   *   `file_ids`. An empty list is no folder scope: when you build the list in
+   *   code, check it is not empty. A folder that holds no source refuses the call
+   *   (`400` `chat.folder_scope_empty`); the top level, an invalid path, or
+   *   `folders` together with `file_names` answers `422`. A value that is not an
+   *   array is refused with `GraphorError` before anything is sent.
+   *
+   *   At least one of `file_ids`, `file_names` or `folders` must be provided and
+   *   non-empty.
    * - **user_instruction** (str, required): A natural-language instruction that
    *   guides what information to extract from the documents.
    * - **output_schema** (dict, required): A JSON Schema object describing the
@@ -162,9 +409,20 @@ export class Sources extends APIResource {
    *
    * - `structured_output` — the validated structured object.
    * - `raw_json` — the raw JSON text produced by the model before validation.
+   * - `folders` — the folders the scope was resolved from (`null` without
+   *   `folders`).
+   *
+   * When `folders` is not empty and the answer carries no `folders`, the API did
+   * not apply the scope, and the call throws `FolderScopeNotAppliedError`. A
+   * failure after the answer has started streaming throws its status error. The
+   * checks run on `await` and `.withResponse()`; `.asResponse()` returns the raw
+   * response unchecked.
    *
    * **Error responses:**
    *
+   * - `400` — `chat.folder_scope_empty`: a folder in `folders` holds no source.
+   * - `422` — Invalid input.
+   * - `503` — Temporarily unavailable.
    * - `500` — Unexpected internal error during extraction.
    *
    * @example
@@ -177,7 +435,13 @@ export class Sources extends APIResource {
    * ```
    */
   extract(body: SourceExtractParams, options?: RequestOptions): APIPromise<SourceExtractResponse> {
-    return this._client.post('/sources/run-extraction', { body, ...options });
+    try {
+      checkFoldersType(body);
+    } catch (error) {
+      return refused(this._client, error);
+    }
+    const request = this._client.post<SourceExtractResponse>('/sources/run-extraction', { body, ...options });
+    return hasFolders(body) ? request._thenUnwrap(checkScoped<SourceExtractResponse>(this._client)) : request;
   }
 
   /**
@@ -398,6 +662,17 @@ export class Sources extends APIResource {
    * - **indexing** (`form`, optional): `full` (default) or `none`. `none` skips
    *   chunking/embedding/indexing — the source is parsed but not searchable via
    *   ask/extract/retrieve. Check `GET /v2/sources/config` for availability.
+   * - **folder** (`form`, optional): The folder to store the source in, a
+   *   `/`-separated path such as `Contracts/2026`; `""`, `"/"` or omitted is the
+   *   top level. A folder that does not exist is created. An invalid path answers
+   *   `400`. Names stay unique in the project whatever the folder: a second
+   *   `README.md` is stored as `README (1).md`.
+   *
+   * Above the direct upload limit, the upload session must echo the `folder`;
+   * when it does not, or when the API does not offer upload sessions (and so does
+   * not support folders), the call throws `FolderScopeNotAppliedError` before
+   * sending the file. A direct upload is not checked: list the folder to confirm
+   * where the source landed.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`. Use it to check processing
    * status.
@@ -443,6 +718,11 @@ export class Sources extends APIResource {
    *
    * - **url** (str, required): The GitHub repository URL to ingest (e.g.
    *   `https://github.com/owner/repo`).
+   * - **folder** (str, optional): The folder to store the source in, a
+   *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
+   *   A folder that does not exist is created. When omitted (or `null`), a new
+   *   source goes to the top level and a source that replaces one of the same name
+   *   keeps that source's folder.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`.
    *
@@ -482,6 +762,11 @@ export class Sources extends APIResource {
    * - **method** (str, optional): The partitioning strategy to use. One of: `fast`,
    *   `balanced`, `accurate`, `vlm`, `agentic`, `auto`. When omitted the system
    *   default is applied.
+   * - **folder** (str, optional): The folder to store the source in, a
+   *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
+   *   A folder that does not exist is created. When omitted (or `null`), a new
+   *   source goes to the top level and a source that replaces one of the same name
+   *   keeps that source's folder.
    *
    * **Returns** a `PublicSourceResponse` with `status: "processing"` immediately.
    * Poll the source status endpoint using the returned `file_id` to track
@@ -514,6 +799,11 @@ export class Sources extends APIResource {
    *
    * - **url** (str, required): The YouTube video URL to ingest (e.g.
    *   `https://www.youtube.com/watch?v=...`).
+   * - **folder** (str, optional): The folder to store the source in, a
+   *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
+   *   A folder that does not exist is created. When omitted (or `null`), a new
+   *   source goes to the top level and a source that replaces one of the same name
+   *   keeps that source's folder.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`.
    *
@@ -574,6 +864,13 @@ export class Sources extends APIResource {
    *   source file IDs.
    * - **file_names** (list[str], optional — deprecated): Restrict retrieval to
    *   specific source file names. Use `file_ids` when possible.
+   * - **folders** (list[str], optional): Restrict the scope to every source at or
+   *   below each folder, read when the request arrives, together with any
+   *   `file_ids`. An empty list is no folder scope: when you build the list in
+   *   code, check it is not empty. A folder that holds no source refuses the call
+   *   (`400` `chat.folder_scope_empty`); the top level, an invalid path, or
+   *   `folders` together with `file_names` answers `422`. A value that is not an
+   *   array is refused with `GraphorError` before anything is sent.
    *
    * **Returns** a `PublicRetrieveResponse` containing:
    *
@@ -581,9 +878,19 @@ export class Sources extends APIResource {
    * - `chunks` — a list of `PublicRetrieveChunk` objects, each with `text`,
    *   `file_name`, `page_number`, `score`, and additional `metadata`.
    * - `total` — the total number of chunks returned.
+   * - `folders` — the folders the scope was resolved from (`null` without
+   *   `folders`).
+   *
+   * When `folders` is not empty and the answer carries no `folders`, the API did
+   * not apply the scope, and the call throws `FolderScopeNotAppliedError`. The
+   * check runs on `await` and `.withResponse()`; `.asResponse()` returns the raw
+   * response unchecked.
    *
    * **Error responses:**
    *
+   * - `400` — `chat.folder_scope_empty`: a folder in `folders` holds no source.
+   * - `422` — Invalid input.
+   * - `503` — Temporarily unavailable.
    * - `500` — Unexpected internal error during retrieval.
    *
    * @example
@@ -597,8 +904,24 @@ export class Sources extends APIResource {
     body: SourceRetrieveChunksParams,
     options?: RequestOptions,
   ): APIPromise<SourceRetrieveChunksResponse> {
-    return this._client.post('/sources/prebuilt-rag', { body, ...options });
+    try {
+      checkFoldersType(body);
+    } catch (error) {
+      return refused(this._client, error);
+    }
+    const request = this._client.post<SourceRetrieveChunksResponse>('/sources/prebuilt-rag', {
+      body,
+      ...options,
+    });
+    return hasFolders(body) ?
+        request._thenUnwrap(checkScoped<SourceRetrieveChunksResponse>(this._client))
+      : request;
   }
+}
+
+/** Whether a scope names at least one folder; an empty list is no folder scope. */
+function hasFolders(body: { folders?: Array<string> | null }): boolean {
+  return Array.isArray(body?.folders) && body.folders.length > 0;
 }
 
 /**
@@ -765,6 +1088,13 @@ export interface PublicSource {
   file_id?: string | null;
 
   /**
+   * The folder the source is in, a `/`-separated path; `""` is the top level. The
+   * API always sends it; a source without it comes from a server that does not
+   * know folders.
+   */
+  folder?: string;
+
+  /**
    * Partitioning strategy used during ingestion. V1 API: basic, hi_res, hi_res_ft,
    * mai, graphorlm, auto. V2 API: fast, balanced, accurate, agentic, auto.
    */
@@ -838,6 +1168,12 @@ export interface SourceAskResponse {
    * Wall-clock time in seconds for the request.
    */
   elapsed_s?: number | null;
+
+  /**
+   * The folders the scope was resolved from, normalized and de-duplicated; `null`
+   * when the request named no folder.
+   */
+  folders?: Array<string> | null;
 
   /**
    * Optional raw JSON-text produced by the sources model before
@@ -937,6 +1273,12 @@ export interface SourceExtractResponse {
    * List of file IDs used for extraction
    */
   file_ids?: Array<string> | null;
+
+  /**
+   * The folders the scope was resolved from, normalized and de-duplicated; `null`
+   * when the request named no folder.
+   */
+  folders?: Array<string> | null;
 
   /**
    * Raw JSON-text produced by the model before validation/correction.
@@ -1293,6 +1635,12 @@ export interface SourceRetrieveChunksResponse {
   chunks?: Array<SourceRetrieveChunksResponse.Chunk>;
 
   /**
+   * The folders the scope was resolved from, normalized and de-duplicated; `null`
+   * when the request named no folder.
+   */
+  folders?: Array<string> | null;
+
+  /**
    * Present only when the result needs explaining — e.g. every source in scope was
    * ingested with indexing=none, so an empty chunk list means 'nothing is indexed',
    * not 'nothing matched'.
@@ -1334,12 +1682,184 @@ export namespace SourceRetrieveChunksResponse {
   }
 }
 
+/**
+ * A folder of the project.
+ */
+export interface Folder {
+  /**
+   * The folder's path, `/`-separated
+   */
+  folder: string;
+}
+
+/**
+ * Every folder of the project, with the folders above them, sorted.
+ */
+export interface SourceListFoldersResponse {
+  /**
+   * Folders created empty, folders that hold sources and folders uploads are on
+   * their way to, with every folder above them
+   */
+  folders: Array<Folder>;
+
+  /**
+   * True when the project has more folders than this answer lists (at most 10,000)
+   */
+  truncated: boolean;
+}
+
+export interface SourceCreateFolderResponse {
+  /**
+   * The folder's normalized path
+   */
+  folder: string;
+
+  /**
+   * False when the folder already existed
+   */
+  created: boolean;
+}
+
+export interface SourceRenameFolderResponse {
+  /**
+   * The folder's former path
+   */
+  folder: string;
+
+  /**
+   * Its new path
+   */
+  new_folder: string;
+
+  /**
+   * Sources moved
+   */
+  moved: number;
+}
+
+export interface SourceRemoveFolderResponse {
+  /**
+   * The removed folder's path
+   */
+  folder: string;
+
+  /**
+   * Where its content went; `""` is the top level
+   */
+  parent: string;
+
+  /**
+   * Sources moved
+   */
+  moved: number;
+}
+
+export interface SourceDeleteFolderResponse {
+  /**
+   * The deleted folder's path
+   */
+  folder: string;
+
+  /**
+   * Folders removed: the folder and its empty subfolders
+   */
+  deleted: number;
+}
+
+export interface SourceMoveResponse {
+  /**
+   * The target folder; `""` is the top level
+   */
+  folder: string;
+
+  /**
+   * Sources moved
+   */
+  moved: number;
+
+  /**
+   * Ids that matched no source of the project
+   */
+  not_found: Array<string>;
+}
+
 export interface SourceListParams {
   /**
-   * Optional list of file_id to filter by (only these sources are returned). Repeat
-   * the param for multiple IDs.
+   * Optional list of file_id to filter by (only these sources are returned).
    */
   file_ids?: Array<string> | null;
+
+  /**
+   * Only the sources in this folder, a `/`-separated path, and (with `recursive`,
+   * the default) in the folders below it. A value made only of spaces and `/`
+   * (`""`, `"/"`) lists only the sources at the top level.
+   */
+  folder?: string;
+
+  /**
+   * With `folder`, `false` lists only the sources directly in it (default
+   * `true`). Without `folder`, `false` lists only the sources at the top level.
+   */
+  recursive?: boolean;
+}
+
+export interface SourceCreateFolderParams {
+  /**
+   * The folder's path, `/`-separated (for example `Contracts/2026`); the folders
+   * above it are created too. Not the top level.
+   */
+  folder: string;
+}
+
+export interface SourceRenameFolderParams {
+  /**
+   * The folder to rename
+   */
+  folder: string;
+
+  /**
+   * Its new path; it may sit under another folder
+   */
+  new_folder: string;
+
+  /**
+   * Merge into `new_folder` when it already exists, instead of answering `409`
+   * `folder.exists` (default `false`)
+   */
+  merge?: boolean;
+}
+
+export interface SourceRemoveFolderParams {
+  /**
+   * The folder to remove
+   */
+  folder: string;
+
+  /**
+   * Merge a subfolder into a folder of the same name above it, instead of
+   * answering `409` `folder.exists` (default `false`)
+   */
+  merge?: boolean;
+}
+
+export interface SourceDeleteFolderParams {
+  /**
+   * The folder to delete; it must hold no source
+   */
+  folder: string;
+}
+
+export interface SourceMoveParams {
+  /**
+   * The sources to move (1 to 1,000)
+   */
+  file_ids: Array<string>;
+
+  /**
+   * The target folder, `/`-separated; `""` or `"/"` is the top level. A folder
+   * that does not exist is created.
+   */
+  folder: string;
 }
 
 export interface SourceDeleteParams {
@@ -1375,6 +1895,13 @@ export interface SourceAskParams {
    * file_ids)
    */
   file_names?: Array<string> | null;
+
+  /**
+   * Optional list of folders (at most 1,000) to restrict the scope to: each covers
+   * every source at or below it, together with any `file_ids`. An empty list is
+   * no folder scope. Not together with `file_names`.
+   */
+  folders?: Array<string> | null;
 
   /**
    * When true, the response's `citations` entries are populated with a
@@ -1435,6 +1962,13 @@ export interface SourceExtractParams {
    * List of file names to extract from (deprecated, use file_ids)
    */
   file_names?: Array<string> | null;
+
+  /**
+   * Optional list of folders (at most 1,000) to restrict the scope to: each covers
+   * every source at or below it, together with any `file_ids`. An empty list is
+   * no folder scope. Not together with `file_names`.
+   */
+  folders?: Array<string> | null;
 
   /**
    * Controls model and thinking budget: 'fast' (premium output speed), 'balanced',
@@ -1524,6 +2058,13 @@ export interface SourceIngestFileParams {
   file: Uploadable;
 
   /**
+   * Folder to store the source in, as a `/`-separated path (for example
+   * `Contracts/2026`); `""`, `"/"` or omitted is the top level. A folder that does
+   * not exist is created.
+   */
+  folder?: string;
+
+  /**
    * LLM enrichment level: 'full' (default) or 'none' to skip page/section/document
    * annotation for faster parsing.
    */
@@ -1557,6 +2098,15 @@ export interface SourceIngestGitHubParams {
   url: string;
 
   /**
+   * Folder to store the source in, as a `/`-separated path (for example
+   * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
+   * exist is created. When omitted or `null`, a new source goes to the top level
+   * and a source that replaces an existing one of the same name keeps that
+   * source's folder.
+   */
+  folder?: string | null;
+
+  /**
    * LLM enrichment level. `full` (default) runs page/section and document
    * annotation; `none` returns parsing results only and is faster, at the cost of
    * weaker retrieval context.
@@ -1582,6 +2132,15 @@ export interface SourceIngestURLParams {
    * When true, also follows and ingests links found on the page
    */
   crawlUrls?: boolean;
+
+  /**
+   * Folder to store the source in, as a `/`-separated path (for example
+   * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
+   * exist is created. When omitted or `null`, a new source goes to the top level
+   * and a source that replaces an existing one of the same name keeps that
+   * source's folder.
+   */
+  folder?: string | null;
 
   /**
    * LLM enrichment level. `full` (default) runs page/section and document
@@ -1618,6 +2177,15 @@ export interface SourceIngestYoutubeParams {
    * https://www.youtube.com/watch?v=dQw4w9WgXcQ)
    */
   url: string;
+
+  /**
+   * Folder to store the source in, as a `/`-separated path (for example
+   * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
+   * exist is created. When omitted or `null`, a new source goes to the top level
+   * and a source that replaces an existing one of the same name keeps that
+   * source's folder.
+   */
+  folder?: string | null;
 
   /**
    * LLM enrichment level. `full` (default) runs page/section and document
@@ -1678,11 +2246,19 @@ export interface SourceRetrieveChunksParams {
    * file_ids)
    */
   file_names?: Array<string> | null;
+
+  /**
+   * Optional list of folders (at most 1,000) to restrict the scope to: each covers
+   * every source at or below it, together with any `file_ids`. An empty list is
+   * no folder scope. Not together with `file_names`.
+   */
+  folders?: Array<string> | null;
 }
 
 export declare namespace Sources {
   export {
     type Element as Element,
+    type Folder as Folder,
     type Method as Method,
     type PublicSource as PublicSource,
     type SourceListResponse as SourceListResponse,
@@ -1699,6 +2275,12 @@ export declare namespace Sources {
     type SourceIngestYoutubeResponse as SourceIngestYoutubeResponse,
     type SourceReprocessResponse as SourceReprocessResponse,
     type SourceRetrieveChunksResponse as SourceRetrieveChunksResponse,
+    type SourceListFoldersResponse as SourceListFoldersResponse,
+    type SourceCreateFolderResponse as SourceCreateFolderResponse,
+    type SourceRenameFolderResponse as SourceRenameFolderResponse,
+    type SourceRemoveFolderResponse as SourceRemoveFolderResponse,
+    type SourceDeleteFolderResponse as SourceDeleteFolderResponse,
+    type SourceMoveResponse as SourceMoveResponse,
     type SourceListParams as SourceListParams,
     type SourceDeleteParams as SourceDeleteParams,
     type SourceAskParams as SourceAskParams,
@@ -1713,5 +2295,10 @@ export declare namespace Sources {
     type SourceIngestYoutubeParams as SourceIngestYoutubeParams,
     type SourceReprocessParams as SourceReprocessParams,
     type SourceRetrieveChunksParams as SourceRetrieveChunksParams,
+    type SourceCreateFolderParams as SourceCreateFolderParams,
+    type SourceRenameFolderParams as SourceRenameFolderParams,
+    type SourceRemoveFolderParams as SourceRemoveFolderParams,
+    type SourceDeleteFolderParams as SourceDeleteFolderParams,
+    type SourceMoveParams as SourceMoveParams,
   };
 }

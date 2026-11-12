@@ -2,7 +2,12 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import Graphor, { NotFoundError, UnprocessableEntityError, UploadError } from 'graphor';
+import Graphor, {
+  FolderScopeNotAppliedError,
+  NotFoundError,
+  UnprocessableEntityError,
+  UploadError,
+} from 'graphor';
 import { limits, UPLOAD_MAX_ATTEMPTS } from 'graphor/internal/large-upload';
 
 const KIB = 1024;
@@ -15,6 +20,9 @@ type Put = { start: number; end: number; body: Uint8Array };
 class FakeServer {
   createStatus = 201;
   createBody: unknown = undefined;
+  /** Extra fields of the session answer, such as the `folder` echo. */
+  sessionExtra: Record<string, unknown> = {};
+  directForms: FormData[] = [];
   chunkSize = CHUNK;
   uploadUrl = UPLOAD_URL;
   stored: number[] = [];
@@ -43,6 +51,7 @@ class FakeServer {
         upload_url: this.uploadUrl,
         chunk_size: this.chunkSize,
         expires_at: '2030-01-01T00:00:00Z',
+        ...this.sessionExtra,
       });
     }
     if (url.endsWith('/upload-sessions/complete')) {
@@ -52,7 +61,13 @@ class FakeServer {
     }
     if (url.endsWith('/sources/ingest-file')) {
       // Read the multipart body, as a real server does, so a broken stream shows.
-      await new Response(init.body).arrayBuffer();
+      const request = new Request('https://api.example.test/form', {
+        method: 'POST',
+        body: init.body,
+        headers: init.headers,
+        duplex: 'half',
+      } as any);
+      this.directForms.push(await request.formData());
       this.directCalls += 1;
       return json(200, { build_id: 'direct', success: true });
     }
@@ -464,5 +479,130 @@ describe('review fixes', () => {
     await expect(client(server).sources.ingestFile({ file: stream })).rejects.toBeInstanceOf(UploadError);
     expect(stream.destroyed).toBe(true);
     fs.rmSync(dir, { recursive: true });
+  });
+});
+
+describe('folders', () => {
+  test('the session create body carries the folder, and its echo is accepted', async () => {
+    server.sessionExtra = { folder: 'Contracts/2026' };
+    const result = await client(server).sources.ingestFile({
+      file: new File([data()], 'a.pdf'),
+      folder: 'Contracts/2026',
+    });
+    expect(result.build_id).toBe('bid');
+    expect(server.createCalls[0]).toEqual({
+      file_name: 'a.pdf',
+      file_size: 600 * KIB,
+      folder: 'Contracts/2026',
+    });
+  });
+
+  test.each(['/', ' ', ''])('folder %j with an echo of "" uploads normally', async (folder) => {
+    server.sessionExtra = { folder: '' };
+    const result = await client(server).sources.ingestFile({ file: new File([data()], 'a.pdf'), folder });
+    expect(result.build_id).toBe('bid');
+    expect(server.createCalls[0].folder).toBe(folder);
+    expect(server.finished).toBe(true);
+  });
+
+  test.each([
+    ['above the fallback limit', 600 * KIB],
+    ['between the direct and the fallback limits', 150 * KIB],
+  ])('a session without the folder echo throws before any byte is sent, %s', async (_, size) => {
+    const error = await client(server)
+      .sources.ingestFile({ file: new File([data(size)], 'a.pdf'), folder: 'Contracts' })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(FolderScopeNotAppliedError);
+    expect(error.parameter).toBe('folder');
+    expect(puts(server)).toEqual([]);
+    expect(server.directCalls).toBe(0);
+    expect(server.completeBodies).toEqual([]);
+  });
+
+  test('a null echo is not a folder', async () => {
+    server.sessionExtra = { folder: null };
+    await expect(
+      client(server).sources.ingestFile({ file: new File([data()], 'a.pdf'), folder: '' }),
+    ).rejects.toBeInstanceOf(FolderScopeNotAppliedError);
+    expect(puts(server)).toEqual([]);
+  });
+
+  test('without a folder, a session without the echo uploads as before', async () => {
+    const result = await client(server).sources.ingestFile({ file: new File([data()], 'a.pdf') });
+    expect(result.build_id).toBe('bid');
+    expect('folder' in server.createCalls[0]).toBe(false);
+  });
+
+  test('a read stream with a folder that gets no echo is released', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'graphor-upload-'));
+    const file = path.join(dir, 'big.pdf');
+    fs.writeFileSync(file, data());
+    const stream = fs.createReadStream(file);
+    await expect(
+      client(server).sources.ingestFile({ file: stream, folder: 'Contracts' }),
+    ).rejects.toBeInstanceOf(FolderScopeNotAppliedError);
+    expect(stream.destroyed).toBe(true);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test.each([
+    ['above the fallback limit', 600 * KIB],
+    ['between the direct and the fallback limits', 150 * KIB],
+  ])('an API without sessions gets no byte of a file with a folder, %s', async (_, size) => {
+    server.createStatus = 404;
+    server.createBody = { detail: 'Not Found' };
+    for (const folder of ['Contracts', '']) {
+      const error = await client(server)
+        .sources.ingestFile({ file: new File([data(size)], 'a.pdf'), folder })
+        .catch((e) => e);
+      expect(error).toBeInstanceOf(FolderScopeNotAppliedError);
+      expect(error.parameter).toBe('folder');
+    }
+    expect(server.directCalls).toBe(0);
+    expect(puts(server)).toEqual([]);
+  });
+
+  test('a read stream with a folder is released when the API has no sessions', async () => {
+    server.createStatus = 404;
+    server.createBody = { detail: 'Not Found' };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'graphor-upload-'));
+    const file = path.join(dir, 'big.pdf');
+    fs.writeFileSync(file, data());
+    const stream = fs.createReadStream(file);
+    await expect(
+      client(server).sources.ingestFile({ file: stream, folder: 'Contracts' }),
+    ).rejects.toBeInstanceOf(FolderScopeNotAppliedError);
+    expect(stream.destroyed).toBe(true);
+    expect(server.directCalls).toBe(0);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test('another 404 with a folder is thrown as it is', async () => {
+    server.createStatus = 404;
+    server.createBody = { detail: 'Project not found', code: 'project.not_found' };
+    await expect(
+      client(server).sources.ingestFile({ file: new File([data()], 'a.pdf'), folder: 'Contracts' }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(server.directCalls).toBe(0);
+  });
+
+  test('the direct fallback carries the folder', async () => {
+    server.createStatus = 501;
+    const result = await client(server).sources.ingestFile({
+      file: new File([data(150 * KIB)], 'a.pdf'),
+      folder: 'Contracts',
+    });
+    expect(result.build_id).toBe('direct');
+    expect(server.directForms[0]!.get('folder')).toBe('Contracts');
+  });
+
+  test.each(['Contracts', ''])('a small file sends folder %j in the form', async (folder) => {
+    await client(server).sources.ingestFile({ file: new File([data(50 * KIB)], 'a.pdf'), folder });
+    expect(server.directForms[0]!.get('folder')).toBe(folder);
+  });
+
+  test('a small file without a folder sends none', async () => {
+    await client(server).sources.ingestFile({ file: new File([data(50 * KIB)], 'a.pdf') });
+    expect(server.directForms[0]!.has('folder')).toBe(false);
   });
 });

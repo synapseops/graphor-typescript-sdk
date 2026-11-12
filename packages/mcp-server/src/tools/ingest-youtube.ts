@@ -1,5 +1,6 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
+import { FOLDER_DESCRIPTION } from '../folders';
 
 const tool: McpTool = {
   metadata: {
@@ -24,6 +25,14 @@ const tool: McpTool = {
           type: 'string',
           description: 'The YouTube video URL to ingest (e.g. https://www.youtube.com/watch?v=...).',
         },
+        folder: {
+          type: 'string',
+          description:
+            'Folder to store the source in. ' +
+            FOLDER_DESCRIPTION +
+            ' When omitted, a new source goes to the top level and a source that replaces one of the same name ' +
+            'keeps that source\'s folder; "" puts it at the top level.',
+        },
         enrichment: {
           type: 'string',
           enum: ['full', 'none'],
@@ -45,6 +54,10 @@ const tool: McpTool = {
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
     const params: Graphor.SourceIngestYoutubeParams = { url: args['url'] as string };
+    if (args['folder'] != null) {
+      // Passed as given: "" (the top level) and an omitted folder differ on a refresh.
+      params.folder = args['folder'] as string;
+    }
     if (args['enrichment'] != null) {
       params.enrichment = args['enrichment'] as string;
     }

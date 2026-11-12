@@ -4,6 +4,30 @@ import { castToError } from '../internal/errors';
 
 export class GraphorError extends Error {}
 
+/**
+ * Thrown instead of returning a result when the API did not apply a folder
+ * filter or scope that the call sent, or does not offer a folder method.
+ *
+ * The SDK refuses such a result because it would cover more sources than
+ * asked for (a list of the whole project, an answer drawn from every source).
+ * `parameter` names what was not applied: `folder`, `recursive`, `folders`, or
+ * the folder route. It is never retried.
+ *
+ * For `ask`, the API has already answered: the turn was recorded in its
+ * conversation (`conversationId`, when the answer carried one). Repeat the
+ * question with `reset: true` or without a `conversation_id`.
+ */
+export class FolderScopeNotAppliedError extends GraphorError {
+  readonly parameter: string;
+  readonly conversationId: string | undefined;
+
+  constructor(parameter: string, message: string, { conversationId }: { conversationId?: string } = {}) {
+    super(message);
+    this.parameter = parameter;
+    this.conversationId = conversationId;
+  }
+}
+
 export class APIError<
   TStatus extends number | undefined = number | undefined,
   THeaders extends Headers | undefined = Headers | undefined,

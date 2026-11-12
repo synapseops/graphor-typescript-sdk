@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.25.0 (Unreleased)
+
+### Features
+
+* folders: a source can sit in a folder, a `/`-separated path such as `Contracts/2026` (`""` is the top level). Every `PublicSource` carries its `folder`.
+* new `sources.listFolders()`, `sources.createFolder()`, `sources.renameFolder()`, `sources.removeFolder()`, `sources.deleteFolder()` and `sources.move()`. `renameFolder`, `removeFolder` and `deleteFolder` never retry on their own, whatever `maxRetries` says: after a failure the change may have been saved, so read `listFolders()` before repeating one of them.
+* `sources.list()` takes `folder` and `recursive`. A folder lists it and everything below it, `recursive: false` lists only the folder itself, and `""` or `"/"` lists only the sources at the top level.
+* `sources.ingestFile()`, `ingestURL()`, `ingestGitHub()` and `ingestYoutube()` take `folder`. On a link that replaces a source of the same name, an omitted `folder` keeps that source's folder and `""` moves it to the top level.
+* `sources.ask()`, `extract()` and `retrieveChunks()` take `folders`, which scopes the call to every source at or below each folder, together with any `file_ids`; their answers echo the `folders` applied. An empty list is no folder scope. `extract()` accepts `folders` alone.
+* new `FolderScopeNotAppliedError`: when the API does not apply a folder filter or scope that a call sent, or does not offer a folder method, the SDK throws it instead of returning a result that may cover the whole project. A large upload with a `folder` checks the upload session before sending the file, and never falls back to a single request on an API without upload sessions. The checks run on `await` and `.withResponse()`, not on `.asResponse()`.
+* `ask()` and `extract()` with `folders`: a failure the API streams after the answer has started throws its status error.
+* MCP: new `list_folders`, `create_folder` and `move_sources` tools; `list_sources` takes `folder` and `recursive`, the ingest tools take `folder`, and `ask`, `extract` and `retrieve_chunks` take `folders`. A folder parameter the API did not apply returns an error to the model instead of a result.
+
 ## 0.24.2 (2026-11-09)
 
 Full Changelog: [v0.24.1...v0.24.2](https://github.com/synapseops/graphor-typescript-sdk/compare/v0.24.1...v0.24.2)

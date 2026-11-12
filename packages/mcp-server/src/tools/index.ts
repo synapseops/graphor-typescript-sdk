@@ -14,6 +14,9 @@ import reprocessTool from './reprocess';
 import getElementsTool from './get-elements';
 import indexBuildTool from './index-build';
 import getPageScreenshotTool from './get-page-screenshot';
+import listFoldersTool from './list-folders';
+import createFolderTool from './create-folder';
+import moveSourcesTool from './move-sources';
 
 export {
   askTool,
@@ -30,6 +33,9 @@ export {
   getElementsTool,
   indexBuildTool,
   getPageScreenshotTool,
+  listFoldersTool,
+  createFolderTool,
+  moveSourcesTool,
 };
 
 export const allTools: McpTool[] = [
@@ -47,4 +53,7 @@ export const allTools: McpTool[] = [
   getElementsTool,
   indexBuildTool,
   getPageScreenshotTool,
+  listFoldersTool,
+  createFolderTool,
+  moveSourcesTool,
 ];

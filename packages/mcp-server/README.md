@@ -67,22 +67,29 @@ environment variables in Claude Code's `.claude.json`, which can be found in you
 claude mcp add graphor_mcp_api --env GRAPHOR_API_KEY="My API Key" -- npx -y graphor-mcp
 ```
 
-## Code Mode
+## Tools
 
-This MCP server is built on the "Code Mode" tool scheme. In this MCP Server,
-your agent will write code against the TypeScript SDK, which will then be executed in an
-isolated sandbox. To accomplish this, the server will expose two tools to your agent:
+| Tool                  | Description                                                                 |
+| --------------------- | --------------------------------------------------------------------------- |
+| `ask`                 | Ask questions grounded on ingested sources, with citations                  |
+| `extract`             | Extract structured data using JSON Schema                                   |
+| `retrieve_chunks`     | Semantic search for relevant chunks                                         |
+| `ingest_file`         | Upload a local file (async, returns a `build_id`)                           |
+| `ingest_url`          | Ingest a web page (async, returns a `build_id`)                             |
+| `ingest_github`       | Ingest a GitHub repository (async, returns a `build_id`)                    |
+| `ingest_youtube`      | Ingest a YouTube video (async, returns a `build_id`)                        |
+| `get_build_status`    | Poll an ingestion build                                                     |
+| `list_sources`        | List ingested sources, or the sources of one folder                         |
+| `delete_source`       | Delete a source                                                             |
+| `reprocess`           | Re-process a source with a different strategy (async, returns a `build_id`) |
+| `get_elements`        | Get parsed elements of a source                                             |
+| `index_build`         | Index an existing build without re-parsing                                  |
+| `get_page_screenshot` | Render a page of a source as a PNG image                                    |
+| `list_folders`        | List the folders of the project                                             |
+| `create_folder`       | Create an empty folder                                                      |
+| `move_sources`        | Move sources to a folder                                                    |
 
-- The first tool is a docs search tool, which can be used to generically query for
-  documentation about your API/SDK.
-
-- The second tool is a code tool, where the agent can write code against the TypeScript SDK.
-  The code will be executed in a sandbox environment without web or filesystem access. Then,
-  anything the code returns or prints will be returned to the agent as the result of the
-  tool call.
-
-Using this scheme, agents are capable of performing very complex tasks deterministically
-and repeatably.
+A folder is a `/`-separated path such as `Contracts/2026`; `""` is the top level. The ingest tools take `folder`, `ask`, `extract` and `retrieve_chunks` take `folders` (every source at or below each folder; an empty list is no folder scope), and `list_sources` takes `folder` and `recursive` (`""` or `/` lists only the top level). Renaming, removing and deleting folders are not tools; use the SDK. When the API does not apply a folder parameter, the tool returns an error instead of a result that would cover the whole project.
 
 ## Remote Server
 

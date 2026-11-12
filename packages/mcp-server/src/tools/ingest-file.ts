@@ -1,5 +1,6 @@
 import { McpTool, asTextContentResult, asErrorResult } from '../types';
 import { Graphor, UploadError } from 'graphor';
+import { FOLDER_DESCRIPTION, withFolderCheck } from '../folders';
 
 /**
  * Try to dynamically import 'fs' and 'path' modules.
@@ -38,7 +39,7 @@ const tool: McpTool = {
       'Upload a local file and schedule ingestion in the background. ' +
       'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
       'and obtain the file_id for subsequent calls.\n\n' +
-      'If the project already has a source with the same name, the file is stored as "name (1).ext" ' +
+      'If the project already has a source with the same name, in any folder, the file is stored as "name (1).ext" ' +
       '(the lowest free number) and the existing source is not changed. To replace a source and keep its name, ' +
       'delete it with delete_source before uploading. Refer to the new source by the file_id from ' +
       'get_build_status, not by its name.\n\n' +
@@ -90,6 +91,10 @@ const tool: McpTool = {
             '- "agentic" — Agentic pipeline with the highest accuracy.\n' +
             '- "auto" — Classifies each page and routes it to the cheapest method that can read it (PDFs only).',
         },
+        folder: {
+          type: 'string',
+          description: 'Folder to store the source in; omitted or "" is the top level. ' + FOLDER_DESCRIPTION,
+        },
         enrichment: {
           type: 'string',
           enum: ['full', 'none'],
@@ -137,6 +142,9 @@ const tool: McpTool = {
     if (method != null) {
       params.method = method;
     }
+    if (args['folder'] != null) {
+      params.folder = args['folder'] as string;
+    }
     if (args['enrichment'] != null) {
       params.enrichment = args['enrichment'] as string;
     }
@@ -145,8 +153,7 @@ const tool: McpTool = {
     }
 
     try {
-      const result = await client.sources.ingestFile(params);
-      return asTextContentResult(result);
+      return await withFolderCheck(async () => asTextContentResult(await client.sources.ingestFile(params)));
     } catch (error) {
       // The file may have been sent: give the agent the build to check.
       if (error instanceof UploadError && error.buildId) {

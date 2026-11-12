@@ -1,5 +1,6 @@
 import { McpTool, asTextContentResult } from '../types';
 import { Graphor } from 'graphor';
+import { FOLDERS_SCOPE_DESCRIPTION, foldersInputError, withFolderCheck } from '../folders';
 
 const tool: McpTool = {
   metadata: {
@@ -35,19 +36,26 @@ const tool: McpTool = {
           description:
             'Restrict retrieval to specific source file names. Deprecated: names match exactly; prefer file_ids.',
         },
+        folders: {
+          type: 'array',
+          items: { type: 'string' },
+          description: FOLDERS_SCOPE_DESCRIPTION,
+        },
       },
       required: ['query'],
     },
   },
   handler: async (client: Graphor, args: Record<string, unknown> = {}) => {
+    const invalid = foldersInputError(args);
+    if (invalid) return invalid;
     const params: Graphor.SourceRetrieveChunksParams = {
       query: args['query'] as string,
       ...(args['file_ids'] != null && { file_ids: args['file_ids'] as string[] }),
       ...(args['file_names'] != null && { file_names: args['file_names'] as string[] }),
+      ...(args['folders'] != null && { folders: args['folders'] as string[] }),
     };
 
-    const result = await client.sources.retrieveChunks(params);
-    return asTextContentResult(result);
+    return withFolderCheck(async () => asTextContentResult(await client.sources.retrieveChunks(params)));
   },
 };
 
