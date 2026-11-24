@@ -489,7 +489,11 @@ export class Sources extends APIResource {
    *   "Completed with errors").
    * - **file_id**, **file_name**: Source identifiers; present when the build has
    *   been persisted (history exists).
-   * - **error**: Error message from the pipeline when the build failed.
+   * - **error**: Error message from the pipeline when the build failed. A URL,
+   *   GitHub or YouTube build whose link can't be fetched fails with the message
+   *   "This link can't be fetched. Check that it is a full, public web address,
+   *   then delete the source and add it again."; re-processing fails the same
+   *   way, so delete the source and ingest it again with a full, public link.
    * - **method**, **total_partitions**, **total_pages**: Build metadata when history
    *   exists.
    * - **created_at**, **updated_at**: ISO8601 timestamps when history exists.
@@ -726,6 +730,21 @@ export class Sources extends APIResource {
    *
    * **Returns** `AsyncIngestResponse` with `build_id`.
    *
+   * The URL is an `http://` or `https://` URL whose host is exactly one of
+   * `github.com`, `gist.github.com`, `gitlab.com`, `bitbucket.org`, `gitea.com` or
+   * `codeberg.org`, or the same link without the scheme (`github.com/owner/repo`),
+   * without a user name or password and without `.` or `..` path segments. Only
+   * public repositories are supported.
+   *
+   * **Error responses:**
+   *
+   * - `422` `request.invalid` — The URL (or the folder) is not valid. Nothing is
+   *   stored; correct it before sending again.
+   * - `500` — Unexpected internal error during GitHub source processing.
+   *
+   * A link that can't be fetched while it is processed fails the build; its
+   * `error` reads "This link can't be fetched. ..." (see `getBuildStatus`).
+   *
    * @example
    * ```ts
    * const response = await client.sources.ingestGitHub({
@@ -772,9 +791,27 @@ export class Sources extends APIResource {
    * Poll the source status endpoint using the returned `file_id` to track
    * completion.
    *
+   * The URL must be an absolute `http://` or `https://` URL with a host, without
+   * a user name or password, and without spaces, backslashes or control
+   * characters inside it (spaces at both ends are removed). Its host must resolve
+   * to public internet addresses. A file behind the URL is downloaded before the
+   * method returns: the same types as `ingestFile`, at most 50 MB, within 2
+   * minutes.
+   *
    * **Error responses:**
    *
    * - `400` — Unsupported file type detected from a file URL.
+   * - `400` `ingestion.invalid_link` — The link can't be fetched (its host is not
+   *   public or does not resolve), or its file could not be downloaded or took too
+   *   long to download. Not retried: use a public address, or download the file
+   *   and use `ingestFile`.
+   * - `413` `ingestion.file_too_large` — The file at the link is larger than 50 MB.
+   *   Not retried: use `ingestFile`.
+   * - `422` `request.invalid` — The URL (or the folder) is not valid. Nothing is
+   *   stored; correct it before sending again.
+   * - `503` `service.unavailable` — The link could not be checked right now, or too
+   *   many link downloads are running. Nothing is stored; safe to retry after
+   *   `Retry-After` (30 seconds).
    * - `500` — Unexpected internal error during URL processing.
    *
    * @example
@@ -806,6 +843,23 @@ export class Sources extends APIResource {
    *   keeps that source's folder.
    *
    * **Returns** `AsyncIngestResponse` with `build_id`.
+   *
+   * The URL is a link to one video on `youtube.com`, `www.youtube.com`,
+   * `m.youtube.com`, `music.youtube.com`, `youtu.be`, `youtube-nocookie.com` or
+   * `www.youtube-nocookie.com`, without a port, in one of the forms
+   * `/watch?v=ID` (exactly one `v`), `/embed/ID`, `/shorts/ID`, `/live/ID`,
+   * `/v/ID` or `youtu.be/ID`, where `ID` is the 11-character video id. A watch
+   * link with a `list` parameter ingests that one video; a `/playlist` page or a
+   * channel link is refused.
+   *
+   * **Error responses:**
+   *
+   * - `422` `request.invalid` — The URL (or the folder) is not valid. Nothing is
+   *   stored; correct it before sending again.
+   * - `500` — Unexpected internal error during YouTube source processing.
+   *
+   * A link that can't be fetched while it is processed fails the build; its
+   * `error` reads "This link can't be fetched. ..." (see `getBuildStatus`).
    *
    * @example
    * ```ts
