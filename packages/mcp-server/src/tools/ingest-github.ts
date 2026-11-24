@@ -17,7 +17,10 @@ const tool: McpTool = {
       'Clones the repository, extracts text-based files, partitions, generates embeddings, ' +
       'and persists everything in the knowledge graph.\n\n' +
       'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
-      'and obtain the file_id for subsequent calls.',
+      'and obtain the file_id for subsequent calls.\n\n' +
+      'Sending a link that is already a source refreshes that source: it keeps its file_id, and its previous ' +
+      'version stays in use until the new one is ready. A link that is already a source of another kind is ' +
+      'refused with source.link_kind_changed: delete the source and ingest the link again.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -30,8 +33,8 @@ const tool: McpTool = {
           description:
             'Folder to store the source in. ' +
             FOLDER_DESCRIPTION +
-            ' When omitted, a new source goes to the top level and a source that replaces one of the same name ' +
-            'keeps that source\'s folder; "" puts it at the top level.',
+            ' When omitted, a new source goes to the top level, and a link that is already a source keeps that ' +
+            'source\'s folder; "" puts it at the top level.',
         },
         enrichment: {
           type: 'string',

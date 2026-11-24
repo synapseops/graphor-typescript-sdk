@@ -514,6 +514,15 @@ export class Sources extends APIResource {
    *   a few minutes.
    * - `ingestion.method_unavailable` — The selected partition method can't read
    *   this source. Re-process it with another method.
+   * - `source.link_kind_changed` — The same new link was sent to two of
+   *   `ingestURL`, `ingestGitHub` and `ingestYoutube` at the same time, and the
+   *   other one created the source as its own kind. Use that source, or delete it
+   *   and add the link again.
+   *
+   * A link sent again keeps its source's `file_id`, so several builds can report
+   * the same `file_id`. The one requested last becomes the source's active
+   * version; an earlier build that finishes after it ends `Completed` with
+   * `searchable` `false`.
    *
    * See the error codes in the API docs:
    * https://docs.graphorlm.com/api-reference/sources/upload#get-build-status
@@ -643,7 +652,12 @@ export class Sources extends APIResource {
    *
    * Synchronous: the response arrives when indexing finishes. For large documents
    * the connection is kept alive with whitespace heartbeats — JSON parsers ignore
-   * them, no client change needed.
+   * them, no client change needed. A failure after the heartbeats started arrives
+   * in the response body, with its `detail` and `code`, instead of as an error.
+   *
+   * The chosen build becomes the source's latest version. When a newer version of
+   * the source is activated while this one is indexed, the answer is `409`
+   * `source.activation_superseded` (not retried) and this build is not activated.
    *
    * **Returns** `PublicIndexBuildResponse` with `chunks_indexed`.
    *
@@ -738,10 +752,16 @@ export class Sources extends APIResource {
    * - **folder** (str, optional): The folder to store the source in, a
    *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
    *   A folder that does not exist is created. When omitted (or `null`), a new
-   *   source goes to the top level and a source that replaces one of the same name
-   *   keeps that source's folder.
+   *   source goes to the top level, and a link that is already a source keeps that
+   *   source's folder.
    *
    * **Returns** a response with `build_id`; poll `getBuildStatus` with it.
+   *
+   * Sending a link that is already a source refreshes that source: it keeps its
+   * `file_id` (and its folder unless `folder` is given, which moves it there
+   * first), and its previous version stays in use until the new one is ready.
+   * When several builds of one source run, the one requested last becomes the
+   * active version.
    *
    * The URL is an `http://` or `https://` URL whose host is exactly one of
    * `github.com`, `gist.github.com`, `gitlab.com`, `bitbucket.org`, `gitea.com` or
@@ -754,8 +774,11 @@ export class Sources extends APIResource {
    * - `422` `request.invalid` — The URL is not a repository link on a supported
    *   git host, or the folder is not valid. Nothing is stored; correct it before
    *   sending again.
-   * - `503` `service.unavailable` — The folder could not be recorded and nothing
-   *   started; safe to retry.
+   * - `409` `source.link_kind_changed` — The link is already a source of another
+   *   kind. Nothing started; not retried: delete the source and add it again.
+   * - `503` `service.unavailable` — The folder could not be recorded, or the
+   *   source is being deleted, and nothing started; safe to retry after
+   *   `Retry-After`.
    * - `500` — Unexpected internal error during GitHub source processing.
    *
    * A link that can't be fetched while it is processed fails the build with
@@ -805,12 +828,19 @@ export class Sources extends APIResource {
    * - **folder** (str, optional): The folder to store the source in, a
    *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
    *   A folder that does not exist is created. When omitted (or `null`), a new
-   *   source goes to the top level and a source that replaces one of the same name
-   *   keeps that source's folder.
+   *   source goes to the top level, and a link that is already a source keeps that
+   *   source's folder.
    *
    * **Returns** a response with `build_id`. Poll `getBuildStatus` with it until
    * `success` is `true` or `status` is a failed status (e.g. `Processing
    * failed`); `status` is `not_found` until the build is recorded.
+   *
+   * Sending a web page link that is already a source refreshes that source: it
+   * keeps its `file_id` (and its folder unless `folder` is given, which moves it
+   * there first), and its previous version stays in use until the new one is
+   * ready. When several builds of one source run, the one requested last becomes
+   * the active version. A link to a file replaces the source, which gets a new
+   * `file_id`.
    *
    * The URL must be an absolute `http://` or `https://` URL with a host, without
    * a user name or password, and without spaces, backslashes or control
@@ -831,9 +861,14 @@ export class Sources extends APIResource {
    * - `422` `request.invalid` — The URL is not a full `http` or `https` web
    *   address (with a host and no user name or password), or the folder is not
    *   valid. Nothing is stored; correct it before sending again.
+   * - `409` `source.link_kind_changed` — The link is already a source of another
+   *   kind (added with `ingestGitHub` or `ingestYoutube`), or a web page source
+   *   whose link now serves a file. Nothing started; not retried: delete the
+   *   source and add it again.
    * - `503` `service.unavailable` — The link could not be checked right now, too
-   *   many link downloads are running, or the folder could not be recorded.
-   *   Nothing is stored; safe to retry after `Retry-After`.
+   *   many link downloads are running, the folder could not be recorded, or the
+   *   source is being deleted. Nothing is stored; safe to retry after
+   *   `Retry-After`.
    * - `500` — Unexpected internal error during URL processing.
    *
    * A link that can't be fetched while it is processed fails the build with
@@ -864,10 +899,16 @@ export class Sources extends APIResource {
    * - **folder** (str, optional): The folder to store the source in, a
    *   `/`-separated path such as `Contracts/2026`; `""` or `"/"` is the top level.
    *   A folder that does not exist is created. When omitted (or `null`), a new
-   *   source goes to the top level and a source that replaces one of the same name
-   *   keeps that source's folder.
+   *   source goes to the top level, and a link that is already a source keeps that
+   *   source's folder.
    *
    * **Returns** a response with `build_id`; poll `getBuildStatus` with it.
+   *
+   * Sending a link that is already a source refreshes that source: it keeps its
+   * `file_id` (and its folder unless `folder` is given, which moves it there
+   * first), and its previous version stays in use until the new one is ready.
+   * When several builds of one source run, the one requested last becomes the
+   * active version.
    *
    * The URL is a link to one video on `youtube.com`, `www.youtube.com`,
    * `m.youtube.com`, `music.youtube.com`, `youtu.be`, `youtube-nocookie.com` or
@@ -882,8 +923,11 @@ export class Sources extends APIResource {
    * - `422` `request.invalid` — The URL is not a YouTube video link (a YouTube
    *   or youtu.be address with an 11-character video id), or the folder is not
    *   valid. Nothing is stored; correct it before sending again.
-   * - `503` `service.unavailable` — The folder could not be recorded and nothing
-   *   started; safe to retry.
+   * - `409` `source.link_kind_changed` — The link is already a source of another
+   *   kind. Nothing started; not retried: delete the source and add it again.
+   * - `503` `service.unavailable` — The folder could not be recorded, or the
+   *   source is being deleted, and nothing started; safe to retry after
+   *   `Retry-After`.
    * - `500` — Unexpected internal error during YouTube source processing.
    *
    * A link that can't be fetched while it is processed fails the build with
@@ -1490,8 +1534,9 @@ export interface SourceGetBuildStatusResponse {
   /**
    * Whether this build's retrieval index is currently serving queries: the build
    * completed, was indexed (indexing=full), and is still the source's active build.
-   * False for unindexed, failed, in-progress, or superseded builds —
-   * ask/extract/retrieve will return nothing for those.
+   * False for unindexed, failed, in-progress, or superseded builds: ask, extract and
+   * retrieve do not use them (for a superseded build they use the source's newer
+   * active build).
    */
   searchable?: boolean | null;
 
@@ -2183,9 +2228,10 @@ export interface SourceIngestGitHubParams {
   /**
    * Folder to store the source in, as a `/`-separated path (for example
    * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
-   * exist is created. When omitted or `null`, a new source goes to the top level
-   * and a source that replaces an existing one of the same name keeps that
-   * source's folder.
+   * exist is created. When omitted or `null`, a new source goes to the top level.
+   * Sending a web page, GitHub or YouTube link that is already a source refreshes
+   * that source; it keeps its id and its folder unless `folder` is given. A link to
+   * a file replaces the source and gets a new id.
    */
   folder?: string | null;
 
@@ -2219,9 +2265,10 @@ export interface SourceIngestURLParams {
   /**
    * Folder to store the source in, as a `/`-separated path (for example
    * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
-   * exist is created. When omitted or `null`, a new source goes to the top level
-   * and a source that replaces an existing one of the same name keeps that
-   * source's folder.
+   * exist is created. When omitted or `null`, a new source goes to the top level.
+   * Sending a web page, GitHub or YouTube link that is already a source refreshes
+   * that source; it keeps its id and its folder unless `folder` is given. A link to
+   * a file replaces the source and gets a new id.
    */
   folder?: string | null;
 
@@ -2262,9 +2309,10 @@ export interface SourceIngestYoutubeParams {
   /**
    * Folder to store the source in, as a `/`-separated path (for example
    * `Contracts/2026`); `""` or `"/"` is the top level. A folder that does not
-   * exist is created. When omitted or `null`, a new source goes to the top level
-   * and a source that replaces an existing one of the same name keeps that
-   * source's folder.
+   * exist is created. When omitted or `null`, a new source goes to the top level.
+   * Sending a web page, GitHub or YouTube link that is already a source refreshes
+   * that source; it keeps its id and its folder unless `folder` is given. A link to
+   * a file replaces the source and gets a new id.
    */
   folder?: string | null;
 
