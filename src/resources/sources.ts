@@ -1110,15 +1110,13 @@ export interface Element {
 }
 
 /**
- * Public-facing partition method names for API v2.
+ * The processing method:
  *
- * Maps to internal PartitionMethod as:
- *
- * - fast → basic
- * - balanced → hi_res
- * - accurate → hi_res_ft
- * - agentic → graphorlm
- * - auto → auto
+ * - fast: heuristic parsing for clean text documents; transcription for audio, video and YouTube. The fastest.
+ * - balanced: OCR with a layout model; handles multi-column PDFs and mixed content.
+ * - accurate: fine-tuned models for forms, dense tables and specialized document types.
+ * - agentic: reads the page like a person; multi-page tables, diagrams and charts, with annotations for each image.
+ * - auto: classifies each page and runs the cheapest method that reads it correctly (PDF only).
  */
 export type Method = 'fast' | 'balanced' | 'accurate' | 'agentic' | 'auto';
 
@@ -1468,15 +1466,13 @@ export interface SourceGetBuildStatusResponse {
   message?: string | null;
 
   /**
-   * Public-facing partition method names for API v2.
+   * The processing method:
    *
-   * Maps to internal PartitionMethod as:
-   *
-   * - fast → basic
-   * - balanced → hi_res
-   * - accurate → hi_res_ft
-   * - agentic → graphorlm
-   * - auto → auto
+   * - fast: heuristic parsing for clean text documents; transcription for audio, video and YouTube. The fastest.
+   * - balanced: OCR with a layout model; handles multi-column PDFs and mixed content.
+   * - accurate: fine-tuned models for forms, dense tables and specialized document types.
+   * - agentic: reads the page like a person; multi-page tables, diagrams and charts, with annotations for each image.
+   * - auto: classifies each page and runs the cheapest method that reads it correctly (PDF only).
    */
   method?: Method | null;
 
@@ -2162,21 +2158,18 @@ export interface SourceIngestFileParams {
 
   /**
    * Retrieval indexing level: 'full' (default) or 'none' to skip
-   * chunking/embedding/indexing — the source is parsed but not searchable. Requires
-   * Temporal ingestion.
+   * chunking/embedding/indexing — the source is parsed but not searchable.
    */
   indexing?: string | null;
 
   /**
-   * Public-facing partition method names for API v2.
+   * The processing method:
    *
-   * Maps to internal PartitionMethod as:
-   *
-   * - fast → basic
-   * - balanced → hi_res
-   * - accurate → hi_res_ft
-   * - agentic → graphorlm
-   * - auto → auto
+   * - fast: heuristic parsing for clean text documents; transcription for audio, video and YouTube. The fastest.
+   * - balanced: OCR with a layout model; handles multi-column PDFs and mixed content.
+   * - accurate: fine-tuned models for forms, dense tables and specialized document types.
+   * - agentic: reads the page like a person; multi-page tables, diagrams and charts, with annotations for each image.
+   * - auto: classifies each page and runs the cheapest method that reads it correctly (PDF only).
    */
   method?: Method | null;
 }
@@ -2248,15 +2241,13 @@ export interface SourceIngestURLParams {
   indexing?: string | null;
 
   /**
-   * Public-facing partition method names for API v2.
+   * The processing method:
    *
-   * Maps to internal PartitionMethod as:
-   *
-   * - fast → basic
-   * - balanced → hi_res
-   * - accurate → hi_res_ft
-   * - agentic → graphorlm
-   * - auto → auto
+   * - fast: heuristic parsing for clean text documents; transcription for audio, video and YouTube. The fastest.
+   * - balanced: OCR with a layout model; handles multi-column PDFs and mixed content.
+   * - accurate: fine-tuned models for forms, dense tables and specialized document types.
+   * - agentic: reads the page like a person; multi-page tables, diagrams and charts, with annotations for each image.
+   * - auto: classifies each page and runs the cheapest method that reads it correctly (PDF only).
    */
   method?: Method | null;
 }
