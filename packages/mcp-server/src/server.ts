@@ -53,6 +53,8 @@ Use the \`retrieve_chunks\` tool to find relevant text chunks without generating
 
 All ingest tools return a \`build_id\` — poll \`get_build_status\` until completion.
 
+Ingesting a web page, GitHub or YouTube link that is already a source refreshes that source: its \`file_id\` stays the same, and its previous version stays in use until the new one is ready. A link to a file replaces the source, which gets a new \`file_id\`. A link that is already a source of another kind is refused with \`source.link_kind_changed\`: delete the source and ingest the link again.
+
 ### 5. Manage Documents
 
 - List all sources: \`list_sources\`

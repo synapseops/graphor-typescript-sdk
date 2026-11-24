@@ -17,7 +17,11 @@ const tool: McpTool = {
       'Returns a build_id immediately — use get_build_status to poll until processing completes ' +
       'and obtain the file_id for subsequent calls.\n\n' +
       'If the URL points directly to a downloadable file (detected via URL path extension or HTTP Content-Type), ' +
-      'the file is downloaded and then processed in the background.',
+      'the file is downloaded and then processed in the background.\n\n' +
+      'Sending a web page link that is already a source refreshes that source: it keeps its file_id, and its ' +
+      'previous version stays in use until the new one is ready. A link to a file replaces the source, which ' +
+      'gets a new file_id. A link that is already a source of another kind is refused with ' +
+      'source.link_kind_changed: delete the source and ingest the link again.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -47,8 +51,8 @@ const tool: McpTool = {
           description:
             'Folder to store the source in. ' +
             FOLDER_DESCRIPTION +
-            ' When omitted, a new source goes to the top level and a source that replaces one of the same name ' +
-            'keeps that source\'s folder; "" puts it at the top level.',
+            ' When omitted, a new source goes to the top level, and a link that is already a source keeps that ' +
+            'source\'s folder; "" puts it at the top level.',
         },
         enrichment: {
           type: 'string',
