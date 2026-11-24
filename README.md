@@ -214,9 +214,9 @@ for (const source of sources) {
   console.log(`${source.file_name}: ${source.status}`);
 }
 
-// Get document elements
-const elements = await client.sources.loadElements({
-  file_name: 'document.pdf',
+// Get document elements (the file_id comes from list() or getBuildStatus())
+const elements = await client.sources.getElements({
+  file_id: 'your-file-id',
   page: 1,
   page_size: 50,
 });
@@ -469,16 +469,16 @@ See the [MCP Server README](./packages/mcp-server/README.md) for more details.
 
 ### Sources
 
-| Method                    | Description                     | Docs                                                                    |
-| ------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
-| `sources.ingestFile()`    | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-a-file)       |
-| `sources.ingestURL()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-url)     |
-| `sources.ingestGitHub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-github)  |
-| `sources.ingestYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#upload-from-youtube) |
-| `sources.reprocess()`     | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)                    |
-| `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                       |
-| `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                     |
-| `sources.loadElements()`  | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)              |
+| Method                    | Description                     | Docs                                                               |
+| ------------------------- | ------------------------------- | ------------------------------------------------------------------ |
+| `sources.ingestFile()`    | Upload a local file             | [📖](https://docs.graphorlm.com/sdk/sources/upload#ingest-file)    |
+| `sources.ingestURL()`     | Upload from web URL             | [📖](https://docs.graphorlm.com/sdk/sources/upload#ingest-url)     |
+| `sources.ingestGitHub()`  | Upload from GitHub              | [📖](https://docs.graphorlm.com/sdk/sources/upload#ingest-github)  |
+| `sources.ingestYoutube()` | Upload from YouTube             | [📖](https://docs.graphorlm.com/sdk/sources/upload#ingest-youtube) |
+| `sources.reprocess()`     | Reprocess with different method | [📖](https://docs.graphorlm.com/sdk/sources/process)               |
+| `sources.list()`          | List all sources                | [📖](https://docs.graphorlm.com/sdk/sources/list)                  |
+| `sources.delete()`        | Delete a source                 | [📖](https://docs.graphorlm.com/sdk/sources/delete)                |
+| `sources.getElements()`   | Get parsed elements             | [📖](https://docs.graphorlm.com/sdk/sources/list-elements)         |
 
 ### Folders
 

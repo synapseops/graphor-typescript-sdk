@@ -23,7 +23,10 @@ const tool: McpTool = {
       '- **file_name** — display name of the source\n' +
       '- **status** — e.g. "Completed", "Processing", "Processing failed"\n\n' +
       'When the build is still in progress or the ID is not yet found, success is false and status is "not_found" or "Processing".\n\n' +
-      'Typical polling loop: call this tool every 2–5 seconds until success is true.',
+      'When the build failed (status "Processing failed"), `error` holds a message and `error_code` a machine-readable code when there is one, ' +
+      'e.g. "ingestion.invalid_link" (the link cannot be fetched: delete the source and add it again with a full, public link), ' +
+      '"ingestion.provider_unavailable" (reprocess in a few minutes) or "ingestion.method_unavailable" (reprocess with another method).\n\n' +
+      'Typical polling loop: call this tool every 2–5 seconds until success is true or the build failed.',
     inputSchema: {
       type: 'object',
       properties: {
